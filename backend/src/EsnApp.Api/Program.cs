@@ -54,7 +54,7 @@ app.UseMiddleware<ExceptionHandlingMiddleware>();
 app.UseSwagger();
 app.UseSwaggerUI();
 
-app.UseCors("Frontend");
+if (app.Environment.IsDevelopment()) app.UseCors("Frontend");
 
 app.UseAuthentication();
 app.UseAuthorization();
