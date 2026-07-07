@@ -1,0 +1,32 @@
+name: Request Copilot Review
+
+# Ensures GitHub Copilot is automatically asked to review every pull request
+# opened against dev/main. This is the version-controlled equivalent of the
+# repository setting Settings → Rules → Rulesets → "Request pull request review
+# from Copilot". Keep both in sync; either one alone is sufficient.
+
+on:
+  pull_request:
+    types: [opened, reopened, ready_for_review]
+    branches: [dev, main]
+
+permissions:
+  pull-requests: write
+
+jobs:
+  request-copilot-review:
+    runs-on: ubuntu-latest
+    # Skip drafts — request the review once the PR is ready.
+    if: github.event.pull_request.draft == false
+    steps:
+      - name: Request review from Copilot
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh api \
+            --method POST \
+            -H "Accept: application/vnd.github+json" \
+            "/repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/requested_reviewers" \
+            -f "reviewers[]=copilot-pull-request-reviewer[bot]" \
+          && echo "Requested Copilot review." \
+          || echo "Copilot review not requested (already requested, or enable it via the repository ruleset if the token lacks permission)."
