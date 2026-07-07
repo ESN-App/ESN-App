@@ -1,0 +1,25 @@
+# .NET
+bin/
+obj/
+*.user
+.vs/
+
+# Node / Angular
+node_modules/
+dist/
+.angular/
+npm-debug.log*
+
+# Environment files — never commit secrets
+.env
+.env.local
+.env.*.local
+
+# IDE
+.idea/
+*.swp
+.DS_Store
+
+# Test results
+TestResults/
+coverage/
