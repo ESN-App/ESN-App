@@ -10,7 +10,7 @@ Decisions:
 - Backend: **.NET Web API**, API docs via **Swagger**.
 - Database: **PostgreSQL**.
 - Repo: **GitHub Organization**, tasks tracked via **GitHub Projects**.
-- Branching: `main` (production), `develop`, `feature/*`.
+- Branching: `main` (production), `dev`, `feature/*`.
 - MVP modules: **Events**, **Discounts**, **General Info**. Map = *Could Have*, deferred post-MVP.
 - Project docs live in **Notion**.
 
