@@ -466,4 +466,4 @@ Note on versions: the .NET 9/.NET 8 references in this plan are superseded by th
 
 ---
 
-*Last updated: 2026-06-30*
+*Last updated: 2026-07-07*
