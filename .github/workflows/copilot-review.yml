@@ -1,14 +1,15 @@
 name: Request Copilot Review
 
 # Ensures GitHub Copilot is automatically asked to review every pull request
-# opened against dev/main. This is the version-controlled equivalent of the
-# repository setting Settings → Rules → Rulesets → "Request pull request review
-# from Copilot". Keep both in sync; either one alone is sufficient.
+# opened against dev (the primary/production branch — see ADR-003). This is
+# the version-controlled equivalent of the repository setting Settings →
+# Rules → Rulesets → "Request pull request review from Copilot". Keep both
+# in sync; either one alone is sufficient.
 
 on:
   pull_request:
     types: [opened, reopened, ready_for_review]
-    branches: [dev, main]
+    branches: [dev]
 
 permissions:
   pull-requests: write

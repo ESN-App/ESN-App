@@ -16,7 +16,7 @@ Documentation map:
 | Backend | .NET 10 Web API, Clean Architecture, EF Core 10 + PostgreSQL, Identity + JWT, Swagger |
 | Frontend | Angular 22 (standalone components) + Angular Material, PWA |
 | Containers | Docker Compose |
-| CI | GitHub Actions (PRs into `dev` and `main`) |
+| CI | GitHub Actions (PRs into `dev` — the primary/production branch) |
 
 Version policy: latest stable everywhere — exact versions and upgrade steps live in [REQUIREMENTS.md](REQUIREMENTS.md).
 
@@ -105,7 +105,7 @@ Discounts (incl. Partners) and Info follow the identical pattern. Auth is alread
 
 - Branch from `dev`: `feature/*`, `fix/*`, `chore/*`, `docs/*`
 - Conventional Commits: `feat(events): add events list endpoint`
-- PR into `dev` (1 approval required), then `dev` → `main`. No direct pushes — rulesets enforce this.
+- PR into `dev` (1 approval required). `dev` is the primary/production branch — `main` was retired, see [ADR-003](docs/adr/003-retire-main-dev-is-primary.md). No direct pushes — rulesets enforce this.
 - CI must be green: backend restore/build/test, frontend install/lint/build.
 
 Full project docs live in Notion (ESN APP workspace); team comms in Discord.

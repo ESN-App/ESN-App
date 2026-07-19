@@ -49,6 +49,8 @@ Workflow:
 7. PR from `dev` into `main`
 8. Merge into `main`
 
+> **Update (2026-07-07):** `main` was retired and `dev` is now the primary/production branch — steps 7–8 above no longer apply. This section is left as a record of what was decided at Kickoff; see [ADR-003](adr/003-retire-main-dev-is-primary.md) for the current workflow.
+
 Discord webhooks configured for: push, pull request, issues. GitHub Projects Kanban board is set up for task tracking.
 
 ## Product scope (Project Overview)

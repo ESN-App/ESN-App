@@ -23,14 +23,14 @@ A monorepo keeps CI, issues, and PRs in one place for a small team.
 ### 1.2 Branch protection rules (GitHub Settings → Branches)
 This is the #1 thing teams forget and regret.
 
-- Protect `main` and `dev`:
+- Protect `dev` (the primary/production branch — `main` was retired, see ADR-003):
   - ✅ Require pull request before merging
-  - ✅ Require at least **1 approval** (2 for `main`)
+  - ✅ Require at least **1 approval**
   - ✅ Require status checks to pass (add CI checks once set up)
   - ✅ Require branches to be up to date before merging
   - ✅ Do not allow force pushes
   - ✅ Do not allow branch deletion
-- Nobody, including admins, should push directly to `main` or `dev`.
+- Nobody, including admins, should push directly to `dev`.
 
 ### 1.3 Branch naming convention
 Agree on and document a convention. Suggested:
@@ -456,7 +456,7 @@ Use this to track Phase completion (status as of 2026-07-07, skeleton scaffoldin
 - [x] Phase 2 — README ✔, CLAUDE.md ✔, ADRs ✔ (`docs/adr/`), Notion structure ✔ (see docs/meeting-summary.md)
 - [ ] Phase 3 — EditorConfig ✔, ESLint ✔ (angular-eslint); Prettier config, Husky, lint-staged, commitlint still pending
 - [x] Phase 4 — Docker Compose ✔, .env.example ✔, EF Core migrations workflow ✔ (pinned dotnet-ef local tool)
-- [ ] Phase 5 — GitHub Actions CI ✔ (backend + frontend on PRs into dev/main); staging/production deployment pipeline pending
+- [ ] Phase 5 — GitHub Actions CI ✔ (backend + frontend on PRs into `dev`, the primary/production branch — `main` retired, see ADR-003); staging/production deployment pipeline pending
 - [x] Phase 6 — Testing baseline ✔ (unit + WebApplicationFactory integration tests; extend per module as features land)
 - [ ] Phase 7 — CORS ✔ (dev-only allowlist; prod is same-origin, ADR-002), JWT ✔ (60-min expiry, no refresh tokens yet); HTTPS enforcement, Dependabot, rate limiting pending
 - [ ] Phase 8 — CLAUDE.md ✔; snippet library and IDE plugins pending

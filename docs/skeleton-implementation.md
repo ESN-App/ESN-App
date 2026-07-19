@@ -80,7 +80,7 @@ Compose-level variables (`.env`, see `.env.example`): `POSTGRES_DB/USER/PASSWORD
 
 - `docker compose up --build`: postgres (healthcheck-gated) → backend (auto-migrates + seeds) → frontend. Ports (dev override): frontend 4200, API 5000, postgres 5432.
 - Hot-reload workflow: run only `postgres` in Docker, backend via `dotnet run`, frontend via `npm start` (see README).
-- CI (`.github/workflows/`): backend restore/build/test on .NET 10; frontend `npm ci` + lint + build on Node 24. Triggered on PRs into `dev` and `main`. No deploy step yet.
+- CI (`.github/workflows/`): backend restore/build/test on .NET 10; frontend `npm ci` + lint + build on Node 24. Triggered on PRs into `dev` (the primary/production branch — `main` was retired, see [ADR-003](adr/003-retire-main-dev-is-primary.md)). No deploy step yet.
 
 ## Known caveats
 

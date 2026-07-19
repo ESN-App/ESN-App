@@ -9,7 +9,7 @@ Monorepo skeleton for the **ESN Gdańsk App** — a non-profit PWA for the ESN G
 Background docs (source of truth for decisions):
 
 - [docs/skeleton-implementation.md](docs/skeleton-implementation.md) — implementation notes: API surface, request/auth flow, config variable reference, seeding, caveats
-- [docs/adr/](docs/adr) — decision records; record new architecture decisions here (ADR-001: latest-stable version policy, ADR-002: same-origin API proxy)
+- [docs/adr/](docs/adr) — decision records; record new architecture decisions here (ADR-001: latest-stable version policy, ADR-002: same-origin API proxy, ADR-003: `main` retired, `dev` is primary)
 - [docs/architecture-decisions.md](docs/architecture-decisions.md) — why monorepo, Clean Architecture, Angular Material, scaffolded auth
 - [docs/meeting-summary.md](docs/meeting-summary.md) — confirmed stack, MVP scope, GitHub workflow
 - [claude-code-skeleton-prompt.md](claude-code-skeleton-prompt.md) — the spec this skeleton was generated from
@@ -60,9 +60,9 @@ Frontend: standalone components, signals, zoneless. `core/` has `AuthService` (t
 
 ## Conventions
 
-- Conventional Commits (`feat(events): …`); branches `feature/*`, `fix/*`, `chore/*`, `docs/*` off `dev`; PR into `dev` (1 approval), then `dev` → `main`. Never push directly to `main`/`dev`.
+- Conventional Commits (`feat(events): …`); branches `feature/*`, `fix/*`, `chore/*`, `docs/*` off `dev`; PR into `dev` (1 approval). `dev` is the primary/production branch — `main` was retired (see ADR-003). Never push directly to `dev`.
 - All DB changes via EF Core migrations (review generated SQL before applying); never edit the schema directly.
 - Every endpoint keeps Swagger annotations (`ProducesResponseType`, XML summary).
 - Secrets only via environment variables / `.env` (gitignored); `.env.example` documents every variable. The JWT dev key and seed password in appsettings/compose defaults are dev-only placeholders.
-- CI (`.github/workflows/`) runs on PRs into `dev`/`main`: backend restore/build/test on .NET 10, frontend `npm ci`/lint/build on Node 24.
+- CI (`.github/workflows/`) runs on PRs into `dev`: backend restore/build/test on .NET 10, frontend `npm ci`/lint/build on Node 24.
 - Version policy: latest stable for every framework/package; keep [REQUIREMENTS.md](REQUIREMENTS.md) in sync when versions change.

@@ -16,7 +16,7 @@ ESN-App/
 └── docker-compose.yml
 ```
 
-Rationale: they already have one repo, one set of branch rulesets, and one PR workflow (`feature/*` → `dev` → `main`). Splitting into multiple repos would mean coordinating versions and PRs across repos for no real benefit at this size.
+Rationale: they already have one repo, one set of branch rulesets, and one PR workflow (`feature/*` → `dev`, `dev` is the primary/production branch — see [ADR-003](adr/003-retire-main-dev-is-primary.md)). Splitting into multiple repos would mean coordinating versions and PRs across repos for no real benefit at this size.
 
 ## Backend: Clean Architecture
 
@@ -71,7 +71,7 @@ Services: `postgres`, `backend` (.NET API), `frontend` (Angular, served via Ngin
 
 ## CI
 
-GitHub Actions workflow(s) triggered on PRs into `dev` and `main`, matching the existing ruleset (PR + 1 approval required to merge): restore/build/test the backend, install/build/lint the frontend. Keeps the pipeline honest with the branch protection already configured, without adding a deploy step yet (Deployment doc in Notion is still empty/To-do).
+GitHub Actions workflow(s) triggered on PRs into `dev` (the primary/production branch), matching the existing ruleset (PR + 1 approval required to merge): restore/build/test the backend, install/build/lint the frontend. Keeps the pipeline honest with the branch protection already configured, without adding a deploy step yet (Deployment doc in Notion is still empty/To-do).
 
 ## Explicitly out of scope for the skeleton
 
