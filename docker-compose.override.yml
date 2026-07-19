@@ -1,0 +1,19 @@
+# Development overrides — applied automatically by `docker compose up`.
+#
+# This exposes every service on localhost. For hot reload, skip the backend/
+# frontend containers and run them natively instead:
+#   backend:  cd backend && dotnet watch --project src/EsnApp.Api   (http://localhost:5000)
+#   frontend: cd frontend && npm start                              (http://localhost:4200)
+# Both are pre-configured to talk to the postgres container on localhost:5432.
+services:
+  postgres:
+    ports:
+      - "5432:5432"
+
+  backend:
+    ports:
+      - "5000:8080"
+
+  frontend:
+    ports:
+      - "4200:80"

@@ -1,0 +1,39 @@
+services:
+  postgres:
+    image: postgres:18
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-esn_dev}
+      POSTGRES_USER: ${POSTGRES_USER:-esn}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-devpassword}
+    volumes:
+      - pgdata:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-esn} -d ${POSTGRES_DB:-esn_dev}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build:
+      context: .
+      dockerfile: docker/backend.Dockerfile
+    environment:
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Development}
+      ConnectionStrings__DefaultConnection: "Host=postgres;Port=5432;Database=${POSTGRES_DB:-esn_dev};Username=${POSTGRES_USER:-esn};Password=${POSTGRES_PASSWORD:-devpassword}"
+      Jwt__Key: ${JWT_KEY:-dev-only-jwt-signing-key-change-me-in-production-0123456789}
+      Database__ApplyMigrationsOnStartup: "true"
+      Seed__AdminEmail: ${SEED_ADMIN_EMAIL:-admin@esngdansk.local}
+      Seed__AdminPassword: ${SEED_ADMIN_PASSWORD:-Admin123!}
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: .
+      dockerfile: docker/frontend.Dockerfile
+    depends_on:
+      - backend
+
+volumes:
+  pgdata:
