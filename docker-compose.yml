@@ -6,7 +6,7 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:-esn}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-devpassword}
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      - pgdata:/var/lib/postgresql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-esn} -d ${POSTGRES_DB:-esn_dev}"]
       interval: 5s
