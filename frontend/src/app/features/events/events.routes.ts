@@ -1,4 +1,12 @@
 import { Routes } from '@angular/router';
-import { EventsList } from './events-list';
+import { EventDetails } from './pages/event-details/event-details';
+import { EventsList } from './pages/events-list/events-list';
 
-export const EVENTS_ROUTES: Routes = [{ path: '', component: EventsList }];
+export const EVENTS_ROUTES: Routes = [
+  { path: '', pathMatch: 'full', component: EventsList },
+  {
+    path: ':eventSlug',
+    component: EventDetails,
+    data: { hideMobileNavigation: true },
+  },
+];

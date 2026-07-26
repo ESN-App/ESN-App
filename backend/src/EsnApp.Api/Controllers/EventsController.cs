@@ -3,6 +3,7 @@ using EsnApp.Application.Common;
 using EsnApp.Application.Events.Common;
 using EsnApp.Application.Events.CreateEvent;
 using EsnApp.Application.Events.DeleteEvent;
+using EsnApp.Application.Events.GetAvailableEventMonths;
 using EsnApp.Application.Events.GetEventById;
 using EsnApp.Application.Events.GetEventsList;
 using EsnApp.Application.Events.PatchEvent;
@@ -16,6 +17,16 @@ namespace EsnApp.Api.Controllers;
 [Route("api/events")]
 public class EventsController(ISender sender) : ControllerBase
 {
+    /// <summary>Lists calendar months containing published events.</summary>
+    [HttpGet("months")]
+    [ProducesResponseType(typeof(IReadOnlyList<string>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetAvailableMonths(CancellationToken cancellationToken)
+    {
+        var result = await sender.Send(new GetAvailableEventMonthsQuery(), cancellationToken);
+
+        return Ok(result.Value);
+    }
+
     /// <summary>Lists all events.</summary>
     [HttpGet]
     [ProducesResponseType(typeof(PagedResult<EventListItemDto>), StatusCodes.Status200OK)]

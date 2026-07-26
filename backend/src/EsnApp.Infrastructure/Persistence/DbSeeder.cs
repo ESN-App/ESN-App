@@ -1,5 +1,4 @@
 using EsnApp.Domain.Discounts;
-using EsnApp.Domain.Events;
 using EsnApp.Domain.Info;
 using EsnApp.Infrastructure.Identity;
 using Microsoft.AspNetCore.Identity;
@@ -16,6 +15,12 @@ namespace EsnApp.Infrastructure.Persistence;
 public static class DbSeeder
 {
     public const string AdminRole = "Admin";
+
+    private static readonly HashSet<string> LegacyEventTitles =
+    [
+        "Welcome Week Opening",
+        "City Game",
+    ];
 
     public static async Task SeedAsync(IServiceProvider services)
     {
@@ -60,55 +65,7 @@ public static class DbSeeder
 
     private static async Task SeedSampleDataAsync(AppDbContext context)
     {
-        if (!await context.Events.AnyAsync())
-        {
-            var now = DateTimeOffset.UtcNow;
-
-            context.Events.AddRange(
-                new Event
-                {
-                    Title = "Welcome Week Opening",
-                    ShortDescription = "Start the semester with ESN Gdańsk.",
-                    Description = "Welcome Week Opening is the official start of your Erasmus adventure in Gdańsk. "
-                        + "Join us for an evening where you can meet international students, get to know the ESN Gdańsk team, "
-                        + "and learn what we have planned for the upcoming semester. We will introduce our trips, cultural events, "
-                        + "parties, volunteering opportunities, and practical activities designed to help you settle into the city. "
-                        + "Come alone or bring your new flatmates—this is the perfect opportunity to make your first friends, ask questions, "
-                        + "and celebrate the beginning of an unforgettable exchange.",
-                    Location = "Gdańsk, Długi Targ",
-                    StartsAt = now.AddDays(7),
-                    EndsAt = now.AddDays(7).AddHours(4),
-                    ImagePath = "/images/events/welcome-week-opening.jpg",
-                    RegistrationUrl = "https://example.com/register/welcome-week-opening",
-                    Status = EventStatus.Published,
-                    PublishedAt = now,
-                    MinimumParticipants = 20,
-                    MaximumParticipants = 150,
-                    CurrentParticipants = 48,
-                    Price = 20.00m,
-                },
-                new Event
-                {
-                    Title = "City Game",
-                    ShortDescription = "Discover Gdańsk while competing in teams.",
-                    Description = "Discover Gdańsk from a completely new perspective during our international City Game. "
-                        + "You will be placed in a team with other Erasmus students and sent through the historic streets of the Old Town "
-                        + "to solve puzzles, complete creative challenges, and uncover stories hidden behind the city's most famous landmarks. "
-                        + "No detailed knowledge of Gdańsk is required—curiosity, comfortable shoes, and a charged phone are all you need. "
-                        + "The game ends with a shared meeting where we announce the winners, hand out prizes, and exchange photos and stories from the route.",
-                    Location = "Gdańsk, Golden Gate",
-                    StartsAt = now.AddDays(10),
-                    EndsAt = now.AddDays(10).AddHours(3),
-                    ImagePath = "/images/events/city-game.jpg",
-                    RegistrationUrl = "https://example.com/register/city-game",
-                    Status = EventStatus.Published,
-                    PublishedAt = now,
-                    MinimumParticipants = 12,
-                    MaximumParticipants = 60,
-                    CurrentParticipants = 27,
-                    Price = 10.00m,
-                });
-        }
+        await SeedEventsAsync(context);
 
         if (!await context.Partners.AnyAsync())
         {
@@ -138,5 +95,22 @@ public static class DbSeeder
         }
 
         await context.SaveChangesAsync();
+    }
+
+    private static async Task SeedEventsAsync(AppDbContext context)
+    {
+        var existingEvents = await context.Events
+            .AsNoTracking()
+            .Select(eventItem => new { eventItem.Title, eventItem.StartsAt })
+            .ToListAsync();
+
+        var missingEvents = EventSeedData.Create()
+            .Where(seedEvent => existingEvents.All(existing =>
+                existing.Title != seedEvent.Title
+                || (existing.StartsAt != seedEvent.StartsAt
+                    && !LegacyEventTitles.Contains(seedEvent.Title))))
+            .ToList();
+
+        context.Events.AddRange(missingEvents);
     }
 }

@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatButtonModule } from '@angular/material/button';
 import { MatToolbarModule } from '@angular/material/toolbar';
@@ -18,6 +18,7 @@ export class App {
   private readonly router = inject(Router);
 
   protected readonly auth = inject(AuthService);
+  protected readonly hideMobileNavigation = signal(false);
 
   constructor() {
     this.router.events
@@ -33,8 +34,14 @@ export class App {
           '/info': '#fef2e9',
         };
         const path = event.urlAfterRedirects.split('?')[0];
+        let activeRoute = this.router.routerState.root;
+
+        while (activeRoute.firstChild) {
+          activeRoute = activeRoute.firstChild;
+        }
 
         this.meta.updateTag({ name: 'theme-color', content: themeColors[path] ?? '#e6f7fd' });
+        this.hideMobileNavigation.set(activeRoute.snapshot.data['hideMobileNavigation'] === true);
       });
   }
 
