@@ -4,13 +4,31 @@ namespace EsnApp.Domain.Events;
 
 public class Event : BaseEntity
 {
-    public string Title { get; set; } = string.Empty;
+    public required string Title { get; set; }
 
-    public string Description { get; set; } = string.Empty;
+    public required string ShortDescription { get; set; }
 
-    public string Location { get; set; } = string.Empty;
+    public required string Description { get; set; }
 
-    public DateTimeOffset StartsAt { get; set; }
+    public required string Location { get; set; }
+
+    public required DateTimeOffset StartsAt { get; set; }
 
     public DateTimeOffset? EndsAt { get; set; }
+
+    public string? ImagePath { get; set; }
+
+    public string? RegistrationUrl { get; set; }
+
+    public EventStatus Status { get; set; } = EventStatus.Draft;
+
+    public DateTimeOffset? PublishedAt { get; set; }
+
+    public int? MinimumParticipants { get; set; }
+
+    public int? MaximumParticipants { get; set; }
+
+    public int? CurrentParticipants { get; set; }
+
+    public decimal Price { get; set; }
 }

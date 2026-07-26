@@ -1,6 +1,6 @@
 using System.Text;
 using EsnApp.Application.Discounts;
-using EsnApp.Application.Events;
+using EsnApp.Application.Events.Abstractions;
 using EsnApp.Application.Identity;
 using EsnApp.Application.Info;
 using EsnApp.Infrastructure.Identity;
