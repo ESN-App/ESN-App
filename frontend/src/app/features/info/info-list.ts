@@ -8,7 +8,10 @@ import { InfoApi } from './info-api';
   selector: 'app-info-list',
   imports: [MatCardModule, EmptyState, LoadingSpinner],
   template: `
-    <h1>Info</h1>
+    <div class="page-heading">
+      <img src="/images/esnstar.png" alt="" />
+      <h1>Info</h1>
+    </div>
 
     @if (articles(); as loaded) {
       @if (loaded.length === 0) {

@@ -1,4 +1,6 @@
 export const environment = {
   production: false,
-  apiBaseUrl: 'http://localhost:5000',
+  // Keep API calls on the frontend origin. The Angular development server
+  // proxies /api to the backend, which also works for devices on the LAN.
+  apiBaseUrl: '',
 };

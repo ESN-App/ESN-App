@@ -9,7 +9,10 @@ import { EventsApi } from './events-api';
   selector: 'app-events-list',
   imports: [DatePipe, MatCardModule, EmptyState, LoadingSpinner],
   template: `
-    <h1>Events</h1>
+    <div class="page-heading">
+      <img src="/images/esnstar.png" alt="" />
+      <h1>Events</h1>
+    </div>
 
     @if (events(); as loaded) {
       @if (loaded.length === 0) {

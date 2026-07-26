@@ -1,7 +1,10 @@
 import { Routes } from '@angular/router';
 
 export const routes: Routes = [
-  { path: '', pathMatch: 'full', redirectTo: 'events' },
+  {
+    path: '',
+    loadChildren: () => import('./features/home/home.routes').then((m) => m.HOME_ROUTES),
+  },
   {
     path: 'events',
     loadChildren: () => import('./features/events/events.routes').then((m) => m.EVENTS_ROUTES),
@@ -19,5 +22,5 @@ export const routes: Routes = [
     path: 'auth',
     loadChildren: () => import('./features/auth/auth.routes').then((m) => m.AUTH_ROUTES),
   },
-  { path: '**', redirectTo: 'events' },
+  { path: '**', redirectTo: '' },
 ];

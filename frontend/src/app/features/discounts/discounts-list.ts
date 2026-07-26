@@ -8,7 +8,10 @@ import { DiscountsApi } from './discounts-api';
   selector: 'app-discounts-list',
   imports: [MatCardModule, EmptyState, LoadingSpinner],
   template: `
-    <h1>Discounts</h1>
+    <div class="page-heading">
+      <img src="/images/esnstar.png" alt="" />
+      <h1>Discounts</h1>
+    </div>
 
     @if (discounts(); as loaded) {
       @if (loaded.length === 0) {
