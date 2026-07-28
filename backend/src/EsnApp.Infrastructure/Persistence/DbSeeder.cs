@@ -22,6 +22,25 @@ public static class DbSeeder
         "City Game",
     ];
 
+    private static readonly string[] LegacyPartnerNames =
+    [
+        "Baltic Bites",
+        "Neptune Coffee",
+        "Amber Fitness",
+        "Wave Language School",
+        "Motława Kayaks",
+        "North Hostel",
+        "Green Bowl",
+        "Vistula Bikes",
+        "Pixel Cinema",
+        "Pierogi Corner",
+        "SeaSide Surf School",
+        "Book Nook",
+        "Tricity Escape",
+        "Clean Cut Studio",
+        "Gdańsk Print Lab",
+    ];
+
     public static async Task SeedAsync(IServiceProvider services)
     {
         var context = services.GetRequiredService<AppDbContext>();
@@ -66,24 +85,7 @@ public static class DbSeeder
     private static async Task SeedSampleDataAsync(AppDbContext context)
     {
         await SeedEventsAsync(context);
-
-        if (!await context.Partners.AnyAsync())
-        {
-            var partner = new Partner
-            {
-                Name = "Example Pizzeria",
-                Description = "Sample partner seeded for development.",
-                WebsiteUrl = "https://example.com",
-            };
-
-            context.Partners.Add(partner);
-            context.Discounts.Add(new Discount
-            {
-                Title = "10% off with ESNcard",
-                Description = "Sample discount seeded for development.",
-                Partner = partner,
-            });
-        }
+        await SeedPartnersAsync(context);
 
         if (!await context.InfoArticles.AnyAsync())
         {
@@ -112,5 +114,68 @@ public static class DbSeeder
             .ToList();
 
         context.Events.AddRange(missingEvents);
+    }
+
+    private static async Task SeedPartnersAsync(AppDbContext context)
+    {
+        var existingPartners = await context.Partners
+            .Include(partner => partner.Discounts)
+            .ToDictionaryAsync(partner => partner.Name, StringComparer.OrdinalIgnoreCase);
+
+        foreach (var seedPartner in PartnerSeedData.Create())
+        {
+            if (!existingPartners.TryGetValue(seedPartner.Name, out var existingPartner))
+            {
+                var legacyName = LegacyPartnerNames[seedPartner.DisplayOrder];
+
+                if (!existingPartners.TryGetValue(legacyName, out existingPartner))
+                {
+                    context.Partners.Add(seedPartner);
+                    continue;
+                }
+            }
+
+            ApplySeedPartner(context, existingPartner, seedPartner);
+        }
+    }
+
+    private static void ApplySeedPartner(AppDbContext context, Partner target, Partner source)
+    {
+        target.Name = source.Name;
+        target.LogoPath = source.LogoPath;
+        target.ShortDescription = source.ShortDescription;
+        target.Description = source.Description;
+        target.Address = source.Address;
+        target.WebsiteUrl = source.WebsiteUrl;
+        target.GoogleMapsUrl = source.GoogleMapsUrl;
+        target.Latitude = source.Latitude;
+        target.Longitude = source.Longitude;
+        target.Status = source.Status;
+        target.DisplayOrder = source.DisplayOrder;
+
+        var existingDiscounts = target.Discounts.ToList();
+        var seededDiscounts = source.Discounts.ToList();
+
+        for (var index = 0; index < seededDiscounts.Count; index++)
+        {
+            if (index < existingDiscounts.Count)
+            {
+                existingDiscounts[index].Title = seededDiscounts[index].Title;
+                existingDiscounts[index].Description = seededDiscounts[index].Description;
+                continue;
+            }
+
+            target.Discounts.Add(new Discount
+            {
+                Title = seededDiscounts[index].Title,
+                Description = seededDiscounts[index].Description,
+                Partner = target,
+            });
+        }
+
+        foreach (var obsoleteDiscount in existingDiscounts.Skip(seededDiscounts.Count))
+        {
+            context.Discounts.Remove(obsoleteDiscount);
+        }
     }
 }

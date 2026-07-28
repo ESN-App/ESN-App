@@ -1,5 +1,5 @@
 using System.Text;
-using EsnApp.Application.Discounts;
+using EsnApp.Application.Discounts.Abstractions;
 using EsnApp.Application.Events.Abstractions;
 using EsnApp.Application.Identity;
 using EsnApp.Application.Info;

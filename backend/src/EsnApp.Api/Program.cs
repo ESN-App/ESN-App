@@ -53,6 +53,12 @@ app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 app.UseSwagger();
 app.UseSwaggerUI();
+app.UseStaticFiles(new StaticFileOptions
+{
+    RequestPath = "/api/images",
+    FileProvider = new Microsoft.Extensions.FileProviders.PhysicalFileProvider(
+        Path.Combine(app.Environment.WebRootPath, "images")),
+});
 
 if (app.Environment.IsDevelopment()) app.UseCors("Frontend");
 

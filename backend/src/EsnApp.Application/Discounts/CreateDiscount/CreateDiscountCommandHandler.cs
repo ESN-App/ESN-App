@@ -1,23 +1,10 @@
 using EsnApp.Application.Common;
+using EsnApp.Application.Discounts.Abstractions;
+using EsnApp.Application.Discounts.Common;
 using EsnApp.Domain.Discounts;
-using FluentValidation;
 using MediatR;
 
-namespace EsnApp.Application.Discounts;
-
-public record CreateDiscountCommand(
-    string Title,
-    string Description,
-    Guid PartnerId) : IRequest<Result<DiscountDto>>;
-
-public class CreateDiscountCommandValidator : AbstractValidator<CreateDiscountCommand>
-{
-    public CreateDiscountCommandValidator()
-    {
-        RuleFor(c => c.Title).NotEmpty().MaximumLength(200);
-        RuleFor(c => c.PartnerId).NotEmpty();
-    }
-}
+namespace EsnApp.Application.Discounts.CreateDiscount;
 
 public class CreateDiscountCommandHandler(
     IDiscountRepository discountRepository,
@@ -44,6 +31,6 @@ public class CreateDiscountCommandHandler(
 
         var created = await discountRepository.AddAsync(entity, cancellationToken);
 
-        return Result.Success(DiscountDto.FromEntity(created));
+        return Result.Success(created.ToDto());
     }
 }

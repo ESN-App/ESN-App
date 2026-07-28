@@ -1,9 +1,9 @@
 using EsnApp.Application.Common;
+using EsnApp.Application.Discounts.Abstractions;
+using EsnApp.Application.Discounts.Common;
 using MediatR;
 
-namespace EsnApp.Application.Discounts;
-
-public record GetPartnerByIdQuery(Guid Id) : IRequest<Result<PartnerDto>>;
+namespace EsnApp.Application.Discounts.GetPartnerById;
 
 public class GetPartnerByIdQueryHandler(IPartnerRepository repository)
     : IRequestHandler<GetPartnerByIdQuery, Result<PartnerDto>>
@@ -16,6 +16,6 @@ public class GetPartnerByIdQueryHandler(IPartnerRepository repository)
 
         return entity is null
             ? Result.Failure<PartnerDto>($"Partner '{request.Id}' was not found.")
-            : Result.Success(PartnerDto.FromEntity(entity));
+            : Result.Success(entity.ToDto());
     }
 }

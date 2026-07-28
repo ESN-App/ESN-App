@@ -1,6 +1,6 @@
 using EsnApp.Domain.Discounts;
 
-namespace EsnApp.Application.Discounts;
+namespace EsnApp.Application.Discounts.Abstractions;
 
 public interface IDiscountRepository
 {

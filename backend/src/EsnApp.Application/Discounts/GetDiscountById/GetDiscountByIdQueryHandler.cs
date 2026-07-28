@@ -1,9 +1,9 @@
 using EsnApp.Application.Common;
+using EsnApp.Application.Discounts.Abstractions;
+using EsnApp.Application.Discounts.Common;
 using MediatR;
 
-namespace EsnApp.Application.Discounts;
-
-public record GetDiscountByIdQuery(Guid Id) : IRequest<Result<DiscountDto>>;
+namespace EsnApp.Application.Discounts.GetDiscountById;
 
 public class GetDiscountByIdQueryHandler(IDiscountRepository repository)
     : IRequestHandler<GetDiscountByIdQuery, Result<DiscountDto>>
@@ -16,6 +16,6 @@ public class GetDiscountByIdQueryHandler(IDiscountRepository repository)
 
         return entity is null
             ? Result.Failure<DiscountDto>($"Discount '{request.Id}' was not found.")
-            : Result.Success(DiscountDto.FromEntity(entity));
+            : Result.Success(entity.ToDto());
     }
 }

@@ -1,4 +1,7 @@
-using EsnApp.Application.Discounts;
+using EsnApp.Application.Discounts.Common;
+using EsnApp.Application.Discounts.CreateDiscount;
+using EsnApp.Application.Discounts.GetDiscountById;
+using EsnApp.Application.Discounts.GetDiscountsList;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

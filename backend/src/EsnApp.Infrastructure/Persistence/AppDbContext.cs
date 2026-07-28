@@ -25,20 +25,11 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
         base.OnModelCreating(builder);
 
         builder.ApplyConfiguration(new EventConfiguration());
-
-        builder.Entity<Partner>(entity =>
-        {
-            entity.Property(p => p.Name).HasMaxLength(200);
-            entity.Property(p => p.WebsiteUrl).HasMaxLength(500);
-        });
+        builder.ApplyConfiguration(new PartnerConfiguration());
 
         builder.Entity<Discount>(entity =>
         {
             entity.Property(d => d.Title).HasMaxLength(200);
-            entity.HasOne(d => d.Partner)
-                .WithMany()
-                .HasForeignKey(d => d.PartnerId)
-                .OnDelete(DeleteBehavior.Cascade);
         });
 
         builder.Entity<InfoArticle>(entity =>

@@ -1,9 +1,9 @@
 using EsnApp.Application.Common;
+using EsnApp.Application.Discounts.Abstractions;
+using EsnApp.Application.Discounts.Common;
 using MediatR;
 
-namespace EsnApp.Application.Discounts;
-
-public record GetPartnersListQuery : IRequest<Result<IReadOnlyList<PartnerDto>>>;
+namespace EsnApp.Application.Discounts.GetPartnersList;
 
 public class GetPartnersListQueryHandler(IPartnerRepository repository)
     : IRequestHandler<GetPartnersListQuery, Result<IReadOnlyList<PartnerDto>>>
@@ -15,6 +15,6 @@ public class GetPartnersListQueryHandler(IPartnerRepository repository)
         var partners = await repository.GetAllAsync(cancellationToken);
 
         return Result.Success<IReadOnlyList<PartnerDto>>(
-            partners.Select(PartnerDto.FromEntity).ToList());
+            partners.Select(entity => entity.ToDto()).ToList());
     }
 }
