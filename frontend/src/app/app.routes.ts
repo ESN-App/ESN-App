@@ -10,10 +10,11 @@ export const routes: Routes = [
     loadChildren: () => import('./features/events/events.routes').then((m) => m.EVENTS_ROUTES),
   },
   {
-    path: 'discounts',
+    path: 'partners',
     loadChildren: () =>
-      import('./features/discounts/discounts.routes').then((m) => m.DISCOUNTS_ROUTES),
+      import('./features/partners/partners.routes').then((m) => m.PARTNERS_ROUTES),
   },
+  { path: 'discounts', redirectTo: 'partners', pathMatch: 'full' },
   {
     path: 'info',
     loadChildren: () => import('./features/info/info.routes').then((m) => m.INFO_ROUTES),

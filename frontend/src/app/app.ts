@@ -30,17 +30,21 @@ export class App {
         const themeColors: Record<string, string> = {
           '/': '#e6f7fd',
           '/events': '#f2f9ec',
-          '/discounts': '#fde6f4',
+          '/partners': '#fde6f4',
           '/info': '#fef2e9',
         };
         const path = event.urlAfterRedirects.split('?')[0];
+        const themeColor =
+          Object.entries(themeColors).find(
+            ([route]) => path === route || (route !== '/' && path.startsWith(`${route}/`)),
+          )?.[1] ?? '#e6f7fd';
         let activeRoute = this.router.routerState.root;
 
         while (activeRoute.firstChild) {
           activeRoute = activeRoute.firstChild;
         }
 
-        this.meta.updateTag({ name: 'theme-color', content: themeColors[path] ?? '#e6f7fd' });
+        this.meta.updateTag({ name: 'theme-color', content: themeColor });
         this.hideMobileNavigation.set(activeRoute.snapshot.data['hideMobileNavigation'] === true);
       });
   }

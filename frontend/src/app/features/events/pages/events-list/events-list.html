@@ -1,0 +1,105 @@
+<section class="events-page">
+  <header class="events-header">
+    <div class="page-heading">
+      <img src="/images/esnstar.png" alt="" />
+      <div>
+        <p class="eyebrow">ESN Gdańsk</p>
+        <h1>Events</h1>
+      </div>
+    </div>
+    <p class="intro">Discover upcoming events, trips and activities prepared for ESN members.</p>
+  </header>
+
+  @if (events(); as loaded) {
+    @if (loaded.items.length > 0) {
+      <div class="event-list" aria-label="Upcoming events">
+        @for (event of loaded.items; track event.id) {
+          <article class="event-item">
+            <a
+              class="mobile-card-link"
+              [routerLink]="['/events', eventSlug(event.title, event.id)]"
+              queryParamsHandling="preserve"
+              [attr.aria-label]="'Read more about ' + event.title"
+            ></a>
+
+            <div class="event-image">
+              <span aria-hidden="true">{{ event.startsAt | date: 'dd' }}</span>
+              @if (event.imagePath) {
+                <img
+                  [src]="event.imagePath"
+                  [alt]="event.title"
+                  loading="lazy"
+                  (error)="hideBrokenImage($event)"
+                />
+              }
+            </div>
+
+            <div class="event-copy">
+              <h2>{{ event.title }}</h2>
+              <p class="description">{{ event.shortDescription }}</p>
+              <p class="location">
+                <span class="location-icon" aria-hidden="true"></span>
+                {{ event.location }}
+              </p>
+            </div>
+
+            <div class="event-meta">
+              <p class="event-date">
+                <time [attr.datetime]="event.startsAt">
+                  {{ event.startsAt | date: 'dd MMM yyyy' }}
+                </time>
+                @if (event.endsAt && !isSameDay(event.startsAt, event.endsAt)) {
+                  <span>— {{ event.endsAt | date: 'dd MMM yyyy' }}</span>
+                }
+              </p>
+
+              <strong class="price">
+                {{ event.price === 0 ? 'Free' : (event.price | currency: 'PLN') }}
+              </strong>
+              @if (event.currentParticipants !== null) {
+                <span class="participants">
+                  {{ event.currentParticipants }}
+                  @if (event.maximumParticipants !== null) {
+                    /{{ event.maximumParticipants }}
+                  }
+                  going
+                </span>
+              }
+              <a
+                class="arrow-link"
+                [routerLink]="['/events', eventSlug(event.title, event.id)]"
+                queryParamsHandling="preserve"
+                [attr.aria-label]="'Read more about ' + event.title"
+              >
+                <span class="details-label">Read more</span>
+                <span class="arrow" aria-hidden="true"></span>
+              </a>
+            </div>
+          </article>
+        }
+      </div>
+    }
+  } @else {
+    <app-loading-spinner />
+  }
+
+  <nav class="month-switcher" aria-label="Choose events month">
+    <button
+      type="button"
+      (click)="changeMonth(-1)"
+      [disabled]="!hasPreviousMonth()"
+      aria-label="Show previous month"
+    >
+      <span class="month-arrow previous" aria-hidden="true"></span>
+    </button>
+    <h2 class="month-name">{{ selectedMonth() | date: 'MMMM yyyy' }}</h2>
+    <button
+      type="button"
+      (click)="changeMonth(1)"
+      [disabled]="!hasNextMonth()"
+      aria-label="Show next month"
+    >
+      <span class="month-arrow next" aria-hidden="true"></span>
+    </button>
+  </nav>
+</section>
