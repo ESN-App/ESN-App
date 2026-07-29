@@ -208,13 +208,14 @@ h2 {
   }
 
   .info-hero {
-    background: var(--info-background);
+    background: #fff;
     gap: 0.75rem;
     grid-template-columns: 1fr;
     padding: 0.75rem;
   }
 
   .hero-image {
+    background: #fff;
     height: 10.5rem;
     min-height: 0;
   }
@@ -224,7 +225,7 @@ h2 {
   }
 
   .content-section {
-    background: var(--info-background);
+    background: #fff;
   }
 
 }

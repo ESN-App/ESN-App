@@ -28,9 +28,9 @@
             <div class="hero-location">
               <span class="location-icon" aria-hidden="true"></span>
               <div>
-                <strong>{{ loaded.address }},</strong>
+                <strong>{{ loaded.address }}</strong>
                 @if (mapUrl(loaded.latitude, loaded.longitude, loaded.googleMapsUrl); as mapsUrl) {
-                  <a [href]="mapsUrl" target="_blank" rel="noopener noreferrer"> Open in maps </a>
+                  <a [href]="mapsUrl" target="_blank" rel="noopener noreferrer">Open in maps</a>
                 }
               </div>
             </div>

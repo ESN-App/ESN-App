@@ -29,6 +29,9 @@ public class ManageEventCommandHandlerTests
                 null,
                 null,
                 null,
+                null,
+                null,
+                null,
                 null),
             CancellationToken.None);
 
@@ -47,6 +50,9 @@ public class ManageEventCommandHandlerTests
             new PatchEventCommand(
                 Guid.NewGuid(),
                 "Title",
+                null,
+                null,
+                null,
                 null,
                 null,
                 null,

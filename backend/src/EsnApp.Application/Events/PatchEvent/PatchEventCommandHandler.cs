@@ -25,6 +25,9 @@ public class PatchEventCommandHandler(IEventRepository repository)
         entity.ShortDescription = request.ShortDescription ?? entity.ShortDescription;
         entity.Description = request.Description ?? entity.Description;
         entity.Location = request.Location ?? entity.Location;
+        entity.GoogleMapsUrl = request.GoogleMapsUrl is null ? entity.GoogleMapsUrl : new Uri(request.GoogleMapsUrl);
+        entity.Latitude = request.Latitude ?? entity.Latitude;
+        entity.Longitude = request.Longitude ?? entity.Longitude;
         entity.StartsAt = request.StartsAt ?? entity.StartsAt;
         entity.EndsAt = request.EndsAt ?? entity.EndsAt;
         entity.ImagePath = request.ImagePath ?? entity.ImagePath;

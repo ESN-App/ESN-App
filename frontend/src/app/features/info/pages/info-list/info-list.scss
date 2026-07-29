@@ -1,6 +1,5 @@
 :host {
   --info-accent: #f47b20;
-  --info-background: color-mix(in srgb, var(--info-accent) 10%, #fff);
   display: block;
 }
 
@@ -45,8 +44,8 @@ h1 {
 
 .info-card {
   align-items: center;
-  background: var(--info-background);
-  border: 2px solid var(--info-accent);
+  background: #fff;
+  border: 1px solid var(--info-accent);
   border-radius: 1.4rem;
   display: grid;
   gap: 0.75rem 1.15rem;
@@ -188,6 +187,42 @@ h1 {
   margin: 0;
 }
 
+@media (min-width: 701px) {
+  .info-page {
+    max-width: 72rem;
+  }
+
+  .info-grid {
+    gap: 1.5rem;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .info-card {
+    align-items: stretch;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    min-height: 0;
+  }
+
+  .article-image {
+    grid-row: auto;
+    height: 10.5rem;
+    margin-bottom: 0.75rem;
+    width: 100%;
+  }
+
+  .article-copy {
+    align-self: start;
+  }
+
+  .details-link {
+    align-self: flex-end;
+    margin-top: 1.2rem;
+    padding-top: 0;
+  }
+}
+
 @media (max-width: 700px) {
   .info-header {
     padding-top: 0;
@@ -198,6 +233,7 @@ h1 {
   }
 
   .info-card {
+    background: #fff;
     gap: 0.65rem 0.85rem;
     grid-template-columns: 6.5rem minmax(0, 1fr);
     min-height: 6.5rem;

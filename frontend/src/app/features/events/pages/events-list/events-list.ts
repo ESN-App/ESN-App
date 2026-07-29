@@ -35,6 +35,7 @@ export class EventsList {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly api = inject(EventsApi);
+
   protected readonly isSameDay = isSameCalendarDay;
   private readonly availableMonths$ = this.api.getAvailableMonths().pipe(
     map(normalizeAvailableMonths),

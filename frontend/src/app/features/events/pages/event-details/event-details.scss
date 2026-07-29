@@ -132,6 +132,26 @@ h1 {
   font-size: 0.85rem;
 }
 
+.location-value {
+  display: grid;
+  gap: 0.1rem;
+}
+
+.location-value strong,
+.location-value a {
+  font-size: 0.78rem;
+}
+
+.location-value a {
+  color: var(--accent);
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.location-value a:hover {
+  text-decoration: underline;
+}
+
 .fact-icon {
   background: var(--accent);
   flex: 0 0 auto;

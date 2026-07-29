@@ -6,6 +6,7 @@ import { catchError, map, of, switchMap } from 'rxjs';
 import { LoadingSpinner } from '../../../../shared';
 import { EventsApi } from '../../data-access/events-api';
 import { isSameCalendarDay } from '../../utils/event-date';
+import { eventMapUrl } from '../../utils/event-map';
 import { extractEventId } from '../../utils/event-url';
 
 @Component({
@@ -20,6 +21,7 @@ export class EventDetails {
 
   protected readonly showParticipants = true;
   protected readonly isSameDay = isSameCalendarDay;
+  protected readonly mapUrl = eventMapUrl;
 
   readonly event = toSignal(
     this.route.paramMap.pipe(

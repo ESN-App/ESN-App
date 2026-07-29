@@ -482,13 +482,21 @@ internal static class EventSeedData
         int? currentParticipants = null,
         int? maximumParticipants = null,
         string? imagePath = null,
-        string? registrationUrl = null) =>
-        new()
+        string? registrationUrl = null)
+    {
+        var (latitude, longitude) = CoordinatesFor(location);
+        var googleMapsUrl = FormattableString.Invariant(
+            $"https://maps.google.com/?q={latitude},{longitude}");
+
+        return new Event
         {
             Title = title,
             ShortDescription = shortDescription,
             Description = description,
             Location = location,
+            GoogleMapsUrl = new Uri(googleMapsUrl),
+            Latitude = latitude,
+            Longitude = longitude,
             StartsAt = startsAt,
             EndsAt = endsAt,
             ImagePath = imagePath,
@@ -499,6 +507,43 @@ internal static class EventSeedData
             CurrentParticipants = currentParticipants,
             MaximumParticipants = maximumParticipants,
             Price = price,
+        };
+    }
+
+    private static (decimal Latitude, decimal Longitude) CoordinatesFor(string location) =>
+        location switch
+        {
+            var value when value.Contains("Hel", StringComparison.OrdinalIgnoreCase)
+                => (54.608200m, 18.801300m),
+            var value when value.Contains("Malbork", StringComparison.OrdinalIgnoreCase)
+                => (54.039100m, 19.028000m),
+            var value when value.Contains("Stutthof", StringComparison.OrdinalIgnoreCase)
+                => (54.326500m, 19.179700m),
+            var value when value.Contains("Kashub", StringComparison.OrdinalIgnoreCase)
+                => (54.345000m, 18.110000m),
+            var value when value.Contains("Gdynia", StringComparison.OrdinalIgnoreCase)
+                => (54.518900m, 18.530500m),
+            var value when value.Contains("Sopot", StringComparison.OrdinalIgnoreCase)
+                => (54.441600m, 18.560100m),
+            var value when value.Contains("Brzeźno", StringComparison.OrdinalIgnoreCase)
+                => (54.409600m, 18.626400m),
+            var value when value.Contains("Jelitkowo", StringComparison.OrdinalIgnoreCase)
+                => (54.427500m, 18.590900m),
+            var value when value.Contains("Stogi", StringComparison.OrdinalIgnoreCase)
+                => (54.371700m, 18.732000m),
+            var value when value.Contains("Oliwa", StringComparison.OrdinalIgnoreCase)
+                => (54.410000m, 18.560800m),
+            var value when value.Contains("Wrzeszcz", StringComparison.OrdinalIgnoreCase)
+                => (54.381900m, 18.605100m),
+            var value when value.Contains("University", StringComparison.OrdinalIgnoreCase)
+                => (54.396700m, 18.574300m),
+            var value when value.Contains("Olivia", StringComparison.OrdinalIgnoreCase)
+                => (54.403500m, 18.570900m),
+            var value when value.Contains("Wita Stwosza", StringComparison.OrdinalIgnoreCase)
+                => (54.396200m, 18.572600m),
+            var value when value.Contains("Gdańsk Główny", StringComparison.OrdinalIgnoreCase)
+                => (54.355600m, 18.644700m),
+            _ => (54.352000m, 18.646600m),
         };
 
     private static DateTimeOffset At(int month, int day, int hour, int minute = 0) =>

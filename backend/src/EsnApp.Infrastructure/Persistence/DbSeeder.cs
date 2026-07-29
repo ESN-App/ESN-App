@@ -173,18 +173,30 @@ public static class DbSeeder
     private static async Task SeedEventsAsync(AppDbContext context)
     {
         var existingEvents = await context.Events
-            .AsNoTracking()
-            .Select(eventItem => new { eventItem.Title, eventItem.StartsAt })
             .ToListAsync();
 
-        var missingEvents = EventSeedData.Create()
-            .Where(seedEvent => existingEvents.All(existing =>
-                existing.Title != seedEvent.Title
-                || (existing.StartsAt != seedEvent.StartsAt
-                    && !LegacyEventTitles.Contains(seedEvent.Title))))
-            .ToList();
+        foreach (var seedEvent in EventSeedData.Create())
+        {
+            var existingEvent = existingEvents.FirstOrDefault(existing =>
+                existing.Title == seedEvent.Title
+                && existing.StartsAt == seedEvent.StartsAt);
 
-        context.Events.AddRange(missingEvents);
+            if (existingEvent is null && LegacyEventTitles.Contains(seedEvent.Title))
+            {
+                existingEvent = existingEvents.FirstOrDefault(existing =>
+                    existing.Title == seedEvent.Title);
+            }
+
+            if (existingEvent is null)
+            {
+                context.Events.Add(seedEvent);
+                continue;
+            }
+
+            existingEvent.GoogleMapsUrl = seedEvent.GoogleMapsUrl;
+            existingEvent.Latitude = seedEvent.Latitude;
+            existingEvent.Longitude = seedEvent.Longitude;
+        }
     }
 
     private static async Task SeedPartnersAsync(AppDbContext context)

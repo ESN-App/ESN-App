@@ -37,9 +37,9 @@
             <div class="event-copy">
               <h2>{{ event.title }}</h2>
               <p class="description">{{ event.shortDescription }}</p>
-              <p class="location">
-                <span class="location-icon" aria-hidden="true"></span>
-                {{ event.location }}
+              <p class="location mobile-location">
+                <span class="event-icon location-icon" aria-hidden="true"></span>
+                <span>{{ event.location }}</span>
               </p>
             </div>
 
@@ -53,16 +53,25 @@
                 }
               </p>
 
+              <p class="location desktop-location">
+                <span class="event-icon location-icon" aria-hidden="true"></span>
+                <span>{{ event.location }}</span>
+              </p>
+
               <strong class="price">
-                {{ event.price === 0 ? 'Free' : (event.price | currency: 'PLN') }}
+                <span class="event-icon wallet-icon" aria-hidden="true"></span>
+                <span>{{ event.price === 0 ? 'Free' : (event.price | currency: 'PLN') }}</span>
               </strong>
               @if (event.currentParticipants !== null) {
                 <span class="participants">
-                  {{ event.currentParticipants }}
-                  @if (event.maximumParticipants !== null) {
-                    /{{ event.maximumParticipants }}
-                  }
-                  going
+                  <span class="event-icon participants-icon" aria-hidden="true"></span>
+                  <span>
+                    {{ event.currentParticipants }}
+                    @if (event.maximumParticipants !== null) {
+                      /{{ event.maximumParticipants }}
+                    }
+                    going
+                  </span>
                 </span>
               }
               <a

@@ -43,7 +43,12 @@
           <span class="fact-icon marker" aria-hidden="true"></span>
           <div>
             <small>Location</small>
-            <strong>{{ loaded.location }}</strong>
+            <div class="location-value">
+              <strong>{{ loaded.location }}</strong>
+              @if (mapUrl(loaded.latitude, loaded.longitude, loaded.googleMapsUrl); as mapsUrl) {
+                <a [href]="mapsUrl" target="_blank" rel="noopener noreferrer">Open in maps</a>
+              }
+            </div>
           </div>
         </div>
 

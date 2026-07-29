@@ -23,6 +23,18 @@ public class EventConfiguration : IEntityTypeConfiguration<Event>
             .IsRequired()
             .HasMaxLength(500);
 
+        builder.Property(entity => entity.GoogleMapsUrl)
+            .HasConversion(
+                url => url == null ? null : url.ToString(),
+                value => value == null ? null : new Uri(value))
+            .HasMaxLength(2000);
+
+        builder.Property(entity => entity.Latitude)
+            .HasPrecision(9, 6);
+
+        builder.Property(entity => entity.Longitude)
+            .HasPrecision(9, 6);
+
         builder.Property(entity => entity.StartsAt)
             .IsRequired();
 

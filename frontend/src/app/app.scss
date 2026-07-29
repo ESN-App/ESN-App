@@ -77,6 +77,12 @@
 }
 
 @media (min-width: 701px) {
+  .content:has(app-events-list),
+  .content:has(app-partners-list),
+  .content:has(app-info-list) {
+    max-width: 72rem;
+  }
+
   .toolbar {
     .desktop-menu {
       background: #fff;
@@ -148,7 +154,7 @@
 
 @media (max-width: 700px) {
   :host {
-    background-color: color-mix(in srgb, var(--active-page-color, #00aeef) 2%, #fff);
+    background-color: #fff;
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
@@ -158,23 +164,6 @@
     overflow: hidden;
     padding-top: env(safe-area-inset-top);
     position: relative;
-    transition: background-color 0.3s ease;
-  }
-
-  :host:has(.mobile-menu a:nth-child(1).active) {
-    --active-page-color: #00aeef;
-  }
-
-  :host:has(.mobile-menu a:nth-child(2).active) {
-    --active-page-color: #7ac143;
-  }
-
-  :host:has(.mobile-menu a:nth-child(3).active) {
-    --active-page-color: #ec008c;
-  }
-
-  :host:has(.mobile-menu a:nth-child(4).active) {
-    --active-page-color: #f47b20;
   }
 
   .toolbar {
@@ -184,7 +173,7 @@
   .mobile-menu {
     align-items: center;
     background-color: #fff;
-    border: 2px solid var(--active-page-color, #00aeef);
+    border: 2px solid #d6dae1;
     border-radius: 40px;
     bottom: 3rem;
     box-sizing: border-box;
@@ -265,7 +254,7 @@
   }
 
   .content {
-    background-color: color-mix(in srgb, var(--active-page-color, #00aeef) 10%, #fff);
+    background-color: #fff;
     box-sizing: border-box;
     flex: 1 1 auto;
     min-height: 0;
@@ -274,7 +263,6 @@
     padding-right: max(1rem, env(safe-area-inset-right));
     padding-bottom: calc(6rem + env(safe-area-inset-bottom));
     padding-left: max(1rem, env(safe-area-inset-left));
-    transition: background-color 0.3s ease;
     width: 100%;
   }
 

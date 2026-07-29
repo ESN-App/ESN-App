@@ -1,6 +1,5 @@
 :host {
   --partners-accent: #ec008c;
-  --partners-background: #fde6f4;
   display: block;
 }
 
@@ -104,8 +103,8 @@ h1 {
 
 .partner-card {
   align-items: center;
-  background: var(--partners-background);
-  border: 2px solid var(--partners-accent);
+  background: #fff;
+  border: 1px solid var(--partners-accent);
   border-radius: 1.4rem;
   display: grid;
   gap: 0.8rem 1.15rem;
@@ -126,7 +125,6 @@ h1 {
 .partner-logo {
   align-items: center;
   background: #fff;
-  border: 1px solid #ececec;
   border-radius: 0.9rem;
   display: flex;
   grid-row: 1 / span 2;
@@ -278,6 +276,49 @@ h1 {
   width: 1px;
 }
 
+@media (min-width: 701px) {
+  .partners-page {
+    max-width: 72rem;
+  }
+
+  .partner-grid {
+    gap: 1.5rem;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .partner-card {
+    align-items: stretch;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: 9.5rem auto 1fr;
+    min-height: 16rem;
+    row-gap: 0.45rem;
+  }
+
+  .partner-logo {
+    grid-row: auto;
+    height: 9.5rem;
+    width: 100%;
+  }
+
+  .partner-logo img {
+    padding: 1rem;
+  }
+
+  .partner-identity {
+    align-self: start;
+  }
+
+  .partner-description {
+    -webkit-line-clamp: 3;
+    margin-top: 0.2rem;
+  }
+
+  .partner-meta {
+    align-self: end;
+    padding-top: 0.35rem;
+  }
+}
+
 @media (max-width: 700px) {
   .partners-header {
     padding-top: 0;
@@ -292,6 +333,7 @@ h1 {
   }
 
   .partner-card {
+    background: #fff;
     cursor: pointer;
     gap: 0.65rem 0.85rem;
     grid-template-columns: 6.25rem minmax(0, 1fr);

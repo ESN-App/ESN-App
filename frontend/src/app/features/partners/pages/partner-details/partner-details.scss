@@ -113,12 +113,9 @@ h1 {
 }
 
 .hero-location > div {
-  align-items: baseline;
-  display: flex;
+  display: grid;
   flex: 1;
-  flex-wrap: wrap;
-  gap: 0.35rem;
-  justify-content: flex-start;
+  gap: 0.1rem;
 }
 
 .hero-location strong {
@@ -128,6 +125,7 @@ h1 {
 
 .hero-location a {
   color: var(--accent);
+  display: block;
   font-size: 0.78rem;
   font-weight: 800;
   text-decoration: none;
@@ -320,7 +318,6 @@ h2 {
 
   .hero-logo {
     background: #fff;
-    border: 1px solid #ececec;
     min-height: 10rem;
   }
 

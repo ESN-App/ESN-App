@@ -10,6 +10,14 @@ public class CreateEventCommandValidator : AbstractValidator<CreateEventCommand>
         RuleFor(command => command.ShortDescription).NotEmpty().MaximumLength(500);
         RuleFor(command => command.Description).NotEmpty();
         RuleFor(command => command.Location).NotEmpty().MaximumLength(500);
+        RuleFor(command => command.GoogleMapsUrl)
+            .MaximumLength(2000)
+            .Must(url => url is null || Uri.TryCreate(url, UriKind.Absolute, out _))
+            .WithMessage("Google Maps URL must be a valid absolute URL.");
+        RuleFor(command => command.Latitude).InclusiveBetween(-90m, 90m)
+            .When(command => command.Latitude.HasValue);
+        RuleFor(command => command.Longitude).InclusiveBetween(-180m, 180m)
+            .When(command => command.Longitude.HasValue);
         RuleFor(command => command.StartsAt).NotEmpty();
         RuleFor(command => command.EndsAt)
             .GreaterThan(command => command.StartsAt)
