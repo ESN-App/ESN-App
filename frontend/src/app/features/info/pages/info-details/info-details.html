@@ -1,0 +1,56 @@
+<main class="details-page">
+  <a class="back" routerLink="/info" aria-label="Back to info">
+    <span class="back-icon" aria-hidden="true"></span>
+    <span class="back-label">Info</span>
+  </a>
+
+  @if (article(); as loaded) {
+    <article class="article">
+      <section class="info-hero">
+        <div class="hero-image">
+          @if (!imageBroken()) {
+            <img
+              [src]="loaded.imageUrl"
+              [alt]="loaded.title"
+              (error)="imageBroken.set(true)"
+            />
+          } @else {
+            <span class="image-fallback" aria-hidden="true"></span>
+          }
+        </div>
+
+        <div class="hero-copy">
+          <p class="eyebrow">ESN Gdańsk info</p>
+          <h1>{{ loaded.title }}</h1>
+        </div>
+      </section>
+
+      <section class="content-section" aria-labelledby="article-content-title">
+        <div class="section-heading">
+          <h2 id="article-content-title">About</h2>
+        </div>
+        <p>{{ loaded.content }}</p>
+      </section>
+
+      @if (loaded.externalLinks.length > 0) {
+        <div class="link-list">
+          @for (link of loaded.externalLinks; track link) {
+            <a class="read-more-cta" [href]="link" target="_blank" rel="noopener noreferrer">
+              Read more about it
+              <span class="external-arrow" aria-hidden="true"></span>
+            </a>
+          }
+        </div>
+      }
+    </article>
+  } @else if (article() === null) {
+    <section class="not-found">
+      <span aria-hidden="true">?</span>
+      <h1>Information not found</h1>
+      <p>This section may no longer be published.</p>
+      <a routerLink="/info">Return to Info</a>
+    </section>
+  } @else {
+    <app-loading-spinner />
+  }
+</main>

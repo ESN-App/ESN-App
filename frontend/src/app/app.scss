@@ -148,7 +148,7 @@
 
 @media (max-width: 700px) {
   :host {
-    background-color: color-mix(in srgb, var(--active-page-color, #00aeef) 10%, #fff);
+    background-color: color-mix(in srgb, var(--active-page-color, #00aeef) 2%, #fff);
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
