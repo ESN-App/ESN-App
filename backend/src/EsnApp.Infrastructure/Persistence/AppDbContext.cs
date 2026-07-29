@@ -26,16 +26,13 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
 
         builder.ApplyConfiguration(new EventConfiguration());
         builder.ApplyConfiguration(new PartnerConfiguration());
+        builder.ApplyConfiguration(new InfoArticleConfiguration());
 
         builder.Entity<Discount>(entity =>
         {
             entity.Property(d => d.Title).HasMaxLength(200);
         });
 
-        builder.Entity<InfoArticle>(entity =>
-        {
-            entity.Property(a => a.Title).HasMaxLength(200);
-        });
     }
 
     public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)

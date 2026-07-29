@@ -3,7 +3,8 @@ using MediatR;
 
 namespace EsnApp.Application.Info;
 
-public record GetInfoArticlesListQuery : IRequest<Result<IReadOnlyList<InfoArticleDto>>>;
+public record GetInfoArticlesListQuery(string? Category = null)
+    : IRequest<Result<IReadOnlyList<InfoArticleDto>>>;
 
 public class GetInfoArticlesListQueryHandler(IInfoArticleRepository repository)
     : IRequestHandler<GetInfoArticlesListQuery, Result<IReadOnlyList<InfoArticleDto>>>
@@ -12,7 +13,7 @@ public class GetInfoArticlesListQueryHandler(IInfoArticleRepository repository)
         GetInfoArticlesListQuery request,
         CancellationToken cancellationToken)
     {
-        var articles = await repository.GetAllAsync(cancellationToken);
+        var articles = await repository.GetAllAsync(request.Category, cancellationToken);
 
         return Result.Success<IReadOnlyList<InfoArticleDto>>(
             articles.Select(InfoArticleDto.FromEntity).ToList());
