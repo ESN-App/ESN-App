@@ -1,0 +1,66 @@
+@if (newsItems().length > 0) {
+  <section class="news-section" aria-labelledby="news-title">
+    <header class="news-header">
+      <div>
+        <p>Fresh from ESN</p>
+        <h2 id="news-title">What’s new</h2>
+      </div>
+      <span>Swipe to explore</span>
+    </header>
+
+    <div class="news-carousel-shell">
+      <button
+        class="news-button previous"
+        type="button"
+        aria-label="Show previous story"
+        [disabled]="activeIndex() === 0"
+        (click)="moveCard(newsCarousel, -1)"
+      >
+        <span aria-hidden="true"></span>
+      </button>
+
+      <div
+        #newsCarousel
+        class="news-carousel"
+        role="region"
+        aria-label="Latest ESN stories"
+        (scroll)="updateActiveCard($event)"
+      >
+        @for (item of newsItems(); track item.id; let itemIndex = $index) {
+          <a
+            class="news-card"
+            routerLink="/preview"
+            [class.active]="activeIndex() === itemIndex"
+            [attr.aria-label]="'Open ' + item.title"
+          >
+            <img
+              [src]="item.imagePath"
+              [alt]="item.title"
+              [loading]="itemIndex === 0 ? 'eager' : 'lazy'"
+            />
+            <span class="news-overlay">
+              <span class="news-badge">New</span>
+              <strong>{{ item.title }}</strong>
+            </span>
+          </a>
+        }
+      </div>
+
+      <button
+        class="news-button next"
+        type="button"
+        aria-label="Show next story"
+        [disabled]="activeIndex() === newsItems().length - 1"
+        (click)="moveCard(newsCarousel, 1)"
+      >
+        <span aria-hidden="true"></span>
+      </button>
+
+      <div class="news-progress" aria-hidden="true">
+        @for (item of newsItems(); track item.id; let itemIndex = $index) {
+          <span [class.active]="activeIndex() === itemIndex"></span>
+        }
+      </div>
+    </div>
+  </section>
+}

@@ -3,6 +3,7 @@ using EsnApp.Application.Discounts.Abstractions;
 using EsnApp.Application.Events.Abstractions;
 using EsnApp.Application.Identity;
 using EsnApp.Application.Info;
+using EsnApp.Application.News.Abstractions;
 using EsnApp.Infrastructure.Identity;
 using EsnApp.Infrastructure.Persistence;
 using EsnApp.Infrastructure.Persistence.Repositories;
@@ -62,6 +63,7 @@ public static class DependencyInjection
         services.AddScoped<IDiscountRepository, DiscountRepository>();
         services.AddScoped<IPartnerRepository, PartnerRepository>();
         services.AddScoped<IInfoArticleRepository, InfoArticleRepository>();
+        services.AddScoped<INewsItemRepository, NewsItemRepository>();
 
         return services;
     }
