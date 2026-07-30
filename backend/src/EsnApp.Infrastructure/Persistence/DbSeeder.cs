@@ -86,7 +86,6 @@ public static class DbSeeder
     {
         await SeedEventsAsync(context);
         await SeedPartnersAsync(context);
-        await SeedNewsAsync(context);
 
         if (!await context.InfoArticles.AnyAsync())
         {
@@ -221,12 +220,6 @@ public static class DbSeeder
 
             ApplySeedPartner(context, existingPartner, seedPartner);
         }
-    }
-
-    private static async Task SeedNewsAsync(AppDbContext context)
-    {
-        if (!await context.NewsItems.AnyAsync())
-            context.NewsItems.AddRange(NewsSeedData.Create());
     }
 
     private static void ApplySeedPartner(AppDbContext context, Partner target, Partner source)

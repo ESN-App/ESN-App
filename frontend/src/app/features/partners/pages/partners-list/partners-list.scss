@@ -66,12 +66,12 @@ h1 {
 }
 
 .search-icon {
-  background: var(--partners-accent);
-  flex: 0 0 1.25rem;
-  height: 1.25rem;
+  color: var(--partners-accent);
+  font-size: 1.45rem;
+  font-weight: 800;
+  line-height: 1;
   margin-right: 0.55rem;
-  mask: url('/icons/search.svg') center / contain no-repeat;
-  width: 1.25rem;
+  transform: rotate(-20deg);
 }
 
 .search input {
@@ -245,10 +245,15 @@ h1 {
 }
 
 .error-state > span {
+  align-items: center;
   background: var(--partners-accent);
-  display: inline-block;
+  border-radius: 50%;
+  color: #fff;
+  display: inline-flex;
+  font-size: 1.1rem;
+  font-weight: 900;
   height: 2.25rem;
-  mask: url('/icons/exclamation.svg') center / contain no-repeat;
+  justify-content: center;
   width: 2.25rem;
 }
 

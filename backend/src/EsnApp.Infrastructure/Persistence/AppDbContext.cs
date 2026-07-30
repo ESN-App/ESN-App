@@ -30,7 +30,6 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
         builder.ApplyConfiguration(new EventConfiguration());
         builder.ApplyConfiguration(new PartnerConfiguration());
         builder.ApplyConfiguration(new InfoArticleConfiguration());
-        builder.ApplyConfiguration(new NewsItemConfiguration());
 
         builder.Entity<Discount>(entity =>
         {

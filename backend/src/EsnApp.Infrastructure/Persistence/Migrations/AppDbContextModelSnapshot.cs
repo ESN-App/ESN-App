@@ -137,11 +137,11 @@ namespace EsnApp.Infrastructure.Persistence.Migrations
                     b.Property<DateTimeOffset?>("EndsAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("GoogleMapsUrl")
+                    b.Property<string>("ImagePath")
                         .HasMaxLength(2000)
                         .HasColumnType("character varying(2000)");
 
-                    b.Property<string>("ImagePath")
+                    b.Property<string>("GoogleMapsUrl")
                         .HasMaxLength(2000)
                         .HasColumnType("character varying(2000)");
 

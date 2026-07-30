@@ -3,18 +3,6 @@
   background-color: #fff;
 }
 
-@property --nav-gradient-angle {
-  syntax: '<angle>';
-  inherits: false;
-  initial-value: 0deg;
-}
-
-@keyframes rotate-nav-gradient {
-  to {
-    --nav-gradient-angle: 360deg;
-  }
-}
-
 :host {
   background: #fff;
   display: block;
@@ -89,7 +77,6 @@
 }
 
 @media (min-width: 701px) {
-  .content:has(app-home-page),
   .content:has(app-events-list),
   .content:has(app-partners-list),
   .content:has(app-info-list) {
@@ -185,19 +172,8 @@
 
   .mobile-menu {
     align-items: center;
-    animation: rotate-nav-gradient 4s linear infinite;
-    background:
-      linear-gradient(#fff, #fff) padding-box,
-      conic-gradient(
-          from var(--nav-gradient-angle),
-          #00aeef,
-          #7ac143,
-          #ec008c,
-          #f47b20,
-          #00aeef
-        )
-        border-box;
-    border: 2px solid transparent;
+    background-color: #fff;
+    border: 2px solid #d6dae1;
     border-radius: 40px;
     bottom: 3rem;
     box-sizing: border-box;
@@ -292,11 +268,5 @@
 
   .content.mobile-navigation-hidden {
     padding-bottom: max(1.5rem, env(safe-area-inset-bottom));
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .mobile-menu {
-    animation: none;
   }
 }

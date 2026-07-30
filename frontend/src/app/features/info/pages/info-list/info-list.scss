@@ -166,10 +166,15 @@ h1 {
 }
 
 .error-state > span {
+  align-items: center;
   background: var(--info-accent);
-  display: inline-block;
+  border-radius: 50%;
+  color: #fff;
+  display: inline-flex;
+  font-size: 1.1rem;
+  font-weight: 900;
   height: 2.25rem;
-  mask: url('/icons/exclamation.svg') center / contain no-repeat;
+  justify-content: center;
   width: 2.25rem;
 }
 
