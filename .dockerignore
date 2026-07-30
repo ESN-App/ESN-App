@@ -1,0 +1,21 @@
+# .NET build outputs are platform-specific. Copying host-generated obj files
+# into the Linux build image overwrites the container's restored NuGet assets.
+**/bin/
+**/obj/
+
+# Frontend dependencies and generated output are rebuilt inside the image.
+frontend/node_modules/
+frontend/dist/
+frontend/.angular/
+
+# Repository and editor metadata are not part of either application image.
+.git/
+.gitignore
+.vscode/
+.idea/
+
+# Local-only files and test/build artifacts.
+**/*.user
+**/*.suo
+**/TestResults/
+**/coverage/
