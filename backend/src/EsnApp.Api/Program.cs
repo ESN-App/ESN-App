@@ -17,7 +17,7 @@ builder.Services.AddSwaggerGen(options =>
     {
         Title = "ESN Gdańsk App API",
         Version = "v1",
-        Description = "REST API for the ESN Gdańsk app (Events, Discounts, Info).",
+        Description = "REST API for the ESN Gdańsk app (News, Events, Discounts, Info).",
     });
 
     options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme

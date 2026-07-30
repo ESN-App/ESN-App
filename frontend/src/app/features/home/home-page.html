@@ -9,6 +9,71 @@
     </div>
   </header>
 
+  <app-home-highlights />
+
+  <section class="community-section" aria-label="About ESN Gdańsk and office information">
+    <article class="about-card">
+      <div>
+        <p class="about-label">Who we are</p>
+        <h2>Meet ESN Gdańsk</h2>
+        <p class="about-intro">
+          ESN Gdańsk is a volunteer-led student association that helps international students
+          feel at home from their first days in the city.
+        </p>
+        <p class="about-copy">
+          We connect people across cultures through events, trips, local knowledge and everyday
+          support. Our goal is simple: make your exchange easier, more social and full of
+          experiences worth remembering.
+        </p>
+      </div>
+
+      <ul class="about-highlights" aria-label="What ESN Gdańsk offers">
+        <li><span aria-hidden="true"></span>Local student volunteers</li>
+        <li><span aria-hidden="true"></span>An international community</li>
+        <li><span aria-hidden="true"></span>Practical support in Gdańsk</li>
+      </ul>
+    </article>
+
+    <article class="office-card">
+      <figure class="office-photo">
+        <img
+          src="/images/esn-office.jpg"
+          alt="A warm student organization office with a shared table and colorful chairs"
+          loading="lazy"
+        />
+        <figcaption>Illustrative office photo</figcaption>
+      </figure>
+
+      <div class="office-copy">
+        <p class="office-label">Come say hi</p>
+        <h2>Visit our office</h2>
+
+        <div class="office-details">
+          <div class="office-detail">
+            <span class="office-icon location" aria-hidden="true"></span>
+            <div>
+              <strong>Address</strong>
+              <p>
+                Gdańsk University of Technology<br />
+                Building 14 “Misiówka”, room 001<br />
+                ul. Narutowicza 11/12, 80-233 Gdańsk
+              </p>
+            </div>
+          </div>
+
+          <div class="office-detail">
+            <span class="office-icon hours" aria-hidden="true"></span>
+            <div>
+              <strong>Office hours</strong>
+              <p>Announced weekly during the semester.</p>
+              <small>Please check the latest ESN Gdańsk update before visiting.</small>
+            </div>
+          </div>
+        </div>
+      </div>
+    </article>
+  </section>
+
   <section class="welcome-panel" aria-labelledby="welcome-title">
     <div class="welcome-copy">
       <p class="panel-label">Your Erasmus companion</p>
@@ -20,43 +85,65 @@
       </p>
     </div>
 
-    <nav class="section-tiles" aria-label="Explore ESN Gdańsk">
-      <article class="section-tile events-tile">
+    <nav
+      class="section-tiles"
+      aria-label="Explore ESN Gdańsk"
+      (scroll)="updateActiveTile($event)"
+    >
+      <article class="section-tile events-tile" [class.active]="activeTileIndex() === 0">
         <a class="mobile-tile-link" routerLink="/events" aria-label="Check out Events"></a>
-        <span class="tile-heading">
+        <div class="tile-body">
           <span class="tile-icon" aria-hidden="true"></span>
-          <strong>Events</strong>
-        </span>
-        <span class="tile-description">Trips, activities and meetups prepared for ESN members.</span>
-        <a class="tile-action" routerLink="/events" aria-label="Check out Events">
-          <span class="tile-arrow" aria-hidden="true"></span>
-        </a>
+          <span class="tile-copy">
+            <strong>Events</strong>
+            <span class="tile-description">
+              Trips, activities and meetups prepared for ESN members.
+            </span>
+          </span>
+          <a class="tile-action" routerLink="/events" aria-label="Check out Events">
+            <span class="tile-arrow" aria-hidden="true"></span>
+          </a>
+        </div>
       </article>
 
-      <article class="section-tile partners-tile">
+      <article class="section-tile partners-tile" [class.active]="activeTileIndex() === 1">
         <a class="mobile-tile-link" routerLink="/partners" aria-label="Check out Partners"></a>
-        <span class="tile-heading">
+        <div class="tile-body">
           <span class="tile-icon" aria-hidden="true"></span>
-          <strong>Partners</strong>
-        </span>
-        <span class="tile-description">Student discounts and special offers from local partners.</span>
-        <a class="tile-action" routerLink="/partners" aria-label="Check out Partners">
-          <span class="tile-arrow" aria-hidden="true"></span>
-        </a>
+          <span class="tile-copy">
+            <strong>Partners</strong>
+            <span class="tile-description">
+              Student discounts and special offers from local partners.
+            </span>
+          </span>
+          <a class="tile-action" routerLink="/partners" aria-label="Check out Partners">
+            <span class="tile-arrow" aria-hidden="true"></span>
+          </a>
+        </div>
       </article>
 
-      <article class="section-tile info-tile">
+      <article class="section-tile info-tile" [class.active]="activeTileIndex() === 2">
         <a class="mobile-tile-link" routerLink="/info" aria-label="Check out Info"></a>
-        <span class="tile-heading">
+        <div class="tile-body">
           <span class="tile-icon" aria-hidden="true"></span>
-          <strong>Info</strong>
-        </span>
-        <span class="tile-description">Practical information and useful tips for life in Gdańsk.</span>
-        <a class="tile-action" routerLink="/info" aria-label="Check out Info">
-          <span class="tile-arrow" aria-hidden="true"></span>
-        </a>
+          <span class="tile-copy">
+            <strong>Info</strong>
+            <span class="tile-description">
+              Practical information and useful tips for life in Gdańsk.
+            </span>
+          </span>
+          <a class="tile-action" routerLink="/info" aria-label="Check out Info">
+            <span class="tile-arrow" aria-hidden="true"></span>
+          </a>
+        </div>
       </article>
     </nav>
+
+    <div class="carousel-progress" aria-hidden="true">
+      <span [class.active]="activeTileIndex() === 0"></span>
+      <span [class.active]="activeTileIndex() === 1"></span>
+      <span [class.active]="activeTileIndex() === 2"></span>
+    </div>
   </section>
 
   @if (!isStandalone) {

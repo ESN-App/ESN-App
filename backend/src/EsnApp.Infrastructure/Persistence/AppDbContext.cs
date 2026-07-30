@@ -2,6 +2,7 @@ using EsnApp.Domain.Common;
 using EsnApp.Domain.Discounts;
 using EsnApp.Domain.Events;
 using EsnApp.Domain.Info;
+using EsnApp.Domain.News;
 using EsnApp.Infrastructure.Identity;
 using EsnApp.Infrastructure.Persistence.Configurations;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
@@ -20,6 +21,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
 
     public DbSet<InfoArticle> InfoArticles => Set<InfoArticle>();
 
+    public DbSet<NewsItem> NewsItems => Set<NewsItem>();
+
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
@@ -27,6 +30,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
         builder.ApplyConfiguration(new EventConfiguration());
         builder.ApplyConfiguration(new PartnerConfiguration());
         builder.ApplyConfiguration(new InfoArticleConfiguration());
+        builder.ApplyConfiguration(new NewsItemConfiguration());
 
         builder.Entity<Discount>(entity =>
         {
