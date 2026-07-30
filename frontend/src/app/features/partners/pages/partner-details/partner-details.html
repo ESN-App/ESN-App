@@ -1,0 +1,100 @@
+<main class="details-page">
+  <a class="back" routerLink="/partners" aria-label="Back to partners">
+    <span class="back-icon" aria-hidden="true"></span>
+    <span class="back-label">Partners</span>
+  </a>
+
+  @if (partner(); as loaded) {
+    <article>
+      <section class="partner-hero">
+        <div class="hero-logo">
+          @if (loaded.logoPath && !logoBroken()) {
+            <img
+              [src]="loaded.logoPath"
+              [alt]="loaded.name + ' logo'"
+              (error)="logoBroken.set(true)"
+            />
+          } @else {
+            <span aria-hidden="true">{{ initials(loaded.name) }}</span>
+          }
+        </div>
+
+        <div class="hero-copy">
+          <p class="eyebrow">ESN GDAŃSK PARTNER</p>
+          <h1>{{ loaded.name }}</h1>
+          <p class="summary">{{ loaded.shortDescription }}</p>
+
+          @if (loaded.address) {
+            <div class="hero-location">
+              <span class="location-icon" aria-hidden="true"></span>
+              <div>
+                <strong>{{ loaded.address }}</strong>
+                @if (mapUrl(loaded.latitude, loaded.longitude, loaded.googleMapsUrl); as mapsUrl) {
+                  <a [href]="mapsUrl" target="_blank" rel="noopener noreferrer">Open in maps</a>
+                }
+              </div>
+            </div>
+          }
+        </div>
+      </section>
+
+      @if (loaded.offers.length > 0) {
+        <section class="offers" aria-labelledby="offers-title">
+          <div class="section-heading">
+            <h2 id="offers-title">Benefits</h2>
+            <span class="offer-count">
+              {{ loaded.offers.length }}
+              {{ loaded.offers.length === 1 ? 'offer' : 'offers' }}
+            </span>
+          </div>
+
+          <div class="offer-list">
+            @for (offer of loaded.offers; track offer.id) {
+              <article class="offer">
+                <div class="offer-title">
+                  <span class="offer-icon" aria-hidden="true"></span>
+                  <h3>{{ offer.title }}</h3>
+                </div>
+                <p>{{ offer.description }}</p>
+
+                @if (offer.instructions) {
+                  <div class="offer-detail">
+                    <strong>How to use it</strong>
+                    <span>{{ offer.instructions }}</span>
+                  </div>
+                }
+                @if (offer.terms) {
+                  <div class="offer-detail">
+                    <strong>Terms</strong>
+                    <span>{{ offer.terms }}</span>
+                  </div>
+                }
+              </article>
+            }
+          </div>
+        </section>
+      }
+
+      <section class="about">
+        <p class="eyebrow">About the partner</p>
+        <p>{{ loaded.description }}</p>
+      </section>
+
+      @if (loaded.websiteUrl) {
+        <a class="website-cta" [href]="loaded.websiteUrl" target="_blank" rel="noopener noreferrer">
+          Visit partner website
+          <span class="cta-arrow" aria-hidden="true"></span>
+        </a>
+      }
+    </article>
+  } @else if (partner() === null) {
+    <section class="not-found">
+      <span aria-hidden="true">?</span>
+      <h1>Partner not found</h1>
+      <p>This partner may no longer be available.</p>
+      <a routerLink="/partners">Return to partners</a>
+    </section>
+  } @else {
+    <app-loading-spinner />
+  }
+</main>

@@ -1,4 +1,4 @@
-using EsnApp.Application.Discounts;
+using EsnApp.Application.Discounts.Abstractions;
 using EsnApp.Domain.Discounts;
 using Microsoft.EntityFrameworkCore;
 

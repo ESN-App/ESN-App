@@ -12,9 +12,11 @@ public class InfoController(ISender sender) : ControllerBase
     /// <summary>Lists all info articles.</summary>
     [HttpGet]
     [ProducesResponseType(typeof(IReadOnlyList<InfoArticleDto>), StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetList(CancellationToken cancellationToken)
+    public async Task<IActionResult> GetList(
+        [FromQuery] string? category,
+        CancellationToken cancellationToken)
     {
-        var result = await sender.Send(new GetInfoArticlesListQuery(), cancellationToken);
+        var result = await sender.Send(new GetInfoArticlesListQuery(category), cancellationToken);
 
         return Ok(result.Value);
     }
@@ -30,16 +32,14 @@ public class InfoController(ISender sender) : ControllerBase
         return result.IsSuccess ? Ok(result.Value) : NotFound(new { error = result.Error });
     }
 
-    /// <summary>Creates an info article. Requires authentication.</summary>
-    [HttpPost]
-    [Authorize]
-    [ProducesResponseType(typeof(InfoArticleDto), StatusCodes.Status201Created)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    public async Task<IActionResult> Create(CreateInfoArticleCommand command, CancellationToken cancellationToken)
+    /// <summary>Gets a published info article by slug.</summary>
+    [HttpGet("by-slug/{slug}")]
+    [ProducesResponseType(typeof(InfoArticleDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetBySlug(string slug, CancellationToken cancellationToken)
     {
-        var result = await sender.Send(command, cancellationToken);
+        var result = await sender.Send(new GetInfoArticleBySlugQuery(slug), cancellationToken);
 
-        return CreatedAtAction(nameof(GetById), new { id = result.Value!.Id }, result.Value);
+        return result.IsSuccess ? Ok(result.Value) : NotFound(new { error = result.Error });
     }
 }

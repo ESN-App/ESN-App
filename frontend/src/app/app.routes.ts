@@ -1,16 +1,20 @@
 import { Routes } from '@angular/router';
 
 export const routes: Routes = [
-  { path: '', pathMatch: 'full', redirectTo: 'events' },
+  {
+    path: '',
+    loadChildren: () => import('./features/home/home.routes').then((m) => m.HOME_ROUTES),
+  },
   {
     path: 'events',
     loadChildren: () => import('./features/events/events.routes').then((m) => m.EVENTS_ROUTES),
   },
   {
-    path: 'discounts',
+    path: 'partners',
     loadChildren: () =>
-      import('./features/discounts/discounts.routes').then((m) => m.DISCOUNTS_ROUTES),
+      import('./features/partners/partners.routes').then((m) => m.PARTNERS_ROUTES),
   },
+  { path: 'discounts', redirectTo: 'partners', pathMatch: 'full' },
   {
     path: 'info',
     loadChildren: () => import('./features/info/info.routes').then((m) => m.INFO_ROUTES),
@@ -19,5 +23,5 @@ export const routes: Routes = [
     path: 'auth',
     loadChildren: () => import('./features/auth/auth.routes').then((m) => m.AUTH_ROUTES),
   },
-  { path: '**', redirectTo: 'events' },
+  { path: '**', redirectTo: '' },
 ];

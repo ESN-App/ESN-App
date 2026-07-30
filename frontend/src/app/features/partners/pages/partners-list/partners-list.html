@@ -1,0 +1,99 @@
+<section class="partners-page">
+  <header class="partners-header">
+    <div class="page-heading">
+      <img src="/images/esnstar.png" alt="" />
+      <div>
+        <p class="eyebrow">ESN Gdańsk</p>
+        <h1>Partners</h1>
+      </div>
+    </div>
+    <p class="intro">Enjoy special discounts and offers prepared for ESN members.</p>
+  </header>
+
+  <div class="partner-tools">
+    <label class="search">
+      <span class="search-icon" aria-hidden="true">⌕</span>
+      <span class="visually-hidden">Search partners</span>
+      <input
+        type="search"
+        placeholder="Search partners or offers"
+        [value]="searchQuery()"
+        (input)="updateSearch($event)"
+      />
+    </label>
+
+    @if (state().status === 'loaded') {
+      <span class="result-count" aria-live="polite">
+        {{ filteredPartners().length }}
+        {{ filteredPartners().length === 1 ? 'partner' : 'partners' }}
+      </span>
+    }
+  </div>
+
+  @switch (state().status) {
+    @case ('loading') {
+      <app-loading-spinner />
+    }
+    @case ('error') {
+      <section class="error-state">
+        <span aria-hidden="true">!</span>
+        <h2>We could not load the partners</h2>
+        <p>Please try again in a moment.</p>
+      </section>
+    }
+    @case ('loaded') {
+      @if (filteredPartners().length === 0) {
+        <app-empty-state
+          [message]="
+            searchQuery() ? 'No partners match your search.' : 'No partners are available yet.'
+          "
+        />
+      } @else {
+        <div class="partner-grid" aria-label="ESN partners">
+          @for (partner of filteredPartners(); track partner.id) {
+            <article class="partner-card">
+              <a
+                class="mobile-card-link"
+                [routerLink]="['/partners', partnerSlug(partner)]"
+                [attr.aria-label]="'Open details for ' + partner.name"
+              ></a>
+
+              <div class="partner-logo">
+                <span aria-hidden="true">{{ initials(partner.name) }}</span>
+                @if (partner.logoPath && !hasBrokenLogo(partner.id)) {
+                  <img
+                    [src]="partner.logoPath"
+                    [alt]="partner.name + ' logo'"
+                    loading="lazy"
+                    (error)="markLogoAsBroken(partner.id)"
+                  />
+                }
+              </div>
+
+              <div class="partner-identity">
+                <h2>{{ partner.name }}</h2>
+                <p class="partner-description">{{ partner.shortDescription }}</p>
+              </div>
+
+              <div class="partner-meta">
+                <span class="discount-count">
+                  <span class="discount-icon" aria-hidden="true"></span>
+                  {{ partner.offers.length }}
+                  {{ partner.offers.length === 1 ? 'discount' : 'discounts' }}
+                </span>
+                <a
+                  class="details-link"
+                  [routerLink]="['/partners', partnerSlug(partner)]"
+                  [attr.aria-label]="'Open details for ' + partner.name"
+                >
+                  <span class="details-label">Read more</span>
+                  <span class="arrow-icon" aria-hidden="true"></span>
+                </a>
+              </div>
+            </article>
+          }
+        </div>
+      }
+    }
+  }
+</section>

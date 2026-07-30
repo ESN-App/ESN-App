@@ -1,22 +1,46 @@
+<!-- Main application shell -->
 <mat-toolbar color="primary" class="toolbar">
-  <a class="brand" routerLink="/">ESN Gdańsk</a>
+  <a class="brand" routerLink="/">
+    <img src="/images/esnstar.png" alt="" />
+    <span>ESN Gdańsk</span>
+  </a>
 
-  <nav>
-    <a mat-button routerLink="/events" routerLinkActive="active">Events</a>
-    <a mat-button routerLink="/discounts" routerLinkActive="active">Discounts</a>
-    <a mat-button routerLink="/info" routerLinkActive="active">Info</a>
+  <nav class="desktop-menu" aria-label="Main navigation">
+    <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Home</a>
+    <a routerLink="/events" routerLinkActive="active">Events</a>
+    <a routerLink="/partners" routerLinkActive="active">Partners</a>
+    <a routerLink="/info" routerLinkActive="active">Info</a>
   </nav>
 
-  <span class="spacer"></span>
-
-  @if (auth.isLoggedIn()) {
-    <span class="user-email">{{ auth.email() }}</span>
-    <button mat-button (click)="logout()">Log out</button>
-  } @else {
-    <a mat-button routerLink="/auth">Log in</a>
-  }
+  <div class="account">
+    @if (auth.isLoggedIn()) {
+      <span class="user-email">{{ auth.email() }}</span>
+      <button mat-button (click)="logout()">Log out</button>
+    } @else {
+      <a mat-button routerLink="/auth">Log in</a>
+    }
+  </div>
 </mat-toolbar>
 
-<main class="content">
+<main class="content" [class.mobile-navigation-hidden]="hideMobileNavigation()">
   <router-outlet />
 </main>
+
+<nav
+  class="mobile-menu"
+  [class.hidden]="hideMobileNavigation()"
+  aria-label="Mobile navigation"
+>
+  <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" aria-label="Home">
+    <span class="nav-icon" aria-hidden="true"></span>
+  </a>
+  <a routerLink="/events" routerLinkActive="active" aria-label="Events">
+    <span class="nav-icon" aria-hidden="true"></span>
+  </a>
+  <a routerLink="/partners" routerLinkActive="active" aria-label="Partners">
+    <span class="nav-icon" aria-hidden="true"></span>
+  </a>
+  <a routerLink="/info" routerLinkActive="active" aria-label="Info">
+    <span class="nav-icon" aria-hidden="true"></span>
+  </a>
+</nav>

@@ -1,4 +1,7 @@
-using EsnApp.Application.Discounts;
+using EsnApp.Application.Discounts.Common;
+using EsnApp.Application.Discounts.CreatePartner;
+using EsnApp.Application.Discounts.GetPartnerById;
+using EsnApp.Application.Discounts.GetPartnersList;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -32,7 +35,7 @@ public class PartnersController(ISender sender) : ControllerBase
 
     /// <summary>Creates a partner. Requires authentication.</summary>
     [HttpPost]
-    [Authorize]
+    [Authorize(Roles = "Admin")]
     [ProducesResponseType(typeof(PartnerDto), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]

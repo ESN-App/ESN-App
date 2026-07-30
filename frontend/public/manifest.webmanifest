@@ -1,7 +1,11 @@
 {
-  "name": "esn-app",
-  "short_name": "esn-app",
-  "display": "standalone",
+  "name": "ESN Gdańsk",
+  "short_name": "ESN Gdańsk",
+  "display": "fullscreen",
+  "display_override": ["fullscreen", "standalone"],
+  "orientation": "portrait-primary",
+  "theme_color": "#e6f7fd",
+  "background_color": "#e6f7fd",
   "scope": "./",
   "start_url": "./",
   "icons": [

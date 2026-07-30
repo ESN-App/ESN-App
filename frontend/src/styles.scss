@@ -6,7 +6,9 @@
 @use '@angular/material' as mat;
 
 html {
+  background-color: #fff;
   height: 100%;
+  min-height: 100%;
   @include mat.theme(
     (
       color: (
@@ -28,12 +30,49 @@ body {
   // Set a default background, font and text colors for the application using
   // Angular Material's system-level CSS variables. Learn more about these
   // variables at https://material.angular.dev/guide/system-variables
-  background-color: var(--mat-sys-surface);
+  background-color: #fff;
   color: var(--mat-sys-on-surface);
   font: var(--mat-sys-body-medium);
 
   // Reset the user agent margin.
   margin: 0;
   height: 100%;
+  min-height: 100%;
+  min-height: 100dvh;
+  overscroll-behavior: none;
+}
+
+app-root {
+  display: block;
+  min-height: 100%;
+  min-height: 100dvh;
+}
+
+.page-heading {
+  align-items: center;
+  display: flex;
+  gap: 0;
+}
+
+.page-heading img {
+  display: none;
+}
+
+@media (max-width: 700px) {
+  .page-heading {
+    gap: 0.75rem;
+    padding: 1rem 0 1.25rem 0.5rem;
+  }
+
+  .page-heading img {
+    display: block;
+    height: 2.5rem;
+    object-fit: contain;
+    width: 2.5rem;
+  }
+
+  .page-heading h1 {
+    margin: 0;
+  }
 }
 /* You can add global styles to this file, and also import other style files */

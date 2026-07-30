@@ -6,7 +6,7 @@ Requires Node ≥ 24.15 (the Angular CLI refuses to run on older versions).
 
 ```bash
 npm install
-npm start          # dev server on http://localhost:4200, API expected on http://localhost:5000
+npm start          # dev server on :4200; /api is proxied to http://localhost:5000
 npm run lint       # ESLint
 npm test           # vitest (add -- --watch=false for a single run)
 npm run build      # production build (dist/esn-app; API is same-origin via nginx proxy)

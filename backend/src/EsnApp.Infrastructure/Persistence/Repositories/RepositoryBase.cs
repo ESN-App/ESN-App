@@ -26,4 +26,25 @@ public abstract class RepositoryBase<TEntity>(AppDbContext context)
 
         return entity;
     }
+
+    public virtual async Task<TEntity> UpdateAsync(
+        TEntity entity,
+        CancellationToken cancellationToken = default)
+    {
+        Context.Set<TEntity>().Update(entity);
+        await Context.SaveChangesAsync(cancellationToken);
+
+        return entity;
+    }
+
+    public virtual async Task<bool> DeleteAsync(
+        Guid id,
+        CancellationToken cancellationToken = default)
+    {
+        var deletedRows = await Context.Set<TEntity>()
+            .Where(entity => entity.Id == id)
+            .ExecuteDeleteAsync(cancellationToken);
+
+        return deletedRows > 0;
+    }
 }
