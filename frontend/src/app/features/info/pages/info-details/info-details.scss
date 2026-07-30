@@ -163,15 +163,10 @@ h2 {
 }
 
 .not-found > span {
-  align-items: center;
   background: var(--info-accent);
-  border-radius: 50%;
-  color: #fff;
-  display: inline-flex;
-  font-size: 1.2rem;
-  font-weight: 900;
+  display: inline-block;
   height: 2.5rem;
-  justify-content: center;
+  mask: url('/icons/question_mark.svg') center / contain no-repeat;
   width: 2.5rem;
 }
 
