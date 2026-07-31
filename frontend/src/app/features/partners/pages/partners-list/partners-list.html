@@ -42,55 +42,177 @@
       </section>
     }
     @case ('loaded') {
-      @if (filteredPartners().length === 0) {
-        <app-empty-state
-          [message]="
-            searchQuery() ? 'No partners match your search.' : 'No partners are available yet.'
-          "
-        />
+      @if (state().partners.length === 0) {
+        <app-empty-state message="No partners are available yet." />
       } @else {
-        <div class="partner-grid" aria-label="ESN partners">
-          @for (partner of filteredPartners(); track partner.id) {
-            <article class="partner-card">
-              <a
-                class="mobile-card-link"
-                [routerLink]="['/partners', partnerSlug(partner)]"
-                [attr.aria-label]="'Open details for ' + partner.name"
-              ></a>
+        @if (!isDesktop()) {
+          <div class="mobile-view-switch" role="tablist" aria-label="Partners view">
+            <button
+              id="partners-list-tab"
+              type="button"
+              role="tab"
+              [attr.aria-selected]="mobileView() === 'list'"
+              aria-controls="partners-list-panel"
+              [class.mobile-view-switch__option--active]="mobileView() === 'list'"
+              (click)="setMobileView('list')"
+            >
+              List
+            </button>
+            <button
+              id="partners-map-tab"
+              type="button"
+              role="tab"
+              [attr.aria-selected]="mobileView() === 'map'"
+              aria-controls="partners-map-panel"
+              [class.mobile-view-switch__option--active]="mobileView() === 'map'"
+              (click)="setMobileView('map')"
+            >
+              Map
+            </button>
+          </div>
+        }
 
-              <div class="partner-logo">
-                <span aria-hidden="true">{{ initials(partner.name) }}</span>
-                @if (partner.logoPath && !hasBrokenLogo(partner.id)) {
-                  <img
-                    [src]="partner.logoPath"
-                    [alt]="partner.name + ' logo'"
-                    loading="lazy"
-                    (error)="markLogoAsBroken(partner.id)"
-                  />
-                }
-              </div>
+        <div class="partners-split">
+          @if (isDesktop() || mobileView() === 'list') {
+            <section
+              #partnerList
+              id="partners-list-panel"
+              class="partner-list-region"
+              role="tabpanel"
+              aria-labelledby="partners-list-tab"
+              aria-label="ESN partners"
+            >
+              @if (filteredPartners().length === 0) {
+                <app-empty-state message="No partners match your search." />
+              } @else {
+                <div class="partner-grid">
+                  @for (partner of filteredPartners(); track partner.id) {
+                    <article
+                      #partnerCard
+                      class="partner-card"
+                      [class.partner-card--selected]="selectedPartnerId() === partner.id"
+                      [id]="'partner-' + partner.id"
+                      [attr.data-partner-id]="partner.id"
+                    >
+                      <button
+                        class="partner-select-button"
+                        type="button"
+                        [attr.aria-label]="'Select ' + partner.name + ' on the map'"
+                        [attr.aria-pressed]="selectedPartnerId() === partner.id"
+                        (click)="selectPartner(partner.id)"
+                      ></button>
 
-              <div class="partner-identity">
-                <h2>{{ partner.name }}</h2>
-                <p class="partner-description">{{ partner.shortDescription }}</p>
-              </div>
+                      <a
+                        class="mobile-card-link"
+                        [routerLink]="['/partners', partnerSlug(partner)]"
+                        [attr.aria-label]="'Open details for ' + partner.name"
+                      ></a>
 
-              <div class="partner-meta">
-                <span class="discount-count">
-                  <span class="discount-icon" aria-hidden="true"></span>
-                  {{ partner.offers.length }}
-                  {{ partner.offers.length === 1 ? 'discount' : 'discounts' }}
-                </span>
-                <a
-                  class="details-link"
-                  [routerLink]="['/partners', partnerSlug(partner)]"
-                  [attr.aria-label]="'Open details for ' + partner.name"
-                >
-                  <span class="details-label">Read more</span>
-                  <span class="arrow-icon" aria-hidden="true"></span>
-                </a>
-              </div>
-            </article>
+                      <div class="partner-logo">
+                        <span aria-hidden="true">{{ initials(partner.name) }}</span>
+                        @if (partner.logoPath && !hasBrokenLogo(partner.id)) {
+                          <img
+                            [src]="partner.logoPath"
+                            [alt]="partner.name + ' logo'"
+                            loading="lazy"
+                            (error)="markLogoAsBroken(partner.id)"
+                          />
+                        }
+                      </div>
+
+                      <div class="partner-identity">
+                        <div class="partner-title-row">
+                          <h2>{{ partner.name }}</h2>
+                          @if (selectedPartnerId() === partner.id) {
+                            <span class="selection-status">Selected</span>
+                          }
+                        </div>
+                        <p class="partner-description">{{ partner.shortDescription }}</p>
+                      </div>
+
+                      <div class="partner-meta">
+                        <span class="discount-count">
+                          <span class="discount-icon" aria-hidden="true"></span>
+                          {{ partner.offers.length }}
+                          {{ partner.offers.length === 1 ? 'discount' : 'discounts' }}
+                        </span>
+                        <a
+                          class="details-link"
+                          [routerLink]="['/partners', partnerSlug(partner)]"
+                          [attr.aria-label]="'Open details for ' + partner.name"
+                        >
+                          <span class="details-label">Read more</span>
+                          <span class="arrow-icon" aria-hidden="true"></span>
+                        </a>
+                      </div>
+                    </article>
+                  }
+                </div>
+              }
+            </section>
+          }
+
+          @if (isDesktop()) {
+            <aside class="partners-map-region" aria-label="Partner locations">
+              <app-partners-map
+                [partners]="state().partners"
+                [selectedPartnerId]="selectedPartnerId()"
+                (partnerSelected)="selectPartner($event, true)"
+              />
+            </aside>
+          } @else if (mobileView() === 'map') {
+            <section
+              id="partners-map-panel"
+              class="partners-map-region partners-map-region--mobile"
+              role="tabpanel"
+              aria-labelledby="partners-map-tab"
+            >
+              <app-partners-map
+                [partners]="state().partners"
+                [selectedPartnerId]="selectedPartnerId()"
+                (partnerSelected)="selectPartner($event)"
+              />
+
+              @if (selectedPartner(); as partner) {
+                <article class="map-partner-card" aria-live="polite">
+                  <button
+                    class="map-partner-card__close"
+                    type="button"
+                    aria-label="Close selected partner"
+                    (click)="clearSelection()"
+                  >
+                    <span aria-hidden="true">×</span>
+                  </button>
+
+                  <div class="map-partner-card__logo">
+                    <span aria-hidden="true">{{ initials(partner.name) }}</span>
+                    @if (partner.logoPath && !hasBrokenLogo(partner.id)) {
+                      <img
+                        [src]="partner.logoPath"
+                        [alt]="partner.name + ' logo'"
+                        (error)="markLogoAsBroken(partner.id)"
+                      />
+                    }
+                  </div>
+
+                  <div class="map-partner-card__content">
+                    @if (partner.category) {
+                      <span class="map-partner-card__category">{{ partner.category }}</span>
+                    }
+                    <h2>{{ partner.name }}</h2>
+                    <p>{{ partner.shortDescription }}</p>
+                    <a
+                      class="map-partner-card__details"
+                      [routerLink]="['/partners', partnerSlug(partner)]"
+                      [queryParams]="{ view: 'map', selectedPartner: partner.id }"
+                    >
+                      View partner details
+                      <span class="arrow-icon" aria-hidden="true"></span>
+                    </a>
+                  </div>
+                </article>
+              }
+            </section>
           }
         </div>
       }

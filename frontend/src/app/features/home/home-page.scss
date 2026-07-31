@@ -391,21 +391,23 @@ h1 {
 
 .platform-mark {
   align-items: center;
-  background: #111;
+  background: #f1f1f1;
   border-radius: 0.65rem;
-  color: #fff;
   display: inline-flex;
-  font-size: 0.7rem;
-  font-weight: 900;
-  height: 2rem;
+  flex: 0 0 2.5rem;
+  height: 2.5rem;
   justify-content: center;
-  letter-spacing: -0.03em;
-  width: 2rem;
+  width: 2.5rem;
 }
 
 .android-mark {
-  background: var(--events-accent);
-  font-size: 1rem;
+  background: color-mix(in srgb, var(--events-accent) 18%, #fff);
+}
+
+.platform-mark img {
+  display: block;
+  height: 1.6rem;
+  width: 1.6rem;
 }
 
 .platform-card ol {
@@ -425,12 +427,13 @@ h1 {
 
 @media (max-width: 700px) {
   .home-header {
-    padding-top: 0;
+    padding: 0 0 0.5rem;
   }
 
   .welcome-panel {
     border-width: 2px;
     border-radius: 1.6rem;
+    margin-top: 0.5rem;
   }
 
   .section-tiles,

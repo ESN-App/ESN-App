@@ -1,0 +1,14 @@
+<div
+  #mapCanvas
+  class="partners-map__canvas"
+  role="application"
+  aria-label="Interactive map of ESN partners"
+></div>
+
+@if (!hasMarkers) {
+  <div class="partners-map__empty" role="status">
+    <span aria-hidden="true">⌖</span>
+    <strong>No partner locations to show</strong>
+    <p>Partners without coordinates are still available in the list.</p>
+  </div>
+}
