@@ -11,104 +11,242 @@
   </header>
 
   @if (events(); as loaded) {
-    @if (loaded.items.length > 0) {
-      <div class="event-list" aria-label="Upcoming events">
-        @for (event of loaded.items; track event.id) {
-          <article class="event-item">
-            <a
-              class="mobile-card-link"
-              [routerLink]="['/events', eventSlug(event.title, event.id)]"
-              queryParamsHandling="preserve"
-              [attr.aria-label]="'Read more about ' + event.title"
-            ></a>
+    <div class="events-toolbar">
+      <div class="search-field">
+        <label class="search-control">
+          <span class="search-icon" aria-hidden="true"></span>
+          <input
+            id="event-search"
+            type="search"
+            aria-label="Search events"
+            placeholder="Search by name, description or place"
+            [value]="searchTerm()"
+            (input)="updateSearch($event)"
+          />
+        </label>
+      </div>
+      <span class="event-count">
+        {{ filteredEvents().length }}
+        {{ filteredEvents().length === 1 ? 'event' : 'events' }}
+      </span>
+    </div>
 
-            <div class="event-image">
-              <span aria-hidden="true">{{ event.startsAt | date: 'dd' }}</span>
-              @if (event.imagePath) {
-                <img
-                  [src]="event.imagePath"
-                  [alt]="event.title"
-                  loading="lazy"
-                  (error)="hideBrokenImage($event)"
-                />
-              }
-            </div>
+    <section class="mobile-date-calendar" aria-label="Filter events by date">
+      <header class="mobile-date-calendar__header">
+        <button
+          class="month-picker-control"
+          type="button"
+          [attr.aria-expanded]="monthPickerOpen()"
+          aria-controls="month-picker-popover"
+          (click)="toggleMonthPicker()"
+        >
+          <span>{{ selectedMonth() | date: 'MMMM, yyyy' }}</span>
+          <span class="mobile-calendar-icon" aria-hidden="true"></span>
+        </button>
+      </header>
 
-            <div class="event-copy">
-              <h2>{{ event.title }}</h2>
-              <p class="description">{{ event.shortDescription }}</p>
-              <p class="location mobile-location">
-                <span class="event-icon location-icon" aria-hidden="true"></span>
-                <span>{{ event.location }}</span>
-              </p>
-            </div>
+      @if (monthPickerOpen()) {
+        <button
+          class="month-picker-backdrop"
+          type="button"
+          aria-label="Close month picker"
+          (click)="closeMonthPicker()"
+        ></button>
+        <section id="month-picker-popover" class="month-picker-popover" aria-label="Choose month">
+          <header>
+            <button
+              type="button"
+              [disabled]="!canChangeMonthPickerYear(-1)"
+              aria-label="Previous year"
+              (click)="changeMonthPickerYear(-1)"
+            >
+              <span class="year-chevron previous" aria-hidden="true"></span>
+            </button>
+            <h3>{{ monthPickerYear() }}</h3>
+            <button
+              type="button"
+              [disabled]="!canChangeMonthPickerYear(1)"
+              aria-label="Next year"
+              (click)="changeMonthPickerYear(1)"
+            >
+              <span class="year-chevron next" aria-hidden="true"></span>
+            </button>
+          </header>
 
-            <div class="event-meta">
-              <p class="event-date">
-                <time [attr.datetime]="event.startsAt">
-                  {{ event.startsAt | date: 'dd MMM yyyy' }}
-                </time>
-                @if (event.endsAt && !isSameDay(event.startsAt, event.endsAt)) {
-                  <span>— {{ event.endsAt | date: 'dd MMM yyyy' }}</span>
-                }
-              </p>
-
-              <p class="location desktop-location">
-                <span class="event-icon location-icon" aria-hidden="true"></span>
-                <span>{{ event.location }}</span>
-              </p>
-
-              <strong class="price">
-                <span class="event-icon wallet-icon" aria-hidden="true"></span>
-                <span>{{ event.price === 0 ? 'Free' : (event.price | currency: 'PLN') }}</span>
-              </strong>
-              @if (event.currentParticipants !== null) {
-                <span class="participants">
-                  <span class="event-icon participants-icon" aria-hidden="true"></span>
-                  <span>
-                    {{ event.currentParticipants }}
-                    @if (event.maximumParticipants !== null) {
-                      /{{ event.maximumParticipants }}
-                    }
-                    going
-                  </span>
-                </span>
-              }
-              <a
-                class="arrow-link"
-                [routerLink]="['/events', eventSlug(event.title, event.id)]"
-                queryParamsHandling="preserve"
-                [attr.aria-label]="'Read more about ' + event.title"
+          <div class="month-picker-grid">
+            @for (month of visibleMonthOptions(); track month.key) {
+              <button
+                type="button"
+                [disabled]="!month.hasEvents"
+                [class.selected]="month.key === selectedMonthKey()"
+                [attr.aria-pressed]="month.key === selectedMonthKey()"
+                (click)="selectMonth(month.key)"
               >
-                <span class="details-label">Read more</span>
-                <span class="arrow" aria-hidden="true"></span>
-              </a>
-            </div>
-          </article>
+                {{ month.date | date: 'MMM' }}
+              </button>
+            }
+          </div>
+        </section>
+      }
+
+      <div class="mobile-date-strip">
+        @for (day of mobileCalendarDays(); track day.dateKey) {
+          <button
+            type="button"
+            class="mobile-date"
+            [class.mobile-date--selected]="selectedDateKey() === day.dateKey"
+            [class.mobile-date--today]="day.isToday"
+            [class.mobile-date--has-events]="day.eventCount > 0"
+            [attr.aria-pressed]="selectedDateKey() === day.dateKey"
+            [attr.aria-label]="
+              (day.date | date: 'fullDate') +
+              (day.eventCount
+                ? ', ' + day.eventCount + (day.eventCount === 1 ? ' event' : ' events')
+                : ', no events')
+            "
+            (click)="selectDate(day.date)"
+          >
+            <span class="mobile-date__number">{{ day.date | date: 'd' }}</span>
+            <span class="mobile-date__weekday">{{ day.date | date: 'EEE' }}</span>
+            @if (day.eventCount > 0) {
+              <span class="mobile-date__dot" aria-hidden="true"></span>
+            }
+          </button>
         }
       </div>
-    }
+    </section>
+
+    <div class="events-layout">
+      <aside class="calendar-panel" aria-label="Event calendar">
+        <nav class="month-switcher" aria-label="Choose events month">
+          <button
+            type="button"
+            (click)="changeMonth(-1)"
+            [disabled]="!hasPreviousMonth()"
+            aria-label="Show previous month"
+          >
+            <span class="month-arrow previous" aria-hidden="true"></span>
+          </button>
+          <h2 class="month-name">{{ selectedMonth() | date: 'MMMM yyyy' }}</h2>
+          <button
+            type="button"
+            (click)="changeMonth(1)"
+            [disabled]="!hasNextMonth()"
+            aria-label="Show next month"
+          >
+            <span class="month-arrow next" aria-hidden="true"></span>
+          </button>
+        </nav>
+
+        <mat-calendar
+          class="calendar"
+          aria-label="Filter events by date"
+          [startAt]="selectedMonth()"
+          [selected]="selectedCalendarDate()"
+          [minDate]="calendarMinDate()"
+          [maxDate]="calendarMaxDate()"
+          [dateClass]="calendarDateClass()"
+          (_userSelection)="selectDate($event.value)"
+        />
+      </aside>
+
+      <section class="events-results" aria-label="Events list">
+        @if (filteredEvents().length > 0) {
+          <div class="event-list" aria-label="Upcoming events">
+            @for (event of filteredEvents(); track event.id) {
+              <article class="event-item">
+                <a
+                  class="mobile-card-link"
+                  [routerLink]="['/events', eventSlug(event.title, event.id)]"
+                  queryParamsHandling="preserve"
+                  [attr.aria-label]="'Read more about ' + event.title"
+                ></a>
+
+                <div class="event-image">
+                  <span aria-hidden="true">{{ event.startsAt | date: 'dd' }}</span>
+                  @if (event.imagePath) {
+                    <img
+                      [src]="event.imagePath"
+                      [alt]="event.title"
+                      loading="lazy"
+                      (error)="hideBrokenImage($event)"
+                    />
+                  }
+                </div>
+
+                <div class="event-copy">
+                  <h3>{{ event.title }}</h3>
+                  <p class="description">{{ event.shortDescription }}</p>
+
+                  <div class="desktop-facts">
+                    <p class="location desktop-location">
+                      <span class="event-icon location-icon" aria-hidden="true"></span>
+                      <span>{{ event.location }}</span>
+                    </p>
+
+                    <strong class="price">
+                      <span class="event-icon wallet-icon" aria-hidden="true"></span>
+                      <span>{{
+                        event.price === 0 ? 'Free' : (event.price | currency: 'PLN')
+                      }}</span>
+                    </strong>
+                    @if (event.currentParticipants !== null) {
+                      <span class="participants">
+                        <span class="event-icon participants-icon" aria-hidden="true"></span>
+                        <span>
+                          {{ event.currentParticipants }}
+                          @if (event.maximumParticipants !== null) {
+                            /{{ event.maximumParticipants }}
+                          }
+                          going
+                        </span>
+                      </span>
+                    }
+                  </div>
+                </div>
+
+                <div class="event-meta">
+                  <p class="event-date">
+                    <time [attr.datetime]="event.startsAt">
+                      {{ event.startsAt | date: 'd MMM' }}
+                    </time>
+                    @if (event.endsAt && !isSameDay(event.startsAt, event.endsAt)) {
+                      <span class="event-end">— {{ event.endsAt | date: 'dd MMM' }}</span>
+                    }
+                  </p>
+
+                  <a
+                    class="arrow-link"
+                    [routerLink]="['/events', eventSlug(event.title, event.id)]"
+                    queryParamsHandling="preserve"
+                    [attr.aria-label]="'Read more about ' + event.title"
+                  >
+                    <span class="details-label">Read more</span>
+                    <span class="arrow" aria-hidden="true"></span>
+                  </a>
+                </div>
+              </article>
+            }
+          </div>
+        } @else if (loaded.items.length === 0) {
+          <div class="empty-month">
+            <span class="empty-calendar-icon" aria-hidden="true"></span>
+            <h3>No events this month</h3>
+            <p>Use the calendar arrows to see what’s happening in another month.</p>
+          </div>
+        } @else {
+          <div class="empty-month">
+            <span class="empty-calendar-icon" aria-hidden="true"></span>
+            <h3>No matching events</h3>
+            <p>Try another search or select a different calendar date.</p>
+            <button class="clear-filters" type="button" (click)="clearFilters()">
+              Clear filters
+            </button>
+          </div>
+        }
+      </section>
+    </div>
   } @else {
     <app-loading-spinner />
   }
-
-  <nav class="month-switcher" aria-label="Choose events month">
-    <button
-      type="button"
-      (click)="changeMonth(-1)"
-      [disabled]="!hasPreviousMonth()"
-      aria-label="Show previous month"
-    >
-      <span class="month-arrow previous" aria-hidden="true"></span>
-    </button>
-    <h2 class="month-name">{{ selectedMonth() | date: 'MMMM yyyy' }}</h2>
-    <button
-      type="button"
-      (click)="changeMonth(1)"
-      [disabled]="!hasNextMonth()"
-      aria-label="Show next month"
-    >
-      <span class="month-arrow next" aria-hidden="true"></span>
-    </button>
-  </nav>
 </section>

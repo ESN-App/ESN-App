@@ -2,9 +2,11 @@ import {
   Component,
   computed,
   ElementRef,
+  effect,
   inject,
   QueryList,
   signal,
+  ViewChild,
   ViewChildren,
 } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
@@ -38,6 +40,9 @@ export class PartnersList {
   @ViewChildren('partnerCard', { read: ElementRef })
   private partnerCards?: QueryList<ElementRef<HTMLElement>>;
 
+  @ViewChild('partnerList', { read: ElementRef })
+  private partnerList?: ElementRef<HTMLElement>;
+
   protected readonly searchQuery = signal('');
   protected readonly selectedPartnerId = signal<string | null>(
     this.route.snapshot.queryParamMap.get('selectedPartner'),
@@ -45,6 +50,8 @@ export class PartnersList {
   protected readonly mobileView = signal<MobilePartnersView>(
     this.route.snapshot.queryParamMap.get('view') === 'map' ? 'map' : 'list',
   );
+  protected readonly partnerScrollPosition = signal(0);
+  protected readonly partnerScrollMaximum = signal(0);
   private readonly brokenLogoIds = signal<ReadonlySet<string>>(new Set());
   protected readonly isDesktop = toSignal(
     this.breakpointObserver.observe('(min-width: 1024px)').pipe(map((result) => result.matches)),
@@ -86,9 +93,28 @@ export class PartnersList {
     const selectedId = this.selectedPartnerId();
     return this.state().partners.find((partner) => partner.id === selectedId) ?? null;
   });
+  private readonly refreshPartnerScrollbar = effect(() => {
+    this.filteredPartners();
+    this.isDesktop();
+
+    requestAnimationFrame(() => this.capturePartnerScroll());
+  });
 
   protected updateSearch(event: Event): void {
     this.searchQuery.set((event.currentTarget as HTMLInputElement).value);
+  }
+
+  protected updatePartnerScroll(event: Event): void {
+    this.capturePartnerScroll(event.currentTarget as HTMLElement);
+  }
+
+  protected scrollPartnerList(event: Event): void {
+    const position = Number((event.currentTarget as HTMLInputElement).value);
+    const list = this.partnerList?.nativeElement;
+
+    if (list) {
+      list.scrollTop = position;
+    }
   }
 
   protected selectPartner(partnerId: string, scrollCardIntoView = false): void {
@@ -116,6 +142,15 @@ export class PartnersList {
 
   protected clearSelection(): void {
     this.selectedPartnerId.set(null);
+  }
+
+  private capturePartnerScroll(list = this.partnerList?.nativeElement): void {
+    if (!list) {
+      return;
+    }
+
+    this.partnerScrollPosition.set(list.scrollTop);
+    this.partnerScrollMaximum.set(Math.max(0, list.scrollHeight - list.clientHeight));
   }
 
   protected partnerSlug(partner: PartnerView): string {

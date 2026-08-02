@@ -12,7 +12,7 @@
 
   <div class="partner-tools">
     <label class="search">
-      <span class="search-icon" aria-hidden="true">⌕</span>
+      <span class="search-icon" aria-hidden="true"></span>
       <span class="visually-hidden">Search partners</span>
       <input
         type="search"
@@ -74,14 +74,16 @@
 
         <div class="partners-split">
           @if (isDesktop() || mobileView() === 'list') {
-            <section
-              #partnerList
-              id="partners-list-panel"
-              class="partner-list-region"
-              role="tabpanel"
-              aria-labelledby="partners-list-tab"
-              aria-label="ESN partners"
-            >
+            <div class="partner-list-shell">
+              <section
+                #partnerList
+                id="partners-list-panel"
+                class="partner-list-region"
+                role="tabpanel"
+                aria-labelledby="partners-list-tab"
+                aria-label="ESN partners"
+                (scroll)="updatePartnerScroll($event)"
+              >
               @if (filteredPartners().length === 0) {
                 <app-empty-state message="No partners match your search." />
               } @else {
@@ -149,7 +151,19 @@
                   }
                 </div>
               }
-            </section>
+              </section>
+
+              <input
+                class="partner-scrollbar"
+                type="range"
+                min="0"
+                [max]="partnerScrollMaximum()"
+                [value]="partnerScrollPosition()"
+                [disabled]="partnerScrollMaximum() === 0"
+                aria-label="Scroll partners list"
+                (input)="scrollPartnerList($event)"
+              />
+            </div>
           }
 
           @if (isDesktop()) {
