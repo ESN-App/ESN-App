@@ -1,4 +1,5 @@
 using EsnApp.Api.Middleware;
+using EsnApp.Api.Services;
 using EsnApp.Application;
 using EsnApp.Infrastructure;
 using EsnApp.Infrastructure.Persistence;
@@ -10,6 +11,7 @@ builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
 
 builder.Services.AddControllers();
+builder.Services.AddScoped<EventImageStorage>();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
@@ -53,11 +55,13 @@ app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 app.UseSwagger();
 app.UseSwaggerUI();
+var imagesPath = Path.Combine(app.Environment.WebRootPath, "images");
+Directory.CreateDirectory(imagesPath);
 app.UseStaticFiles(new StaticFileOptions
 {
     RequestPath = "/api/images",
     FileProvider = new Microsoft.Extensions.FileProviders.PhysicalFileProvider(
-        Path.Combine(app.Environment.WebRootPath, "images")),
+        imagesPath),
 });
 
 if (app.Environment.IsDevelopment()) app.UseCors("Frontend");

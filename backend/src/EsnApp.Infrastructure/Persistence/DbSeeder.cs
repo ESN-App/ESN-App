@@ -195,8 +195,6 @@ public static class DbSeeder
             }
 
             existingEvent.GoogleMapsUrl = seedEvent.GoogleMapsUrl;
-            existingEvent.Latitude = seedEvent.Latitude;
-            existingEvent.Longitude = seedEvent.Longitude;
         }
     }
 
@@ -238,8 +236,6 @@ public static class DbSeeder
         target.Address = source.Address;
         target.WebsiteUrl = source.WebsiteUrl;
         target.GoogleMapsUrl = source.GoogleMapsUrl;
-        target.Latitude = source.Latitude;
-        target.Longitude = source.Longitude;
         target.Status = source.Status;
         target.DisplayOrder = source.DisplayOrder;
 

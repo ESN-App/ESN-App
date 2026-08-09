@@ -62,7 +62,7 @@ public class GetEventsListQueryHandlerTests
         public Task<IReadOnlyList<Event>> GetAllAsync(CancellationToken cancellationToken = default) =>
             Task.FromResult(events);
 
-        public Task<EventPage> GetPublishedPageAsync(
+        public Task<EventPage> GetPublicPageAsync(
             DateTimeOffset from,
             DateTimeOffset to,
             int page,
@@ -83,9 +83,6 @@ public class GetEventsListQueryHandlerTests
         }
 
         public Task<EventPage> GetAdminPageAsync(
-            EventStatus? status,
-            DateTimeOffset? from,
-            DateTimeOffset? to,
             int page,
             int pageSize,
             CancellationToken cancellationToken = default) =>
@@ -94,7 +91,7 @@ public class GetEventsListQueryHandlerTests
         public Task<Event?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default) =>
             Task.FromResult(events.FirstOrDefault(entity => entity.Id == id));
 
-        public Task<Event?> GetPublishedByIdAsync(
+        public Task<Event?> GetPublicByIdAsync(
             Guid id,
             CancellationToken cancellationToken = default) =>
             Task.FromResult(events.FirstOrDefault(

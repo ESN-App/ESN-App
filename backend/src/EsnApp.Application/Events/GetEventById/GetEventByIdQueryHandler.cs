@@ -12,7 +12,7 @@ public class GetEventByIdQueryHandler(IEventRepository repository)
         GetEventByIdQuery request,
         CancellationToken cancellationToken)
     {
-        var entity = await repository.GetPublishedByIdAsync(request.Id, cancellationToken);
+        var entity = await repository.GetPublicByIdAsync(request.Id, cancellationToken);
 
         return entity is null
             ? Result.Failure<EventDetailsDto>($"Event '{request.Id}' was not found.")

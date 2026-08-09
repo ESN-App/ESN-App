@@ -1,18 +1,20 @@
-namespace EsnApp.Api.Contracts.Events;
+using EsnApp.Application.Common;
+using EsnApp.Application.Events.Common;
+using MediatR;
 
-public record CreateEventRequest(
+namespace EsnApp.Application.Events.UpdateAdminEvent;
+
+public record UpdateAdminEventCommand(
+    Guid Id,
     string Title,
     string ShortDescription,
     string Description,
     string Location,
     string? GoogleMapsUrl,
-    decimal? Latitude,
-    decimal? Longitude,
     DateTimeOffset StartsAt,
     DateTimeOffset? EndsAt,
     string? ImagePath,
     string? RegistrationUrl,
     int? MinimumParticipants,
     int? MaximumParticipants,
-    int? CurrentParticipants,
-    decimal Price);
+    decimal Price) : IRequest<Result<EventDetailsDto>>;

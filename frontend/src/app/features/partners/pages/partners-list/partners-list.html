@@ -93,6 +93,7 @@
                       #partnerCard
                       class="partner-card"
                       [class.partner-card--selected]="selectedPartnerId() === partner.id"
+                      [class.partner-card--draft]="partner.status === 0"
                       [id]="'partner-' + partner.id"
                       [attr.data-partner-id]="partner.id"
                     >
@@ -125,6 +126,9 @@
                       <div class="partner-identity">
                         <div class="partner-title-row">
                           <h2>{{ partner.name }}</h2>
+                          @if (partner.status === 0) {
+                            <span class="draft-badge">Draft</span>
+                          }
                           @if (selectedPartnerId() === partner.id) {
                             <span class="selection-status">Selected</span>
                           }

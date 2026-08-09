@@ -16,5 +16,6 @@ public static class PartnerMappings
         entity.Latitude,
         entity.Longitude,
         entity.Status,
-        entity.DisplayOrder);
+        entity.DisplayOrder,
+        entity.CreatedAt);
 }

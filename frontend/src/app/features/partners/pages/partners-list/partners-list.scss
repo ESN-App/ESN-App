@@ -152,6 +152,23 @@ h1 {
     transform 140ms ease;
 }
 
+.partner-card--draft {
+  background: #f1f1f2;
+  border-color: #cfd1d4;
+}
+
+.draft-badge {
+  background: #dfe1e4;
+  border-radius: 999px;
+  color: #4e5157;
+  font-size: 0.62rem;
+  font-weight: 850;
+  letter-spacing: 0.05em;
+  padding: 0.2rem 0.42rem;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
 .partner-select-button {
   display: none;
 }

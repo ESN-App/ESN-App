@@ -33,6 +33,7 @@ export interface PartnerDto {
   longitude: number | null;
   status: PartnerStatus;
   displayOrder: number;
+  createdAt: string;
 }
 
 export interface PartnerView extends PartnerDto {

@@ -1,8 +1,9 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { EMPTY, Observable } from 'rxjs';
+import { expand, map, reduce } from 'rxjs/operators';
 import { environment } from '../../../../environments/environment';
+import { AuthService } from '../../../core';
 import {
   EventDetailsDto,
   EventListItemDto,
@@ -13,7 +14,9 @@ import {
 @Injectable({ providedIn: 'root' })
 export class EventsApi {
   private readonly http = inject(HttpClient);
+  private readonly auth = inject(AuthService);
   private readonly baseUrl = `${environment.apiBaseUrl}/api/events`;
+  private readonly adminBaseUrl = `${environment.apiBaseUrl}/api/admin/events`;
 
   getAll(query?: EventsQuery): Observable<PagedResult<EventListItemDto>> {
     const params = query
@@ -26,16 +29,38 @@ export class EventsApi {
       : undefined;
 
     return this.http
-      .get<unknown>(this.baseUrl, { params })
+      .get<unknown>(this.auth.isAdmin() ? this.adminBaseUrl : this.baseUrl, { params })
       .pipe(map((response) => this.toPagedResult(response)));
   }
 
   getById(id: string): Observable<EventDetailsDto> {
-    return this.http.get<EventDetailsDto>(`${this.baseUrl}/${id}`);
+    const baseUrl = this.auth.isAdmin() ? this.adminBaseUrl : this.baseUrl;
+    return this.http.get<EventDetailsDto>(`${baseUrl}/${id}`);
   }
 
   getAvailableMonths(): Observable<string[]> {
+    if (this.auth.isAdmin()) {
+      return this.getAdminPage(1)
+        .pipe(
+          expand((result) =>
+            result.hasNextPage ? this.getAdminPage(result.page + 1) : EMPTY,
+          ),
+          reduce((items, result) => [...items, ...result.items], [] as EventListItemDto[]),
+          map((items) => [
+            ...new Set(
+              items.map((event) => event.startsAt.slice(0, 7)),
+            ),
+          ].sort()),
+        );
+    }
+
     return this.http.get<string[]>(`${this.baseUrl}/months`);
+  }
+
+  private getAdminPage(page: number): Observable<PagedResult<EventListItemDto>> {
+    return this.http
+      .get<unknown>(this.adminBaseUrl, { params: { page: String(page), pageSize: '100' } })
+      .pipe(map((response) => this.toPagedResult(response)));
   }
 
   private toPagedResult(response: unknown): PagedResult<EventListItemDto> {

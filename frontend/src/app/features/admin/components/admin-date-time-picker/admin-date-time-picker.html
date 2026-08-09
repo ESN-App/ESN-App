@@ -1,0 +1,9 @@
+<input
+  type="datetime-local"
+  [id]="inputId"
+  [value]="inputValue()"
+  [disabled]="disabled()"
+  step="60"
+  (input)="updateValue($event)"
+  (blur)="markTouched()"
+/>

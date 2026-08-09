@@ -13,9 +13,6 @@ public class GetAdminEventsQueryHandler(IEventRepository repository)
         CancellationToken cancellationToken)
     {
         var events = await repository.GetAdminPageAsync(
-            request.Status,
-            request.From,
-            request.To,
             request.Page,
             request.PageSize,
             cancellationToken);

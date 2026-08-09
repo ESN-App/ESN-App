@@ -1,4 +1,4 @@
-import { CurrencyPipe, DatePipe } from '@angular/common';
+import { DatePipe } from '@angular/common';
 import { Component, computed, effect, inject, signal, viewChild } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { MAT_DATE_LOCALE, provideNativeDateAdapter } from '@angular/material/core';
@@ -7,7 +7,7 @@ import {
   MatCalendarCellClassFunction,
   MatDatepickerModule,
 } from '@angular/material/datepicker';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import {
   combineLatest,
   distinctUntilChanged,
@@ -19,9 +19,9 @@ import {
   tap,
 } from 'rxjs';
 import { LoadingSpinner } from '../../../../shared';
+import { EventListItem } from '../../components/event-list-item/event-list-item';
 import { EventsApi } from '../../data-access/events-api';
 import type { EventListItemDto } from '../../data-access/events.models';
-import { isSameCalendarDay } from '../../utils/event-date';
 import {
   closestAvailableMonth,
   monthFromKey,
@@ -31,7 +31,6 @@ import {
   normalizeAvailableMonths,
   normalizeMonthKey,
 } from '../../utils/event-month';
-import { createEventSlug } from '../../utils/event-url';
 
 interface MobileCalendarDay {
   date: Date;
@@ -48,7 +47,7 @@ interface MonthOption {
 
 @Component({
   selector: 'app-events-list',
-  imports: [CurrencyPipe, DatePipe, RouterLink, LoadingSpinner, MatDatepickerModule],
+  imports: [DatePipe, EventListItem, LoadingSpinner, MatDatepickerModule],
   providers: [provideNativeDateAdapter(), { provide: MAT_DATE_LOCALE, useValue: 'en-GB' }],
   templateUrl: './events-list.html',
   styleUrl: './events-list.scss',
@@ -59,7 +58,6 @@ export class EventsList {
   private readonly api = inject(EventsApi);
   private readonly calendar = viewChild<MatCalendar<Date>>(MatCalendar);
 
-  protected readonly isSameDay = isSameCalendarDay;
   private readonly availableMonths$ = this.api.getAvailableMonths().pipe(
     map(normalizeAvailableMonths),
     tap((months) => {
@@ -321,14 +319,6 @@ export class EventsList {
   clearFilters(): void {
     this.searchTerm.set('');
     this.selectedDateKey.set(null);
-  }
-
-  eventSlug(title: string, id: string): string {
-    return createEventSlug(title, id);
-  }
-
-  hideBrokenImage(event: Event): void {
-    (event.currentTarget as HTMLImageElement).style.display = 'none';
   }
 
   private dateFromKey(value: string): Date {

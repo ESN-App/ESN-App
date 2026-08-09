@@ -12,7 +12,7 @@ public class GetEventsListQueryHandler(IEventRepository repository)
         GetEventsListQuery request,
         CancellationToken cancellationToken)
     {
-        var events = await repository.GetPublishedPageAsync(
+        var events = await repository.GetPublicPageAsync(
             request.From,
             request.To,
             request.Page,

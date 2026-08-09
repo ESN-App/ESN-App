@@ -46,7 +46,7 @@ public class GetAvailableEventMonthsQueryHandlerTests
         public Task<IReadOnlyList<Event>> GetAllAsync(CancellationToken cancellationToken = default) =>
             Task.FromResult(events);
 
-        public Task<EventPage> GetPublishedPageAsync(
+        public Task<EventPage> GetPublicPageAsync(
             DateTimeOffset from,
             DateTimeOffset to,
             int page,
@@ -55,9 +55,6 @@ public class GetAvailableEventMonthsQueryHandlerTests
             throw new NotSupportedException();
 
         public Task<EventPage> GetAdminPageAsync(
-            EventStatus? status,
-            DateTimeOffset? from,
-            DateTimeOffset? to,
             int page,
             int pageSize,
             CancellationToken cancellationToken = default) =>
@@ -68,7 +65,7 @@ public class GetAvailableEventMonthsQueryHandlerTests
             CancellationToken cancellationToken = default) =>
             throw new NotSupportedException();
 
-        public Task<Event?> GetPublishedByIdAsync(
+        public Task<Event?> GetPublicByIdAsync(
             Guid id,
             CancellationToken cancellationToken = default) =>
             throw new NotSupportedException();

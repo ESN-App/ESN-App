@@ -6,7 +6,7 @@ public interface IEventRepository
 {
     Task<IReadOnlyList<Event>> GetAllAsync(CancellationToken cancellationToken = default);
 
-    Task<EventPage> GetPublishedPageAsync(
+    Task<EventPage> GetPublicPageAsync(
         DateTimeOffset from,
         DateTimeOffset to,
         int page,
@@ -14,16 +14,13 @@ public interface IEventRepository
         CancellationToken cancellationToken = default);
 
     Task<EventPage> GetAdminPageAsync(
-        EventStatus? status,
-        DateTimeOffset? from,
-        DateTimeOffset? to,
         int page,
         int pageSize,
         CancellationToken cancellationToken = default);
 
     Task<Event?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
 
-    Task<Event?> GetPublishedByIdAsync(Guid id, CancellationToken cancellationToken = default);
+    Task<Event?> GetPublicByIdAsync(Guid id, CancellationToken cancellationToken = default);
 
     Task<Event> AddAsync(Event entity, CancellationToken cancellationToken = default);
 

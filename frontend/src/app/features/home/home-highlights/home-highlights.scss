@@ -78,6 +78,16 @@
     transform 180ms ease;
 }
 
+.news-card--draft {
+  background: #ececed;
+  filter: saturate(0.55);
+}
+
+.news-badge.draft-badge {
+  background: #dedfe2;
+  color: #45474d;
+}
+
 .news-card.active {
   opacity: 1;
   transform: scale(1);

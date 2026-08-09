@@ -1,0 +1,244 @@
+<section class="admin-page">
+  <header class="admin-header">
+    <div>
+      <p class="eyebrow">Administration</p>
+      <h1>Admin panel</h1>
+      <p class="intro">Manage the content and people that keep the ESN Gdańsk app up to date.</p>
+    </div>
+    <span class="access-label">Admin access</span>
+  </header>
+
+  <nav class="section-switch" aria-label="Admin panel sections" role="tablist">
+    @for (section of sections; track section.id) {
+      <button type="button" role="tab" [attr.aria-selected]="activeSection() === section.id" [class.active]="activeSection() === section.id" (click)="setSection(section.id)">
+        {{ section.label }}
+      </button>
+    }
+  </nav>
+
+  <section class="table-card">
+    <header class="table-header">
+      <div>
+        <h2>{{ activeLabel() }}</h2>
+        <p>
+          @if (searchTerm()) { {{ activeCount() }} of {{ activeTotalCount() }} records }
+          @else { {{ activeCount() }} {{ activeCount() === 1 ? 'record' : 'records' }} }
+        </p>
+      </div>
+      <div class="table-header__actions">
+        @if (selectedCount()) {
+          <div class="selection-summary">
+            <span class="selection-count">{{ selectedCount() }} selected</span>
+            <button type="button" (click)="clearSelection()">Clear selection</button>
+          </div>
+        }
+        @if (activeSection() === 'events' && selectedCount()) {
+          <div class="bulk-actions" aria-label="Actions for selected events">
+            <button type="button" class="bulk-status-button" (click)="openBulkStatusDialog()">Change status</button>
+            <button type="button" class="bulk-delete-button" (click)="requestBulkDelete()">Delete selected</button>
+          </div>
+        }
+        @if (activeSection() === 'events') { <a class="create-button" routerLink="/admin/events/new">Create new event</a> }
+      </div>
+    </header>
+
+    <div class="list-tools">
+      <label class="search-field" for="admin-section-search">
+        <span>Search {{ activeLabel().toLocaleLowerCase() }}</span>
+        <span class="search-control">
+          <span class="search-icon" aria-hidden="true"></span>
+          <input id="admin-section-search" type="search" [value]="searchTerm()" [placeholder]="'Search ' + activeLabel().toLocaleLowerCase()" (input)="updateSearch($event)" />
+          @if (searchTerm()) {
+            <button type="button" aria-label="Clear search" title="Clear search" (click)="clearSearch()"><span aria-hidden="true">&times;</span></button>
+          }
+        </span>
+      </label>
+    </div>
+
+    @if (error(); as message) {
+      <div class="error-banner" role="alert"><span>{{ message }}</span><button mat-button type="button" (click)="loadData()">Try again</button></div>
+    }
+
+    @if (loading()) {
+      <app-loading-spinner />
+    } @else if (activeCount() === 0) {
+      <div class="empty-results">
+        <span class="empty-results__icon" aria-hidden="true"></span>
+        <h3>No {{ activeLabel().toLocaleLowerCase() }} found</h3>
+        <p>@if (searchTerm()) { Try a different search term or clear the search. } @else { There are no records in this section yet. }</p>
+        @if (searchTerm()) { <button type="button" (click)="clearSearch()">Clear search</button> }
+      </div>
+    } @else {
+      <div class="table-scroll">
+        @switch (activeSection()) {
+          @case ('events') {
+            <table>
+              <thead><tr><th class="selection"><input type="checkbox" aria-label="Select all events on this page" [checked]="allVisibleSelected()" (change)="toggleVisibleSelection()" /></th><th class="primary-column"><button class="header-sort" type="button" (click)="setSort('title')">Event <span class="sort-indicator" [attr.data-direction]="sortState('title')" aria-hidden="true"></span></button></th><th><button class="header-sort" type="button" (click)="setSort('date')">Date <span class="sort-indicator" [attr.data-direction]="sortState('date')" aria-hidden="true"></span></button></th><th>Location</th><th>Price</th><th><button class="header-sort" type="button" (click)="setSort('status')">Status <span class="sort-indicator" [attr.data-direction]="sortState('status')" aria-hidden="true"></span></button></th><th class="row-tools"><span class="visually-hidden">Row options</span></th></tr></thead>
+              <tbody>
+                @for (item of pagedEvents(); track item.id) {
+                  <tr [class.draft-row]="item.status === 0">
+                    <td class="selection"><input type="checkbox" [attr.aria-label]="'Select ' + item.title" [checked]="selectedIds().has(item.id)" (change)="toggleSelection(item.id)" /></td>
+                    <td class="primary-column" data-label="Event"><a class="details-link" [routerLink]="eventDetailsLink(item)" [title]="item.title">{{ item.title }}</a></td>
+                    <td data-label="Date"><time [attr.datetime]="item.startsAt">{{ item.startsAt | date: 'd MMM y' }}</time></td>
+                    <td data-label="Location">{{ item.location }}</td>
+                    <td data-label="Price">{{ item.price === 0 ? 'Free' : (item.price | currency: 'PLN') }}</td>
+                    <td data-label="Status">@if (item.status === 0) { <app-draft-badge /> } @else if (item.status === 1) { <app-published-badge /> } @else if (item.status === 2) { <app-cancelled-badge /> } @else { <span class="status-badge">{{ eventStatus(item.status) }}</span> }</td>
+                    <td class="row-tools">
+                      <div class="row-tools__buttons">
+                        <a class="icon-button icon-button--edit" [routerLink]="['/admin/events', item.id, 'edit']" [attr.aria-label]="'Edit ' + item.title" title="Edit"></a>
+                        <button type="button" class="icon-button icon-button--delete" [attr.aria-label]="'Delete ' + item.title" title="Delete" (click)="requestEventDelete(item)"></button>
+                      </div>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          }
+          @case ('news') {
+            <table class="news-table">
+              <thead><tr><th class="selection"><input type="checkbox" aria-label="Select all news on this page" [checked]="allVisibleSelected()" (change)="toggleVisibleSelection()" /></th><th class="primary-column"><button class="header-sort" type="button" (click)="setSort('title')">News item <span class="sort-indicator" [attr.data-direction]="sortState('title')" aria-hidden="true"></span></button></th><th><button class="header-sort" type="button" (click)="setSort('date')">Created <span class="sort-indicator" [attr.data-direction]="sortState('date')" aria-hidden="true"></span></button></th><th><button class="header-sort" type="button" (click)="setSort('status')">Status <span class="sort-indicator" [attr.data-direction]="sortState('status')" aria-hidden="true"></span></button></th><th class="row-tools"><span class="visually-hidden">Row options</span></th></tr></thead>
+              <tbody>
+                @for (item of pagedNews(); track item.id) {
+                  <tr [class.draft-row]="item.status === 0">
+                    <td class="selection"><input type="checkbox" [attr.aria-label]="'Select ' + item.title" [checked]="selectedIds().has(item.id)" (change)="toggleSelection(item.id)" /></td>
+                    <td class="primary-column" data-label="News item"><a class="details-link" routerLink="/preview" [title]="item.title">{{ item.title }}</a></td>
+                    <td data-label="Created">{{ item.createdAt | date: 'd MMM y' }}</td>
+                    <td data-label="Status"><span class="status-badge" [class.draft-badge]="item.status === 0">{{ item.status === 0 ? 'Draft' : 'Published' }}</span></td>
+                    <td class="row-tools"><div class="row-tools__buttons"><button type="button" class="icon-button icon-button--edit" [attr.aria-label]="'Edit ' + item.title" title="Edit"></button><button type="button" class="icon-button icon-button--delete" [attr.aria-label]="'Delete ' + item.title" title="Delete"></button><button type="button" class="icon-button icon-button--menu" [attr.aria-label]="'Options for ' + item.title" title="Options"></button></div></td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          }
+          @case ('partners') {
+            <table>
+              <thead><tr><th class="selection"><input type="checkbox" aria-label="Select all partners on this page" [checked]="allVisibleSelected()" (change)="toggleVisibleSelection()" /></th><th class="primary-column"><button class="header-sort" type="button" (click)="setSort('title')">Partner <span class="sort-indicator" [attr.data-direction]="sortState('title')" aria-hidden="true"></span></button></th><th>Address</th><th>Website</th><th><button class="header-sort" type="button" (click)="setSort('date')">Created <span class="sort-indicator" [attr.data-direction]="sortState('date')" aria-hidden="true"></span></button></th><th><button class="header-sort" type="button" (click)="setSort('status')">Status <span class="sort-indicator" [attr.data-direction]="sortState('status')" aria-hidden="true"></span></button></th><th class="row-tools"><span class="visually-hidden">Row options</span></th></tr></thead>
+              <tbody>
+                @for (item of pagedPartners(); track item.id) {
+                  <tr [class.draft-row]="item.status === 0">
+                    <td class="selection"><input type="checkbox" [attr.aria-label]="'Select ' + item.name" [checked]="selectedIds().has(item.id)" (change)="toggleSelection(item.id)" /></td>
+                    <td class="primary-column" data-label="Partner"><a class="details-link" [routerLink]="partnerDetailsLink(item)" [title]="item.name">{{ item.name }}</a></td>
+                    <td data-label="Address">{{ item.address || '—' }}</td>
+                    <td data-label="Website">@if (item.websiteUrl) { <a class="website-link" [href]="item.websiteUrl" target="_blank" rel="noopener noreferrer">{{ item.name }} website</a> } @else { — }</td>
+                    <td data-label="Created">{{ item.createdAt | date: 'd MMM y' }}</td>
+                    <td data-label="Status"><span class="status-badge" [class.draft-badge]="item.status === 0">{{ partnerStatus(item.status) }}</span></td>
+                    <td class="row-tools"><div class="row-tools__buttons"><button type="button" class="icon-button icon-button--edit" [attr.aria-label]="'Edit ' + item.name" title="Edit"></button><button type="button" class="icon-button icon-button--delete" [attr.aria-label]="'Delete ' + item.name" title="Delete"></button><button type="button" class="icon-button icon-button--menu" [attr.aria-label]="'Options for ' + item.name" title="Options"></button></div></td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          }
+          @case ('info') {
+            <table>
+              <thead><tr><th class="selection"><input type="checkbox" aria-label="Select all info articles on this page" [checked]="allVisibleSelected()" (change)="toggleVisibleSelection()" /></th><th class="primary-column"><button class="header-sort" type="button" (click)="setSort('title')">Article <span class="sort-indicator" [attr.data-direction]="sortState('title')" aria-hidden="true"></span></button></th><th>Category</th><th><button class="header-sort" type="button" (click)="setSort('date')">Created <span class="sort-indicator" [attr.data-direction]="sortState('date')" aria-hidden="true"></span></button></th><th><button class="header-sort" type="button" (click)="setSort('status')">Status <span class="sort-indicator" [attr.data-direction]="sortState('status')" aria-hidden="true"></span></button></th><th class="row-tools"><span class="visually-hidden">Row options</span></th></tr></thead>
+              <tbody>
+                @for (item of pagedInfo(); track item.id) {
+                  <tr [class.draft-row]="item.status === 0">
+                    <td class="selection"><input type="checkbox" [attr.aria-label]="'Select ' + item.title" [checked]="selectedIds().has(item.id)" (change)="toggleSelection(item.id)" /></td>
+                    <td class="primary-column" data-label="Article"><a class="details-link" [routerLink]="['/info', item.slug]" [title]="item.title">{{ item.title }}</a></td>
+                    <td data-label="Category">{{ item.category }}</td>
+                    <td data-label="Created">{{ item.createdAt | date: 'd MMM y' }}</td>
+                    <td data-label="Status"><span class="status-badge" [class.draft-badge]="item.status === 0">{{ item.status === 0 ? 'Draft' : 'Published' }}</span></td>
+                    <td class="row-tools"><div class="row-tools__buttons"><button type="button" class="icon-button icon-button--edit" [attr.aria-label]="'Edit ' + item.title" title="Edit"></button><button type="button" class="icon-button icon-button--delete" [attr.aria-label]="'Delete ' + item.title" title="Delete"></button><button type="button" class="icon-button icon-button--menu" [attr.aria-label]="'Options for ' + item.title" title="Options"></button></div></td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          }
+          @case ('admins') {
+            <table>
+              <thead><tr><th class="selection"><input type="checkbox" aria-label="Select all administrators on this page" [checked]="allVisibleSelected()" (change)="toggleVisibleSelection()" /></th><th class="primary-column"><button class="header-sort" type="button" (click)="setSort('title')">Administrator <span class="sort-indicator" [attr.data-direction]="sortState('title')" aria-hidden="true"></span></button></th><th><button class="header-sort" type="button" (click)="setSort('date')">Created <span class="sort-indicator" [attr.data-direction]="sortState('date')" aria-hidden="true"></span></button></th><th><button class="header-sort" type="button" (click)="setSort('status')">Status <span class="sort-indicator" [attr.data-direction]="sortState('status')" aria-hidden="true"></span></button></th><th class="row-tools"><span class="visually-hidden">Row options</span></th></tr></thead>
+              <tbody>
+                @for (item of pagedAdmins(); track item.id) {
+                  <tr>
+                    <td class="selection"><input type="checkbox" [attr.aria-label]="'Select ' + item.email" [checked]="selectedIds().has(item.id)" (change)="toggleSelection(item.id)" /></td>
+                    <td class="primary-column" data-label="Administrator"><strong [title]="item.email">{{ item.email }}</strong></td>
+                    <td data-label="Created">{{ item.createdAt | date: 'd MMM y' }}</td>
+                    <td data-label="Status"><span class="status-badge">Active</span></td>
+                    <td class="row-tools"><div class="row-tools__buttons"><button type="button" class="icon-button icon-button--edit" [attr.aria-label]="'Edit ' + item.email" title="Edit"></button><button type="button" class="icon-button icon-button--delete" [attr.aria-label]="'Delete ' + item.email" title="Delete"></button><button type="button" class="icon-button icon-button--menu" [attr.aria-label]="'Options for ' + item.email" title="Options"></button></div></td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          }
+        }
+      </div>
+
+      <footer class="pagination" aria-label="Table pagination">
+        <div class="pagination__summary">
+          <p>Showing {{ paginationStart() }}–{{ paginationEnd() }} of {{ activeCount() }}</p>
+          <label class="page-size-field">
+            <span>Rows per page</span>
+            <select [value]="pageSize()" (change)="setPageSize($event)">
+              @for (option of pageSizeOptions; track option) { <option [value]="option">{{ option }}</option> }
+            </select>
+          </label>
+        </div>
+        <div class="pagination__controls">
+          <button type="button" aria-label="Previous page" [disabled]="activePage() === 1" (click)="goToPage(activePage() - 1)"><span class="pagination-arrow pagination-arrow--previous" aria-hidden="true"></span>Previous</button>
+          <span>Page {{ activePage() }} of {{ totalPages() }}</span>
+          <button type="button" aria-label="Next page" [disabled]="activePage() === totalPages()" (click)="goToPage(activePage() + 1)">Next<span class="pagination-arrow pagination-arrow--next" aria-hidden="true"></span></button>
+        </div>
+      </footer>
+    }
+  </section>
+</section>
+
+@if (eventPendingDelete(); as event) {
+  <div class="confirmation-backdrop">
+    <section
+      class="confirmation-dialog"
+      role="alertdialog"
+      aria-modal="true"
+      aria-labelledby="delete-event-title"
+    >
+      <h2 id="delete-event-title">Are you sure you want to delete “{{ event.title }}”?</h2>
+      @if (deleteError()) {
+        <p class="confirmation-error" role="alert">{{ deleteError() }}</p>
+      }
+      <div class="confirmation-actions">
+        <button type="button" class="confirmation-cancel" [disabled]="deletingEvent()" (click)="cancelEventDelete()">Keep event</button>
+        <button type="button" class="confirmation-delete" [disabled]="deletingEvent()" (click)="confirmEventDelete()">{{ deletingEvent() ? 'Deleting…' : 'Yes, delete event' }}</button>
+      </div>
+    </section>
+  </div>
+}
+
+@if (bulkDeletePending()) {
+  <div class="confirmation-backdrop">
+    <section class="confirmation-dialog" role="alertdialog" aria-modal="true" aria-labelledby="bulk-delete-events-title">
+      <h2 id="bulk-delete-events-title">Delete {{ selectedCount() }} selected {{ selectedCount() === 1 ? 'event' : 'events' }}?</h2>
+      @if (bulkActionError()) {
+        <p class="confirmation-error" role="alert">{{ bulkActionError() }}</p>
+      }
+      <div class="confirmation-actions">
+        <button type="button" class="confirmation-cancel" [disabled]="applyingBulkAction()" (click)="cancelBulkDelete()">Keep events</button>
+        <button type="button" class="confirmation-delete" [disabled]="applyingBulkAction()" (click)="confirmBulkDelete()">{{ applyingBulkAction() ? 'Deleting…' : 'Yes, delete events' }}</button>
+      </div>
+    </section>
+  </div>
+}
+
+@if (bulkStatusPending()) {
+  <div class="confirmation-backdrop">
+    <section class="confirmation-dialog" role="dialog" aria-modal="true" aria-labelledby="bulk-status-events-title">
+      <h2 id="bulk-status-events-title">Change status for selected events</h2>
+      <label class="bulk-status-field" for="bulk-event-status">
+        <select id="bulk-event-status" [value]="selectedBulkStatus()" [disabled]="applyingBulkAction()" (change)="setBulkStatus($event)">
+          @for (option of eventStatusOptions; track option.value) {
+            <option [value]="option.value" [disabled]="bulkStatusEligibleCount(option.value) === 0">
+              {{ option.label }} ({{ bulkStatusEligibleCount(option.value) }} {{ bulkStatusEligibleCount(option.value) === 1 ? 'event' : 'events' }})
+            </option>
+          }
+        </select>
+      </label>
+      @if (bulkActionError()) {
+        <p class="confirmation-error" role="alert">{{ bulkActionError() }}</p>
+      }
+      <div class="confirmation-actions">
+        <button type="button" class="confirmation-cancel" [disabled]="applyingBulkAction()" (click)="cancelBulkStatus()">Cancel</button>
+        <button type="button" class="confirmation-submit" [disabled]="applyingBulkAction() || bulkStatusEligibleCount(selectedBulkStatus()) === 0" (click)="confirmBulkStatus()">{{ applyingBulkAction() ? 'Changing…' : 'Change status' }}</button>
+      </div>
+    </section>
+  </div>
+}

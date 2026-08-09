@@ -58,6 +58,23 @@ h1 {
     transform 140ms ease;
 }
 
+.info-card--draft {
+  background: #f1f1f2;
+  border-color: #cfd1d4;
+}
+
+.draft-badge {
+  background: #dfe1e4;
+  border-radius: 999px;
+  color: #4e5157;
+  display: inline-block;
+  font-size: 0.65rem;
+  font-weight: 850;
+  letter-spacing: 0.05em;
+  padding: 0.22rem 0.45rem;
+  text-transform: uppercase;
+}
+
 .info-card:hover {
   box-shadow: 0 10px 24px rgba(76, 43, 19, 0.1);
   transform: translateY(-2px);

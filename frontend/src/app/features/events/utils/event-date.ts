@@ -1,4 +1,4 @@
-export function isSameCalendarDay(start: string, end: string): boolean {
+export function isSameCalendarDay(start: string | Date, end: string | Date): boolean {
   const startDate = new Date(start);
   const endDate = new Date(end);
 

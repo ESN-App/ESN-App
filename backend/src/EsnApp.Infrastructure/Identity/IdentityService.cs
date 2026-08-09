@@ -50,6 +50,21 @@ public class IdentityService(
         return await BuildAuthResponseAsync(user);
     }
 
+    public async Task<Result<IReadOnlyList<AdminUserDto>>> GetAdminsAsync(
+        CancellationToken cancellationToken = default)
+    {
+        var admins = await userManager.GetUsersInRoleAsync("Admin");
+
+        return Result.Success<IReadOnlyList<AdminUserDto>>(
+            admins
+                .OrderByDescending(user => user.CreatedAt)
+                .Select(user => new AdminUserDto(
+                    user.Id,
+                    user.Email ?? string.Empty,
+                    user.CreatedAt))
+                .ToList());
+    }
+
     private async Task<Result<AuthResponse>> BuildAuthResponseAsync(ApplicationUser user)
     {
         var roles = await userManager.GetRolesAsync(user);
