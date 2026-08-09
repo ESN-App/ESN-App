@@ -29,7 +29,7 @@
         @for (item of newsItems(); track item.id; let itemIndex = $index) {
           <a
             class="news-card"
-            routerLink="/preview"
+            [routerLink]="['/news', item.id]"
             [class.active]="activeIndex() === itemIndex"
             [attr.aria-label]="'Open ' + item.title"
           >
