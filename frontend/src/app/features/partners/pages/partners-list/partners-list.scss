@@ -42,7 +42,7 @@ h1 {
   display: flex;
   gap: 1rem;
   justify-content: space-between;
-  margin: 1.5rem 0 1rem;
+  margin: 0.5rem 0 1rem;
 }
 
 .search {
@@ -55,9 +55,6 @@ h1 {
   max-width: 30rem;
   min-height: 2.9rem;
   padding: 0 1rem;
-  transition:
-    border-color 140ms ease,
-    box-shadow 140ms ease;
 }
 
 .search:focus-within {
@@ -66,12 +63,12 @@ h1 {
 }
 
 .search-icon {
-  color: var(--partners-accent);
-  font-size: 1.45rem;
-  font-weight: 800;
-  line-height: 1;
+  background: var(--partners-accent);
+  flex: 0 0 1.1rem;
+  height: 1.1rem;
   margin-right: 0.55rem;
-  transform: rotate(-20deg);
+  mask: url('/icons/search.svg') center / contain no-repeat;
+  width: 1.1rem;
 }
 
 .search input {
@@ -82,10 +79,6 @@ h1 {
   min-width: 0;
   outline: 0;
   width: 100%;
-}
-
-.search input::placeholder {
-  color: #8a8a8a;
 }
 
 .result-count {
@@ -103,6 +96,10 @@ h1 {
 
 .partner-list-region {
   min-width: 0;
+}
+
+.partner-scrollbar {
+  display: none;
 }
 
 .mobile-view-switch {
@@ -399,28 +396,36 @@ h1 {
     position: relative;
   }
 
-  .partner-list-region {
+  .partner-list-shell {
     background: rgba(255, 255, 255, 0.97);
     border: 2px solid var(--partners-accent);
     border-radius: 1.15rem;
     bottom: 1.25rem;
     box-shadow: 0 14px 36px rgba(35, 24, 31, 0.18);
     box-sizing: border-box;
+    container-type: size;
     left: 1.25rem;
-    overflow-y: auto;
-    overscroll-behavior-y: contain;
-    padding: 0.7rem;
     position: absolute;
-    scrollbar-color: color-mix(in srgb, var(--partners-accent) 45%, #bbb) transparent;
-    scrollbar-width: thin;
     top: 1.25rem;
     width: clamp(21rem, 34%, 25rem);
     z-index: 2;
   }
 
+  .partner-list-region {
+    box-sizing: border-box;
+    height: 100%;
+    overflow-y: auto;
+    overscroll-behavior-y: contain;
+    padding: 0.7rem 1.75rem 0.7rem 0.7rem;
+    scroll-padding-block: 0.7rem;
+    scrollbar-width: none;
+    width: 100%;
+  }
+
   .partner-grid {
     gap: 0.65rem;
     grid-template-columns: 1fr;
+    padding: 0.15rem 0.2rem 0.45rem;
   }
 
   .partner-card {
@@ -446,11 +451,68 @@ h1 {
     background: #fff;
     border-width: 3px;
     box-shadow: none;
-    transform: translateX(4px);
+    scroll-margin-block: 0.7rem;
+    transform: none;
   }
 
   .partner-card--selected:hover {
-    transform: translate(4px, -2px);
+    transform: translateY(-2px);
+  }
+
+  .partner-list-region::-webkit-scrollbar {
+    display: none;
+    height: 0;
+    width: 0;
+  }
+
+  .partner-scrollbar {
+    appearance: none;
+    background: transparent;
+    direction: rtl;
+    display: block;
+    height: 0.65rem;
+    margin: 0;
+    outline: 0;
+    position: absolute;
+    right: 0.75rem;
+    top: 0.75rem;
+    transform: rotate(-90deg);
+    transform-origin: top right;
+    width: calc(100cqh - 1.5rem);
+    z-index: 3;
+  }
+
+  .partner-scrollbar:focus-visible {
+    filter: drop-shadow(0 0 2px #4347a7);
+  }
+
+  .partner-scrollbar::-webkit-slider-runnable-track {
+    background: transparent;
+    border-radius: 100px;
+    height: 0.35rem;
+  }
+
+  .partner-scrollbar::-webkit-slider-thumb {
+    appearance: none;
+    background: color-mix(in srgb, var(--partners-accent) 45%, #bbb);
+    border: 0;
+    border-radius: 100px;
+    height: 0.35rem;
+    width: 2.75rem;
+  }
+
+  .partner-scrollbar::-moz-range-track {
+    background: transparent;
+    border-radius: 100px;
+    height: 0.35rem;
+  }
+
+  .partner-scrollbar::-moz-range-thumb {
+    background: color-mix(in srgb, var(--partners-accent) 45%, #bbb);
+    border: 0;
+    border-radius: 100px;
+    height: 0.35rem;
+    width: 2.75rem;
   }
 
   .partner-card:has(.partner-select-button:focus-visible) {
