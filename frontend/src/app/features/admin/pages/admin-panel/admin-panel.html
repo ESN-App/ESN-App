@@ -306,11 +306,15 @@
         @if (displayOrderError()) {
           <p class="modal-error" role="alert">{{ displayOrderError() }}</p>
         }
+
+        @if (!displayOrderHasChanged() && activePartnersList().length > 0) {
+          <p class="modal-info">Make changes to enable save</p>
+        }
       </div>
 
       <div class="modal-actions">
         <button type="button" class="confirmation-cancel" [disabled]="savingDisplayOrder()" (click)="closeDisplayOrderModal()">Cancel</button>
-        <button type="button" class="confirmation-submit" [disabled]="savingDisplayOrder() || activePartnersList().length === 0" (click)="saveDisplayOrder()">{{ savingDisplayOrder() ? 'Saving...' : 'Save' }}</button>
+        <button type="button" class="confirmation-submit" [disabled]="savingDisplayOrder() || activePartnersList().length === 0 || !displayOrderHasChanged()" (click)="saveDisplayOrder()">{{ savingDisplayOrder() ? 'Saving...' : 'Save' }}</button>
       </div>
     </section>
   </div>

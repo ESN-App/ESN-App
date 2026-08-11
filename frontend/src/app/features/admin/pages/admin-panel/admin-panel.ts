@@ -76,6 +76,7 @@ export class AdminPanel {
   readonly savingDisplayOrder = signal(false);
   readonly displayOrderError = signal<string | null>(null);
   readonly activePartnersList = signal<PartnerDto[]>([]);
+  readonly initialDisplayOrder = signal<string[]>([]);
   readonly draggedPartner = signal<PartnerDto | null>(null);
   readonly tableScrollPosition = signal(0);
   readonly tableScrollMaximum = signal(0);
@@ -261,6 +262,11 @@ export class AdminPanel {
   readonly allVisibleSelected = computed(() => {
     const ids = this.activePagedIds();
     return ids.length > 0 && ids.every((id) => this.selectedIds().has(id));
+  });
+  readonly displayOrderHasChanged = computed(() => {
+    const current = this.activePartnersList().map((p) => p.id).join(',');
+    const initial = this.initialDisplayOrder().join(',');
+    return current !== initial;
   });
 
   constructor() {
@@ -723,6 +729,7 @@ export class AdminPanel {
       .sort((a, b) => (a.displayOrder ?? 0) - (b.displayOrder ?? 0));
 
     this.activePartnersList.set(activePartners);
+    this.initialDisplayOrder.set(activePartners.map((p) => p.id));
   }
 
   closeDisplayOrderModal(): void {
@@ -768,7 +775,11 @@ export class AdminPanel {
   }
 
   saveDisplayOrder(): void {
-    if (this.savingDisplayOrder() || this.activePartnersList().length === 0) {
+    if (
+      this.savingDisplayOrder()
+      || this.activePartnersList().length === 0
+      || !this.displayOrderHasChanged()
+    ) {
       return;
     }
 
