@@ -292,29 +292,44 @@
         @if (activePartnersList().length === 0) {
           <p class="modal-message">No active partners yet. Create one to set display order.</p>
         } @else {
-          <div class="drag-list">
-            <p class="drag-list-help">Drag partners to set their display order</p>
-            @for (partner of activePartnersList(); track partner.id) {
-              <div class="drag-item" draggable="true" (dragstart)="onDragStart($event, partner)" (dragover)="onDragOver($event)" (drop)="onDrop($event, partner)" (dragend)="onDragEnd()" [class.dragging]="draggedPartner()?.id === partner.id">
-                <span class="drag-handle" aria-hidden="true">⋮⋮</span>
-                <span class="partner-name">{{ partner.name }}</span>
-              </div>
-            }
+          <p class="drag-list-help">Drag partners to set their display order</p>
+          <div class="drag-list-region">
+            <div class="drag-list" #dragListScroll (scroll)="updateDragListScroll($event)">
+              @for (partner of activePartnersList(); track partner.id) {
+                <div class="drag-item" draggable="true" (dragstart)="onDragStart($event, partner)" (dragover)="onDragOver($event)" (drop)="onDrop($event, partner)" (dragend)="onDragEnd()" [class.dragging]="draggedPartner()?.id === partner.id">
+                  <span class="drag-handle" aria-hidden="true">⋮⋮</span>
+                  <span class="partner-name">{{ partner.name }}</span>
+                </div>
+              }
+            </div>
+
+            <input
+              class="drag-list-scrollbar"
+              type="range"
+              min="0"
+              [max]="dragListScrollMaximum()"
+              [value]="dragListScrollPosition()"
+              [disabled]="dragListScrollMaximum() === 0"
+              [style.width.px]="dragListHeight()"
+              aria-label="Scroll display order list"
+              (input)="scrollDragList($event)"
+            />
           </div>
         }
 
         @if (displayOrderError()) {
           <p class="modal-error" role="alert">{{ displayOrderError() }}</p>
         }
-
-        @if (!displayOrderHasChanged() && activePartnersList().length > 0) {
-          <p class="modal-info">Make changes to enable save</p>
-        }
       </div>
 
       <div class="modal-actions">
         <button type="button" class="confirmation-cancel" [disabled]="savingDisplayOrder()" (click)="closeDisplayOrderModal()">Cancel</button>
-        <button type="button" class="confirmation-submit" [disabled]="savingDisplayOrder() || activePartnersList().length === 0 || !displayOrderHasChanged()" (click)="saveDisplayOrder()">{{ savingDisplayOrder() ? 'Saving...' : 'Save' }}</button>
+        <div class="modal-save-action">
+          <button type="button" class="confirmation-submit" [disabled]="savingDisplayOrder() || activePartnersList().length === 0 || !displayOrderHasChanged()" (click)="saveDisplayOrder()">{{ savingDisplayOrder() ? 'Saving...' : 'Save' }}</button>
+          @if (!displayOrderHasChanged() && activePartnersList().length > 0) {
+            <small>Make changes to enable save</small>
+          }
+        </div>
       </div>
     </section>
   </div>

@@ -1,5 +1,5 @@
 import { CurrencyPipe, DatePipe } from '@angular/common';
-import { Component, computed, ElementRef, HostListener, inject, signal, ViewChild } from '@angular/core';
+import { Component, computed, effect, ElementRef, HostListener, inject, signal, ViewChild } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { RouterLink } from '@angular/router';
 import { forkJoin } from 'rxjs';
@@ -81,6 +81,10 @@ export class AdminPanel {
   readonly tableScrollPosition = signal(0);
   readonly tableScrollMaximum = signal(0);
   @ViewChild('tableScroll') private tableScroll?: ElementRef<HTMLElement>;
+  readonly dragListScrollPosition = signal(0);
+  readonly dragListScrollMaximum = signal(0);
+  readonly dragListHeight = signal(0);
+  @ViewChild('dragListScroll') private dragListScroll?: ElementRef<HTMLElement>;
   readonly events = signal<EventDetailsDto[]>([]);
   readonly news = signal<NewsItemDto[]>([]);
   readonly partners = signal<PartnerDto[]>([]);
@@ -267,6 +271,15 @@ export class AdminPanel {
     const current = this.activePartnersList().map((p) => p.id).join(',');
     const initial = this.initialDisplayOrder().join(',');
     return current !== initial;
+  });
+
+  private readonly refreshDragListScrollbar = effect(() => {
+    this.activePartnersList();
+    if (!this.displayOrderModalOpen()) {
+      return;
+    }
+
+    requestAnimationFrame(() => this.captureDragListScroll());
   });
 
   constructor() {
@@ -815,5 +828,26 @@ export class AdminPanel {
     if (this.tableScroll) {
       this.tableScroll.nativeElement.scrollTop = position;
     }
+  }
+
+  updateDragListScroll(event: Event): void {
+    this.captureDragListScroll(event.currentTarget as HTMLElement);
+  }
+
+  scrollDragList(event: Event): void {
+    const position = Number((event.currentTarget as HTMLInputElement).value);
+    if (this.dragListScroll) {
+      this.dragListScroll.nativeElement.scrollTop = position;
+    }
+  }
+
+  private captureDragListScroll(element = this.dragListScroll?.nativeElement): void {
+    if (!element) {
+      return;
+    }
+
+    this.dragListScrollPosition.set(element.scrollTop);
+    this.dragListScrollMaximum.set(Math.max(0, element.scrollHeight - element.clientHeight));
+    this.dragListHeight.set(element.clientHeight);
   }
 }

@@ -6,8 +6,8 @@
         <span>Admin panel</span>
       </a>
       <p class="eyebrow">Partners administration</p>
-      <h1>Create partner</h1>
-      <p>Complete the required information and choose the partner status.</p>
+      <h1>{{ isEditMode ? 'Edit partner' : 'Create partner' }}</h1>
+      <p>{{ isEditMode ? 'Update the partner information and publishing status.' : 'Complete the required information and choose the partner status.' }}</p>
     </div>
   </header>
 
@@ -16,6 +16,8 @@
       <div class="form-heading">
         <div><h2>Partner information</h2><p>Fields marked with * are required.</p></div>
       </div>
+
+      @if (loading()) { <p class="loading-message" role="status">Loading partner data…</p> }
 
       <fieldset class="status-field">
         <legend>Partner status</legend>
@@ -148,7 +150,10 @@
       <div class="form-actions">
         <a routerLink="/admin">Cancel</a>
         <div class="save-action">
-          <button type="submit" [disabled]="form.invalid || submitting()">{{ submitting() ? 'Saving…' : 'Create partner' }}</button>
+          <button type="submit" [disabled]="loading() || loadFailed() || form.invalid || submitting() || !hasChanges() || (!isEditMode && !selectedLogo())">{{ submitting() ? 'Saving…' : (isEditMode ? 'Save changes' : 'Create partner') }}</button>
+          @if (isEditMode && !loading() && !loadFailed() && !hasChanges()) {
+            <small>No changes to save yet.</small>
+          }
         </div>
       </div>
     </form>
@@ -184,13 +189,15 @@
         aria-modal="true"
         aria-labelledby="confirmation-title"
       >
-        <h2 id="confirmation-title">Create this partner?</h2>
+        <h2 id="confirmation-title">
+          {{ isEditMode ? 'Save these changes?' : 'Create this partner?' }}
+        </h2>
         <div class="confirmation-actions">
           <button type="button" class="confirmation-cancel" (click)="cancelConfirmation()">
             Keep editing
           </button>
           <button type="button" class="confirmation-submit" (click)="confirmSubmit()">
-            Yes, create partner
+            {{ isEditMode ? 'Yes, save changes' : 'Yes, create partner' }}
           </button>
         </div>
       </section>

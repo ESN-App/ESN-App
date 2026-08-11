@@ -4,7 +4,7 @@
 
 .admin-page {
   margin: 0 auto;
-  max-width: 72rem;
+  max-width: 94rem;
 }
 
 .admin-header,
@@ -837,6 +837,8 @@ td small {
   background: #fff;
   border-radius: 0.85rem;
   box-shadow: 0 8px 24px rgb(24 25 38 / 16%);
+  display: flex;
+  flex-direction: column;
   max-height: 90vh;
   max-width: 50rem;
   overflow-y: auto;
@@ -848,6 +850,7 @@ td small {
   align-items: center;
   border-bottom: 1px solid #e5e6ea;
   display: flex;
+  flex: 0 0 auto;
   justify-content: space-between;
   padding: 0.75rem;
 }
@@ -876,11 +879,16 @@ td small {
 }
 
 .modal-content {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-height: 0;
   padding: 1.25rem;
 }
 
 .modal-message {
   color: #6f707b;
+  flex: 0 0 auto;
   font-size: 0.9rem;
   text-align: center;
 }
@@ -890,27 +898,33 @@ td small {
   border: 1px solid #ead6cf;
   border-radius: 0.55rem;
   color: #8c2f27;
-  font-size: 0.85rem;
-  margin: 0.75rem 0 0;
-  padding: 0.65rem 0.85rem;
-}
-
-.modal-info {
-  background: #f0f5ff;
-  border: 1px solid #d6e1f0;
-  border-radius: 0.55rem;
-  color: #4a5578;
+  flex: 0 0 auto;
   font-size: 0.85rem;
   margin: 0.75rem 0 0;
   padding: 0.65rem 0.85rem;
 }
 
 .modal-actions {
+  align-items: flex-start;
   border-top: 1px solid #e5e6ea;
   display: flex;
+  flex: 0 0 auto;
   gap: 0.6rem;
-  justify-content: flex-end;
+  justify-content: space-between;
   padding: 0.85rem 1.25rem;
+}
+
+.modal-save-action {
+  align-items: flex-end;
+  display: grid;
+  gap: 0.35rem;
+  justify-items: end;
+}
+
+.modal-save-action small {
+  color: #777985;
+  font-size: 0.68rem;
+  font-weight: 650;
 }
 
 .confirmation-cancel,
@@ -949,17 +963,92 @@ td small {
   opacity: 0.5;
 }
 
-.drag-list {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
 .drag-list-help {
   color: #787a84;
+  flex: 0 0 auto;
   font-size: 0.78rem;
-  margin: 0 0 0.25rem;
+  margin: 0 0 0.6rem;
   text-align: center;
+}
+
+.drag-list-region {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-height: 0;
+  position: relative;
+}
+
+.drag-list {
+  box-sizing: border-box;
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+  padding-right: 1.35rem;
+  scrollbar-width: none;
+}
+
+.drag-list::-webkit-scrollbar {
+  display: none;
+  height: 0;
+  width: 0;
+}
+
+.drag-list-scrollbar {
+  appearance: none;
+  background: transparent;
+  direction: rtl;
+  display: block;
+  height: 0.65rem;
+  margin: 0;
+  outline: 0;
+  position: absolute;
+  right: 0.1rem;
+  top: 0;
+  transform: rotate(-90deg);
+  transform-origin: top right;
+  z-index: 3;
+}
+
+.drag-list-scrollbar:disabled {
+  display: none;
+}
+
+.drag-list-scrollbar:focus-visible {
+  filter: drop-shadow(0 0 2px #4347a7);
+}
+
+.drag-list-scrollbar::-webkit-slider-runnable-track {
+  background: transparent;
+  border-radius: 100px;
+  height: 0.35rem;
+}
+
+.drag-list-scrollbar::-webkit-slider-thumb {
+  appearance: none;
+  background: #9a9a9a;
+  border: 0;
+  border-radius: 100px;
+  height: 0.35rem;
+  width: 2.75rem;
+}
+
+.drag-list-scrollbar::-moz-range-track {
+  background: transparent;
+  border-radius: 100px;
+  height: 0.35rem;
+}
+
+.drag-list-scrollbar::-moz-range-thumb {
+  background: #9a9a9a;
+  border: 0;
+  border-radius: 100px;
+  height: 0.35rem;
+  width: 2.75rem;
 }
 
 .drag-item {
