@@ -93,6 +93,20 @@ public class ManageEventCommandHandlerTests
             CancellationToken cancellationToken = default) =>
             Task.FromResult(new EventPage(_events, _events.Count));
 
+        public Task<EventPage> GetAdminPageAsync(
+            DateTimeOffset? from,
+            DateTimeOffset? to,
+            int page,
+            int pageSize,
+            CancellationToken cancellationToken = default)
+        {
+            var filtered = _events.AsEnumerable();
+            if (from.HasValue) filtered = filtered.Where(e => e.StartsAt >= from.Value);
+            if (to.HasValue) filtered = filtered.Where(e => e.StartsAt < to.Value);
+            var list = filtered.ToList();
+            return Task.FromResult(new EventPage(list, list.Count));
+        }
+
         public Task<Event?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default) =>
             Task.FromResult(_events.FirstOrDefault(entity => entity.Id == id));
 

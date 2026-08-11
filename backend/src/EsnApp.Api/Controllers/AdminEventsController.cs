@@ -28,11 +28,13 @@ public class AdminEventsController(
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     public async Task<IActionResult> GetList(
+        [FromQuery] DateTimeOffset? from,
+        [FromQuery] DateTimeOffset? to,
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 20,
         CancellationToken cancellationToken = default)
     {
-        var query = new GetAdminEventsQuery(page, pageSize);
+        var query = new GetAdminEventsQuery(from, to, page, pageSize);
         var result = await sender.Send(query, cancellationToken);
 
         return Ok(result.Value);

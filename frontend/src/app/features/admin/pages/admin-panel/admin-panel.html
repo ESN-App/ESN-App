@@ -1,4 +1,4 @@
-<section class="admin-page">
+﻿<section class="admin-page">
   <header class="admin-header">
     <div>
       <p class="eyebrow">Administration</p>
@@ -32,13 +32,17 @@
             <button type="button" (click)="clearSelection()">Clear selection</button>
           </div>
         }
-        @if (activeSection() === 'events' && selectedCount()) {
-          <div class="bulk-actions" aria-label="Actions for selected events">
+        @if ((activeSection() === 'events' || activeSection() === 'partners') && selectedCount()) {
+          <div class="bulk-actions" [attr.aria-label]="'Actions for selected ' + activeLabel().toLowerCase()">
             <button type="button" class="bulk-status-button" (click)="openBulkStatusDialog()">Change status</button>
             <button type="button" class="bulk-delete-button" (click)="requestBulkDelete()">Delete selected</button>
           </div>
         }
         @if (activeSection() === 'events') { <a class="create-button" routerLink="/admin/events/new">Create new event</a> }
+        @if (activeSection() === 'partners') {
+          <button type="button" class="create-button" (click)="openDisplayOrderModal()">Set display order</button>
+          <a class="create-button" routerLink="/admin/partners/new">Create new partner</a>
+        }
       </div>
     </header>
 
@@ -69,7 +73,7 @@
         @if (searchTerm()) { <button type="button" (click)="clearSearch()">Clear search</button> }
       </div>
     } @else {
-      <div class="table-scroll">
+      <div class="table-scroll" #tableScroll (scroll)="updateTableScroll($event)">
         @switch (activeSection()) {
           @case ('events') {
             <table>
@@ -122,7 +126,7 @@
                     <td data-label="Website">@if (item.websiteUrl) { <a class="website-link" [href]="item.websiteUrl" target="_blank" rel="noopener noreferrer">{{ item.name }} website</a> } @else { — }</td>
                     <td data-label="Created">{{ item.createdAt | date: 'd MMM y' }}</td>
                     <td data-label="Status"><span class="status-badge" [class.draft-badge]="item.status === 0">{{ partnerStatus(item.status) }}</span></td>
-                    <td class="row-tools"><div class="row-tools__buttons"><button type="button" class="icon-button icon-button--edit" [attr.aria-label]="'Edit ' + item.name" title="Edit"></button><button type="button" class="icon-button icon-button--delete" [attr.aria-label]="'Delete ' + item.name" title="Delete"></button><button type="button" class="icon-button icon-button--menu" [attr.aria-label]="'Options for ' + item.name" title="Options"></button></div></td>
+                    <td class="row-tools"><div class="row-tools__buttons"><a class="icon-button icon-button--edit" [routerLink]="['/admin/partners', partnerSlug(item.name), 'edit']" [attr.aria-label]="'Edit ' + item.name" title="Edit"></a><button type="button" class="icon-button icon-button--delete" [attr.aria-label]="'Delete ' + item.name" title="Delete" (click)="requestPartnerDelete(item)"></button></div></td>
                   </tr>
                 }
               </tbody>
@@ -164,6 +168,17 @@
         }
       </div>
 
+      <input
+        class="table-scrollbar"
+        type="range"
+        min="0"
+        [max]="tableScrollMaximum()"
+        [value]="tableScrollPosition()"
+        [disabled]="tableScrollMaximum() === 0"
+        aria-label="Scroll table"
+        (input)="scrollTable($event)"
+      />
+
       <footer class="pagination" aria-label="Table pagination">
         <div class="pagination__summary">
           <p>Showing {{ paginationStart() }}–{{ paginationEnd() }} of {{ activeCount() }}</p>
@@ -192,13 +207,28 @@
       aria-modal="true"
       aria-labelledby="delete-event-title"
     >
-      <h2 id="delete-event-title">Are you sure you want to delete “{{ event.title }}”?</h2>
+      <h2 id="delete-event-title">Are you sure you want to delete {{ event.title }}?</h2>
       @if (deleteError()) {
         <p class="confirmation-error" role="alert">{{ deleteError() }}</p>
       }
       <div class="confirmation-actions">
         <button type="button" class="confirmation-cancel" [disabled]="deletingEvent()" (click)="cancelEventDelete()">Keep event</button>
-        <button type="button" class="confirmation-delete" [disabled]="deletingEvent()" (click)="confirmEventDelete()">{{ deletingEvent() ? 'Deleting…' : 'Yes, delete event' }}</button>
+        <button type="button" class="confirmation-delete" [disabled]="deletingEvent()" (click)="confirmEventDelete()">{{ deletingEvent() ? 'Deleting...' : 'Yes, delete event' }}</button>
+      </div>
+    </section>
+  </div>
+}
+
+@if (partnerPendingDelete(); as partner) {
+  <div class="confirmation-backdrop">
+    <section class="confirmation-dialog" role="alertdialog" aria-modal="true" aria-labelledby="delete-partner-title">
+      <h2 id="delete-partner-title">Are you sure you want to delete {{ partner.name }}?</h2>
+      @if (deleteError()) {
+        <p class="confirmation-error" role="alert">{{ deleteError() }}</p>
+      }
+      <div class="confirmation-actions">
+        <button type="button" class="confirmation-cancel" [disabled]="deletingPartner()" (click)="cancelPartnerDelete()">Keep partner</button>
+        <button type="button" class="confirmation-delete" [disabled]="deletingPartner()" (click)="confirmPartnerDelete()">{{ deletingPartner() ? 'Deleting...' : 'Yes, delete partner' }}</button>
       </div>
     </section>
   </div>
@@ -206,14 +236,16 @@
 
 @if (bulkDeletePending()) {
   <div class="confirmation-backdrop">
-    <section class="confirmation-dialog" role="alertdialog" aria-modal="true" aria-labelledby="bulk-delete-events-title">
-      <h2 id="bulk-delete-events-title">Delete {{ selectedCount() }} selected {{ selectedCount() === 1 ? 'event' : 'events' }}?</h2>
+    <section class="confirmation-dialog" role="alertdialog" aria-modal="true" [attr.aria-labelledby]="'bulk-delete-' + activeSection() + '-title'">
+      @let itemLabel = activeSection() === 'events' ? 'event' : activeSection() === 'partners' ? 'partner' : 'item';
+      @let itemLabelPlural = selectedCount() === 1 ? itemLabel : (itemLabel + 's');
+      <h2 [id]="'bulk-delete-' + activeSection() + '-title'">Delete {{ selectedCount() }} selected {{ itemLabelPlural }}?</h2>
       @if (bulkActionError()) {
         <p class="confirmation-error" role="alert">{{ bulkActionError() }}</p>
       }
       <div class="confirmation-actions">
-        <button type="button" class="confirmation-cancel" [disabled]="applyingBulkAction()" (click)="cancelBulkDelete()">Keep events</button>
-        <button type="button" class="confirmation-delete" [disabled]="applyingBulkAction()" (click)="confirmBulkDelete()">{{ applyingBulkAction() ? 'Deleting…' : 'Yes, delete events' }}</button>
+        <button type="button" class="confirmation-cancel" [disabled]="applyingBulkAction()" (click)="cancelBulkDelete()">Keep {{ itemLabelPlural }}</button>
+        <button type="button" class="confirmation-delete" [disabled]="applyingBulkAction()" (click)="confirmBulkDelete()">{{ applyingBulkAction() ? 'Deleting...' : 'Yes, delete ' + itemLabelPlural }}</button>
       </div>
     </section>
   </div>
@@ -221,13 +253,18 @@
 
 @if (bulkStatusPending()) {
   <div class="confirmation-backdrop">
-    <section class="confirmation-dialog" role="dialog" aria-modal="true" aria-labelledby="bulk-status-events-title">
-      <h2 id="bulk-status-events-title">Change status for selected events</h2>
-      <label class="bulk-status-field" for="bulk-event-status">
-        <select id="bulk-event-status" [value]="selectedBulkStatus()" [disabled]="applyingBulkAction()" (change)="setBulkStatus($event)">
-          @for (option of eventStatusOptions; track option.value) {
-            <option [value]="option.value" [disabled]="bulkStatusEligibleCount(option.value) === 0">
-              {{ option.label }} ({{ bulkStatusEligibleCount(option.value) }} {{ bulkStatusEligibleCount(option.value) === 1 ? 'event' : 'events' }})
+    <section class="confirmation-dialog" role="dialog" aria-modal="true" [attr.aria-labelledby]="'bulk-status-' + activeSection() + '-title'">
+      @let statusOptions = activeSection() === 'partners' ? partnerStatusOptions : eventStatusOptions;
+      @let itemLabel = activeSection() === 'events' ? 'event' : activeSection() === 'partners' ? 'partner' : 'item';
+      @let itemLabelPlural = selectedCount() === 1 ? itemLabel : (itemLabel + 's');
+      <h2 [id]="'bulk-status-' + activeSection() + '-title'">Change status for selected {{ itemLabelPlural }}</h2>
+      <label class="bulk-status-field" [for]="'bulk-' + activeSection() + '-status'">
+        <select [id]="'bulk-' + activeSection() + '-status'" [value]="selectedBulkStatus()" [disabled]="applyingBulkAction()" (change)="setBulkStatus($event)">
+          @for (option of statusOptions; track option.value) {
+            @let eligibleCount = bulkStatusEligibleCount(option.value);
+            @let eligibleLabel = eligibleCount === 1 ? itemLabel : (itemLabel + 's');
+            <option [value]="option.value" [disabled]="eligibleCount === 0">
+              {{ option.label }} ({{ eligibleCount }} {{ eligibleLabel }})
             </option>
           }
         </select>
@@ -237,7 +274,43 @@
       }
       <div class="confirmation-actions">
         <button type="button" class="confirmation-cancel" [disabled]="applyingBulkAction()" (click)="cancelBulkStatus()">Cancel</button>
-        <button type="button" class="confirmation-submit" [disabled]="applyingBulkAction() || bulkStatusEligibleCount(selectedBulkStatus()) === 0" (click)="confirmBulkStatus()">{{ applyingBulkAction() ? 'Changing…' : 'Change status' }}</button>
+        <button type="button" class="confirmation-submit" [disabled]="applyingBulkAction() || bulkStatusEligibleCount(selectedBulkStatus()) === 0" (click)="confirmBulkStatus()">{{ applyingBulkAction() ? 'Changing...' : 'Change status' }}</button>
+      </div>
+    </section>
+  </div>
+}
+
+@if (displayOrderModalOpen()) {
+  <div class="confirmation-backdrop" (click)="closeDisplayOrderModal()">
+    <section class="confirmation-dialog" role="dialog" aria-modal="true" aria-labelledby="display-order-title" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2 id="display-order-title">Manage display order</h2>
+        <button type="button" class="modal-close" (click)="closeDisplayOrderModal()" aria-label="Close">×</button>
+      </div>
+
+      <div class="modal-content">
+        @if (activePartnersList().length === 0) {
+          <p class="modal-message">No active partners yet. Create one to set display order.</p>
+        } @else {
+          <div class="drag-list">
+            <p class="drag-list-help">Drag partners to set their display order</p>
+            @for (partner of activePartnersList(); track partner.id) {
+              <div class="drag-item" draggable="true" (dragstart)="onDragStart($event, partner)" (dragover)="onDragOver($event)" (drop)="onDrop($event, partner)" (dragend)="onDragEnd()" [class.dragging]="draggedPartner()?.id === partner.id">
+                <span class="drag-handle" aria-hidden="true">⋮⋮</span>
+                <span class="partner-name">{{ partner.name }}</span>
+              </div>
+            }
+          </div>
+        }
+
+        @if (displayOrderError()) {
+          <p class="modal-error" role="alert">{{ displayOrderError() }}</p>
+        }
+      </div>
+
+      <div class="modal-actions">
+        <button type="button" class="confirmation-cancel" [disabled]="savingDisplayOrder()" (click)="closeDisplayOrderModal()">Cancel</button>
+        <button type="button" class="confirmation-submit" [disabled]="savingDisplayOrder() || activePartnersList().length === 0" (click)="saveDisplayOrder()">{{ savingDisplayOrder() ? 'Saving...' : 'Save' }}</button>
       </div>
     </section>
   </div>

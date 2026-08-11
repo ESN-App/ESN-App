@@ -14,6 +14,8 @@ public interface IPartnerRepository
 
     Task<Partner?> GetAdminByIdAsync(Guid id, CancellationToken cancellationToken = default);
 
+    Task<Partner?> GetAdminBySlugAsync(string slug, CancellationToken cancellationToken = default);
+
     Task<Partner> AddAsync(Partner entity, CancellationToken cancellationToken = default);
 
     Task<Partner> UpdateAsync(Partner entity, CancellationToken cancellationToken = default);
@@ -21,4 +23,6 @@ public interface IPartnerRepository
     Task UpdateRangeAsync(
         IReadOnlyCollection<Partner> partners,
         CancellationToken cancellationToken = default);
+
+    Task<bool> DeleteAsync(Guid id, CancellationToken cancellationToken = default);
 }

@@ -85,7 +85,10 @@ h1 {
 .table-card {
   border: 1px solid #dedfe5;
   border-radius: 1rem;
+  display: flex;
+  flex-direction: column;
   min-height: 24rem;
+  min-height: 0;
   overflow: hidden;
 }
 
@@ -195,8 +198,11 @@ h1 {
 
 .create-button {
   background: #5358bd;
+  border: 0;
   border-radius: 0.6rem;
   color: #fff;
+  cursor: pointer;
+  font: inherit;
   font-size: 0.78rem;
   font-weight: 750;
   padding: 0.65rem 0.85rem;
@@ -327,6 +333,66 @@ h1 {
 
 .table-scroll {
   overflow-x: auto;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+
+.table-scroll::-webkit-scrollbar {
+  display: none;
+  height: 0;
+  width: 0;
+}
+
+.table-scrollbar {
+  appearance: none;
+  background: transparent;
+  height: 0.5rem;
+  margin: 0;
+  outline: 0;
+  width: 100%;
+  border: 0;
+  cursor: pointer;
+}
+
+.table-scrollbar:disabled {
+  display: none;
+}
+
+.table-scrollbar::-webkit-slider-runnable-track {
+  background: transparent;
+  border-radius: 100px;
+  height: 0.35rem;
+}
+
+.table-scrollbar::-webkit-slider-thumb {
+  appearance: none;
+  background: #9a9a9a;
+  border: 0;
+  border-radius: 100px;
+  height: 0.35rem;
+  width: 2rem;
+}
+
+.table-scrollbar::-webkit-slider-thumb:hover {
+  background: #707070;
+}
+
+.table-scrollbar::-moz-range-track {
+  background: transparent;
+  border-radius: 100px;
+  height: 0.35rem;
+}
+
+.table-scrollbar::-moz-range-thumb {
+  background: #9a9a9a;
+  border: 0;
+  border-radius: 100px;
+  height: 0.35rem;
+  width: 2rem;
+}
+
+.table-scrollbar::-moz-range-thumb:hover {
+  background: #707070;
 }
 
 .empty-results {
@@ -754,4 +820,176 @@ td small {
   .pagination__controls {
     justify-content: space-between;
   }
+}
+
+.confirmation-backdrop {
+  align-items: center;
+  background: rgb(0 0 0 / 35%);
+  display: flex;
+  inset: 0;
+  justify-content: center;
+  padding: 1rem;
+  position: fixed;
+  z-index: 1000;
+}
+
+.confirmation-dialog {
+  background: #fff;
+  border-radius: 0.85rem;
+  box-shadow: 0 8px 24px rgb(24 25 38 / 16%);
+  max-height: 90vh;
+  max-width: 50rem;
+  overflow-y: auto;
+  position: relative;
+  width: 100%;
+}
+
+.modal-header {
+  align-items: center;
+  border-bottom: 1px solid #e5e6ea;
+  display: flex;
+  justify-content: space-between;
+  padding: 0.75rem;
+}
+
+.modal-header h2 {
+  font-size: 1.1rem;
+  margin: 0;
+}
+
+.modal-close {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  display: flex;
+  font-size: 1.5rem;
+  height: 2rem;
+  justify-content: center;
+  padding: 0;
+  width: 2rem;
+}
+
+.modal-close:hover {
+  background: #f1f2fb;
+  color: #343897;
+}
+
+.modal-content {
+  padding: 1.25rem;
+}
+
+.modal-message {
+  color: #6f707b;
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+.modal-error {
+  background: #fff2f0;
+  border: 1px solid #ead6cf;
+  border-radius: 0.55rem;
+  color: #8c2f27;
+  font-size: 0.85rem;
+  margin: 0.75rem 0 0;
+  padding: 0.65rem 0.85rem;
+}
+
+.modal-actions {
+  border-top: 1px solid #e5e6ea;
+  display: flex;
+  gap: 0.6rem;
+  justify-content: flex-end;
+  padding: 0.85rem 1.25rem;
+}
+
+.confirmation-cancel,
+.confirmation-submit {
+  border: 0;
+  border-radius: 0.6rem;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 750;
+  min-height: 2.3rem;
+  padding: 0.55rem 1rem;
+}
+
+.confirmation-cancel {
+  background: #eff0f6;
+  color: #343897;
+}
+
+.confirmation-cancel:hover:not(:disabled) {
+  background: #e2e3ee;
+}
+
+.confirmation-submit {
+  background: #5358bd;
+  color: #fff;
+}
+
+.confirmation-submit:hover:not(:disabled) {
+  background: #42479e;
+}
+
+.confirmation-cancel:disabled,
+.confirmation-submit:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.drag-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.drag-list-help {
+  color: #787a84;
+  font-size: 0.78rem;
+  margin: 0 0 0.25rem;
+  text-align: center;
+}
+
+.drag-item {
+  align-items: center;
+  background: #fafafd;
+  border: 1px solid #dedfe5;
+  border-radius: 0.6rem;
+  cursor: move;
+  display: flex;
+  gap: 0.75rem;
+  min-height: 2.8rem;
+  padding: 0.75rem 0.85rem;
+  transition: background 140ms ease, border-color 140ms ease, transform 140ms ease;
+}
+
+.drag-item:hover {
+  background: #f4f5f9;
+  border-color: #cfd1dc;
+}
+
+.drag-item.dragging {
+  background: #eceeff;
+  border-color: #5358bd;
+  opacity: 0.6;
+  transform: scale(0.98);
+}
+
+.drag-handle {
+  color: #94959e;
+  flex: 0 0 auto;
+  font-size: 0.9rem;
+  user-select: none;
+}
+
+.partner-name {
+  color: #252630;
+  flex: 1 1 auto;
+  font-size: 0.9rem;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }

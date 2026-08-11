@@ -1,5 +1,5 @@
 import { CurrencyPipe, DatePipe } from '@angular/common';
-import { Component, computed, HostListener, inject, signal } from '@angular/core';
+import { Component, computed, ElementRef, HostListener, inject, signal, ViewChild } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { RouterLink } from '@angular/router';
 import { forkJoin } from 'rxjs';
@@ -17,9 +17,16 @@ type SortField = 'title' | 'date' | 'status';
 type ActiveSortField = SortField | 'default';
 type SortDirection = 'ascending' | 'descending';
 type EventStatusValue = 0 | 1 | 2 | 3 | 4;
+type PartnerStatusValue = 0 | 1 | 2;
+type AnyStatusValue = EventStatusValue | PartnerStatusValue;
 
 interface EventStatusOption {
   value: EventStatusValue;
+  label: string;
+}
+
+interface PartnerStatusOption {
+  value: PartnerStatusValue;
   label: string;
 }
 
@@ -57,12 +64,22 @@ export class AdminPanel {
   readonly publishingIds = signal(new Set<string>());
   readonly eventPendingDelete = signal<EventDetailsDto | null>(null);
   readonly deletingEvent = signal(false);
+  readonly partnerPendingDelete = signal<PartnerDto | null>(null);
+  readonly deletingPartner = signal(false);
   readonly deleteError = signal<string | null>(null);
   readonly bulkDeletePending = signal(false);
   readonly bulkStatusPending = signal(false);
-  readonly selectedBulkStatus = signal<EventStatusValue>(1);
+  readonly selectedBulkStatus = signal<AnyStatusValue>(1);
   readonly applyingBulkAction = signal(false);
   readonly bulkActionError = signal<string | null>(null);
+  readonly displayOrderModalOpen = signal(false);
+  readonly savingDisplayOrder = signal(false);
+  readonly displayOrderError = signal<string | null>(null);
+  readonly activePartnersList = signal<PartnerDto[]>([]);
+  readonly draggedPartner = signal<PartnerDto | null>(null);
+  readonly tableScrollPosition = signal(0);
+  readonly tableScrollMaximum = signal(0);
+  @ViewChild('tableScroll') private tableScroll?: ElementRef<HTMLElement>;
   readonly events = signal<EventDetailsDto[]>([]);
   readonly news = signal<NewsItemDto[]>([]);
   readonly partners = signal<PartnerDto[]>([]);
@@ -227,10 +244,19 @@ export class AdminPanel {
     const selectedIds = this.selectedIds();
     return this.events().filter((item) => selectedIds.has(item.id));
   });
+  readonly selectedPartners = computed(() => {
+    const selectedIds = this.selectedIds();
+    return this.partners().filter((item) => selectedIds.has(item.id));
+  });
   readonly eventStatusOptions: EventStatusOption[] = [
     { value: 0, label: 'Draft' },
     { value: 1, label: 'Published' },
     { value: 2, label: 'Cancelled' },
+  ];
+  readonly partnerStatusOptions: PartnerStatusOption[] = [
+    { value: 0, label: 'Draft' },
+    { value: 1, label: 'Active' },
+    { value: 2, label: 'Inactive' },
   ];
   readonly allVisibleSelected = computed(() => {
     const ids = this.activePagedIds();
@@ -325,6 +351,10 @@ export class AdminPanel {
     return ['/partners', item.slug || createPartnerSlug(item.name)];
   }
 
+  partnerSlug(name: string): string {
+    return createPartnerSlug(name);
+  }
+
   loadData(): void {
     this.loading.set(true);
     this.error.set(null);
@@ -394,23 +424,39 @@ export class AdminPanel {
   }
 
   confirmBulkDelete(): void {
-    const events = this.selectedEvents();
-    if (events.length === 0 || this.applyingBulkAction()) {
+    if (this.applyingBulkAction()) {
+      return;
+    }
+
+    const section = this.activeSection();
+    const itemsToDelete = section === 'events' ? this.selectedEvents() : section === 'partners' ? this.selectedPartners() : [];
+
+    if (itemsToDelete.length === 0) {
       return;
     }
 
     this.applyingBulkAction.set(true);
     this.bulkActionError.set(null);
-    forkJoin(events.map((item) => this.api.deleteEvent(item.id))).subscribe({
+
+    const deleteObservables = itemsToDelete.map((item) =>
+      section === 'events' ? this.api.deleteEvent(item.id) : this.api.deletePartner(item.id)
+    );
+
+    forkJoin(deleteObservables).subscribe({
       next: () => {
-        const deletedIds = new Set(events.map((item) => item.id));
-        this.events.update((items) => items.filter((item) => !deletedIds.has(item.id)));
+        const deletedIds = new Set(itemsToDelete.map((item) => item.id));
+        if (section === 'events') {
+          this.events.update((items) => items.filter((item) => !deletedIds.has(item.id)));
+        } else if (section === 'partners') {
+          this.partners.update((items) => items.filter((item) => !deletedIds.has(item.id)));
+        }
         this.selectedIds.set(new Set());
         this.applyingBulkAction.set(false);
         this.bulkDeletePending.set(false);
       },
       error: () => {
-        this.bulkActionError.set('The selected events could not be deleted. Please try again.');
+        const itemName = section === 'events' ? 'events' : section === 'partners' ? 'partners' : 'items';
+        this.bulkActionError.set(`The selected ${itemName} could not be deleted. Please try again.`);
         this.applyingBulkAction.set(false);
       },
     });
@@ -420,7 +466,8 @@ export class AdminPanel {
     if (this.selectedCount() === 0) {
       return;
     }
-    const firstEligible = this.eventStatusOptions.find(
+    const statusOptions = this.activeSection() === 'partners' ? this.partnerStatusOptions : this.eventStatusOptions;
+    const firstEligible = statusOptions.find(
       (option) => this.bulkStatusEligibleCount(option.value) > 0,
     );
     if (firstEligible) {
@@ -438,37 +485,62 @@ export class AdminPanel {
   }
 
   setBulkStatus(event: Event): void {
-    this.selectedBulkStatus.set(Number((event.currentTarget as HTMLSelectElement).value) as EventStatusValue);
+    this.selectedBulkStatus.set(Number((event.currentTarget as HTMLSelectElement).value) as AnyStatusValue);
   }
 
-  bulkStatusEligibleCount(status: EventStatusValue): number {
-    return this.selectedEvents().filter((item) => item.status !== status).length;
+  bulkStatusEligibleCount(status: AnyStatusValue): number {
+    const section = this.activeSection();
+    const items = section === 'events' ? this.selectedEvents() : section === 'partners' ? this.selectedPartners() : [];
+    return items.filter((item) => item.status !== status).length;
   }
 
   confirmBulkStatus(): void {
-    const status = this.selectedBulkStatus();
-    const events = this.selectedEvents().filter((item) => item.status !== status);
-    if (events.length === 0 || this.applyingBulkAction()) {
-      return;
-    }
+    const status = this.selectedBulkStatus() as number;
+    const section = this.activeSection();
 
-    this.applyingBulkAction.set(true);
-    this.bulkActionError.set(null);
-    forkJoin(events.map((item) => this.api.updateEventStatus(item.id, status))).subscribe({
-      next: (updatedEvents) => {
-        const updatedById = new Map(updatedEvents.map((item) => [item.id, item]));
-        this.events.update((items) =>
-          items.map((item) => updatedById.get(item.id) ?? item),
-        );
-        this.selectedIds.set(new Set());
-        this.applyingBulkAction.set(false);
-        this.bulkStatusPending.set(false);
-      },
-      error: () => {
-        this.bulkActionError.set('The selected event statuses could not be changed. Please try again.');
-        this.applyingBulkAction.set(false);
-      },
-    });
+    if (section === 'events') {
+      const events = this.selectedEvents().filter((item) => item.status !== status);
+      if (events.length === 0 || this.applyingBulkAction()) {
+        return;
+      }
+
+      this.applyingBulkAction.set(true);
+      this.bulkActionError.set(null);
+      forkJoin(events.map((item) => this.api.updateEventStatus(item.id, status))).subscribe({
+        next: (updatedEvents) => {
+          const updatedById = new Map(updatedEvents.map((item) => [item.id, item]));
+          this.events.update((items) => items.map((item) => updatedById.get(item.id) ?? item));
+          this.selectedIds.set(new Set());
+          this.applyingBulkAction.set(false);
+          this.bulkStatusPending.set(false);
+        },
+        error: () => {
+          this.bulkActionError.set('The selected event statuses could not be changed. Please try again.');
+          this.applyingBulkAction.set(false);
+        },
+      });
+    } else if (section === 'partners') {
+      const partners = this.selectedPartners().filter((item) => item.status !== status);
+      if (partners.length === 0 || this.applyingBulkAction()) {
+        return;
+      }
+
+      this.applyingBulkAction.set(true);
+      this.bulkActionError.set(null);
+      forkJoin(partners.map((item) => this.api.updatePartnerStatus(item.id, status))).subscribe({
+        next: (updatedPartners) => {
+          const updatedById = new Map(updatedPartners.map((item) => [item.id, item]));
+          this.partners.update((items) => items.map((item) => updatedById.get(item.id) ?? item));
+          this.selectedIds.set(new Set());
+          this.applyingBulkAction.set(false);
+          this.bulkStatusPending.set(false);
+        },
+        error: () => {
+          this.bulkActionError.set('The selected partner statuses could not be changed. Please try again.');
+          this.applyingBulkAction.set(false);
+        },
+      });
+    }
   }
 
   cancelEventDelete(): void {
@@ -504,9 +576,48 @@ export class AdminPanel {
     });
   }
 
+  requestPartnerDelete(item: PartnerDto): void {
+    this.deleteError.set(null);
+    this.partnerPendingDelete.set(item);
+  }
+
+  cancelPartnerDelete(): void {
+    if (!this.deletingPartner()) {
+      this.partnerPendingDelete.set(null);
+      this.deleteError.set(null);
+    }
+  }
+
+  confirmPartnerDelete(): void {
+    const item = this.partnerPendingDelete();
+    if (!item || this.deletingPartner()) {
+      return;
+    }
+
+    this.deletingPartner.set(true);
+    this.deleteError.set(null);
+    this.api.deletePartner(item.id).subscribe({
+      next: () => {
+        this.partners.update((items) => items.filter((current) => current.id !== item.id));
+        this.selectedIds.update((ids) => {
+          const next = new Set(ids);
+          next.delete(item.id);
+          return next;
+        });
+        this.deletingPartner.set(false);
+        this.partnerPendingDelete.set(null);
+      },
+      error: () => {
+        this.deleteError.set('The partner could not be deleted. Please try again.');
+        this.deletingPartner.set(false);
+      },
+    });
+  }
+
   @HostListener('document:keydown.escape')
   closeDeleteConfirmationOnEscape(): void {
     this.cancelEventDelete();
+    this.cancelPartnerDelete();
     this.cancelBulkDelete();
     this.cancelBulkStatus();
   }
@@ -601,5 +712,97 @@ export class AdminPanel {
   private paginate<T>(items: T[]): T[] {
     const start = (this.activePage() - 1) * this.pageSize();
     return items.slice(start, start + this.pageSize());
+  }
+
+  openDisplayOrderModal(): void {
+    this.displayOrderModalOpen.set(true);
+    this.displayOrderError.set(null);
+
+    const activePartners = this.partners()
+      .filter((p) => p.status === 1)
+      .sort((a, b) => (a.displayOrder ?? 0) - (b.displayOrder ?? 0));
+
+    this.activePartnersList.set(activePartners);
+  }
+
+  closeDisplayOrderModal(): void {
+    this.displayOrderModalOpen.set(false);
+    this.displayOrderError.set(null);
+    this.draggedPartner.set(null);
+  }
+
+  onDragStart(event: DragEvent, partner: PartnerDto): void {
+    this.draggedPartner.set(partner);
+    if (event.dataTransfer) {
+      event.dataTransfer.effectAllowed = 'move';
+    }
+  }
+
+  onDragOver(event: DragEvent): void {
+    event.preventDefault();
+    if (event.dataTransfer) {
+      event.dataTransfer.dropEffect = 'move';
+    }
+  }
+
+  onDrop(event: DragEvent, targetPartner: PartnerDto): void {
+    event.preventDefault();
+    const dragged = this.draggedPartner();
+    if (!dragged || dragged.id === targetPartner.id) {
+      return;
+    }
+
+    const list = [...this.activePartnersList()];
+    const draggedIndex = list.findIndex((p) => p.id === dragged.id);
+    const targetIndex = list.findIndex((p) => p.id === targetPartner.id);
+
+    if (draggedIndex !== -1 && targetIndex !== -1) {
+      const [movedItem] = list.splice(draggedIndex, 1);
+      list.splice(targetIndex, 0, movedItem);
+      this.activePartnersList.set(list);
+    }
+  }
+
+  onDragEnd(): void {
+    this.draggedPartner.set(null);
+  }
+
+  saveDisplayOrder(): void {
+    if (this.savingDisplayOrder() || this.activePartnersList().length === 0) {
+      return;
+    }
+
+    this.savingDisplayOrder.set(true);
+    this.displayOrderError.set(null);
+
+    const reorderedIds = this.activePartnersList().map((partner) => partner.id);
+
+    this.api.reorderPartners(reorderedIds).subscribe({
+      next: (updatedPartners) => {
+        const updatedById = new Map(updatedPartners.map((p) => [p.id, p]));
+        this.partners.update((items) =>
+          items.map((p) => updatedById.get(p.id) ?? p),
+        );
+        this.savingDisplayOrder.set(false);
+        this.closeDisplayOrderModal();
+      },
+      error: () => {
+        this.displayOrderError.set('Failed to save display order. Please try again.');
+        this.savingDisplayOrder.set(false);
+      },
+    });
+  }
+
+  updateTableScroll(event: Event): void {
+    const element = event.currentTarget as HTMLElement;
+    this.tableScrollPosition.set(element.scrollTop);
+    this.tableScrollMaximum.set(Math.max(0, element.scrollHeight - element.clientHeight));
+  }
+
+  scrollTable(event: Event): void {
+    const position = Number((event.currentTarget as HTMLInputElement).value);
+    if (this.tableScroll) {
+      this.tableScroll.nativeElement.scrollTop = position;
+    }
   }
 }

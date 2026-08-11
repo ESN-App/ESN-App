@@ -118,10 +118,11 @@
 
     <div class="events-layout">
       <aside class="calendar-panel" aria-label="Event calendar">
-        <nav class="month-switcher" aria-label="Choose events month">
+        <nav class="month-switcher" aria-label="Choose events month" (pointerdown)="$event.stopPropagation()">
           <button
             type="button"
             (click)="changeMonth(-1)"
+            (pointerdown)="$event.preventDefault()"
             [disabled]="!hasPreviousMonth()"
             aria-label="Show previous month"
           >
@@ -131,6 +132,7 @@
           <button
             type="button"
             (click)="changeMonth(1)"
+            (pointerdown)="$event.preventDefault()"
             [disabled]="!hasNextMonth()"
             aria-label="Show next month"
           >

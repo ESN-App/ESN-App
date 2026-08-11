@@ -8,5 +8,13 @@ public interface IDiscountRepository
 
     Task<Discount?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
 
+    Task<IReadOnlyList<Discount>> GetByPartnerIdAsync(
+        Guid partnerId,
+        CancellationToken cancellationToken = default);
+
     Task<Discount> AddAsync(Discount entity, CancellationToken cancellationToken = default);
+
+    Task<Discount> UpdateAsync(Discount entity, CancellationToken cancellationToken = default);
+
+    Task<bool> DeleteAsync(Guid id, CancellationToken cancellationToken = default);
 }

@@ -60,6 +60,14 @@ public class GetAvailableEventMonthsQueryHandlerTests
             CancellationToken cancellationToken = default) =>
             throw new NotSupportedException();
 
+        public Task<EventPage> GetAdminPageAsync(
+            DateTimeOffset? from,
+            DateTimeOffset? to,
+            int page,
+            int pageSize,
+            CancellationToken cancellationToken = default) =>
+            throw new NotSupportedException();
+
         public Task<Event?> GetByIdAsync(
             Guid id,
             CancellationToken cancellationToken = default) =>

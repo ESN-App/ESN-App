@@ -88,6 +88,24 @@ public class GetEventsListQueryHandlerTests
             CancellationToken cancellationToken = default) =>
             Task.FromResult(new EventPage(events, events.Count));
 
+        public Task<EventPage> GetAdminPageAsync(
+            DateTimeOffset? from,
+            DateTimeOffset? to,
+            int page,
+            int pageSize,
+            CancellationToken cancellationToken = default)
+        {
+            var filtered = events.AsEnumerable();
+            if (from.HasValue) filtered = filtered.Where(e => e.StartsAt >= from.Value);
+            if (to.HasValue) filtered = filtered.Where(e => e.StartsAt < to.Value);
+            var list = filtered.OrderBy(e => e.StartsAt)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
+            var totalCount = filtered.Count();
+            return Task.FromResult(new EventPage(list, totalCount));
+        }
+
         public Task<Event?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default) =>
             Task.FromResult(events.FirstOrDefault(entity => entity.Id == id));
 

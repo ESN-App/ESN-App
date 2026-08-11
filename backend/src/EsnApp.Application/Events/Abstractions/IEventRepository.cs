@@ -18,6 +18,13 @@ public interface IEventRepository
         int pageSize,
         CancellationToken cancellationToken = default);
 
+    Task<EventPage> GetAdminPageAsync(
+        DateTimeOffset? from,
+        DateTimeOffset? to,
+        int page,
+        int pageSize,
+        CancellationToken cancellationToken = default);
+
     Task<Event?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
 
     Task<Event?> GetPublicByIdAsync(Guid id, CancellationToken cancellationToken = default);

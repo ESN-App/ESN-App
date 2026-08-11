@@ -15,7 +15,7 @@ public class CreateDiscountCommandHandler(
         CreateDiscountCommand request,
         CancellationToken cancellationToken)
     {
-        var partner = await partnerRepository.GetByIdAsync(request.PartnerId, cancellationToken);
+        var partner = await partnerRepository.GetAdminByIdAsync(request.PartnerId, cancellationToken);
 
         if (partner is null)
         {

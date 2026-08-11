@@ -14,6 +14,7 @@ import { BreakpointObserver } from '@angular/cdk/layout';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { catchError, map, of, startWith } from 'rxjs';
 import { EmptyState, LoadingSpinner } from '../../../../shared';
+import { PartnerListItem, PartnerListItemView } from '../../components/partner-list-item/partner-list-item';
 import { PartnersMap } from '../../components/partners-map/partners-map';
 import { PartnersApi } from '../../data-access/partners-api';
 import { PartnerView } from '../../data-access/partners.models';
@@ -28,7 +29,7 @@ type MobilePartnersView = 'list' | 'map';
 
 @Component({
   selector: 'app-partners-list',
-  imports: [RouterLink, EmptyState, LoadingSpinner, PartnersMap],
+  imports: [RouterLink, EmptyState, LoadingSpinner, PartnerListItem, PartnersMap],
   templateUrl: './partners-list.html',
   styleUrl: './partners-list.scss',
 })
@@ -155,6 +156,18 @@ export class PartnersList {
 
   protected partnerSlug(partner: PartnerView): string {
     return partner.slug || createPartnerSlug(partner.name);
+  }
+
+  protected partnerListItemView(partner: PartnerView): PartnerListItemView {
+    return {
+      id: partner.id,
+      slug: this.partnerSlug(partner),
+      name: partner.name,
+      logoPath: partner.logoPath,
+      shortDescription: partner.shortDescription,
+      status: partner.status,
+      offersCount: partner.offers.length,
+    };
   }
 
   protected initials(name: string): string {

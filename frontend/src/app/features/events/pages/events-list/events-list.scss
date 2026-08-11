@@ -58,6 +58,9 @@ h1 {
   grid-template-columns: 2.25rem minmax(0, 1fr) 2.25rem;
   margin: 1.25rem auto 0.5rem;
   max-width: 20rem;
+  pointer-events: auto;
+  position: relative;
+  z-index: 1;
 }
 
 .month-switcher button {
@@ -69,6 +72,9 @@ h1 {
   height: 2.25rem;
   padding: 0;
   width: 2.25rem;
+  pointer-events: auto;
+  position: relative;
+  z-index: 2;
 }
 
 .month-switcher button:hover:not(:disabled) {

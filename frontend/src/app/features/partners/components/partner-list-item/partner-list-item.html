@@ -1,0 +1,67 @@
+@let item = partner();
+<article
+  class="partner-card"
+  [class.partner-card--selected]="selected()"
+  [class.partner-card--draft]="item.status === 0"
+>
+  @if (selectable()) {
+    <button
+      class="partner-select-button"
+      type="button"
+      [attr.aria-label]="'Select ' + item.name + ' on the map'"
+      [attr.aria-pressed]="selected()"
+      (click)="selectPartner.emit(item.id)"
+    ></button>
+  }
+
+  @if (interactive()) {
+    <a
+      class="mobile-card-link"
+      [routerLink]="partnerLink()"
+      [attr.aria-label]="'Open details for ' + item.name"
+    ></a>
+  }
+
+  <div class="partner-logo">
+    <span aria-hidden="true">{{ initials(item.name) }}</span>
+    @if (item.logoPath && !logoBroken()) {
+      <img
+        [src]="item.logoPath"
+        [alt]="item.name + ' logo'"
+        loading="lazy"
+        (error)="logoBroken.set(true)"
+      />
+    }
+  </div>
+
+  <div class="partner-identity">
+    <div class="partner-title-row">
+      <app-partner-status-title [status]="item.status"><h2>{{ item.name }}</h2></app-partner-status-title>
+      @if (selected()) { <span class="selection-status">Selected</span> }
+    </div>
+    <p class="partner-description">{{ item.shortDescription }}</p>
+  </div>
+
+  <div class="partner-meta">
+    <span class="discount-count">
+      <span class="discount-icon" aria-hidden="true"></span>
+      {{ item.offersCount }}
+      {{ item.offersCount === 1 ? 'discount' : 'discounts' }}
+    </span>
+    @if (interactive()) {
+      <a
+        class="details-link"
+        [routerLink]="partnerLink()"
+        [attr.aria-label]="'Open details for ' + item.name"
+      >
+        <span class="details-label">Read more</span>
+        <span class="arrow-icon" aria-hidden="true"></span>
+      </a>
+    } @else {
+      <span class="details-link" aria-hidden="true">
+        <span class="details-label">Read more</span>
+        <span class="arrow-icon"></span>
+      </span>
+    }
+  </div>
+</article>

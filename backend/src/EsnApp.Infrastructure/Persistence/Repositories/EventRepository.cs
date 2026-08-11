@@ -43,6 +43,28 @@ public class EventRepository(AppDbContext context)
         return await ToPageAsync(Context.Events.AsNoTracking(), page, pageSize, cancellationToken);
     }
 
+    public async Task<EventPage> GetAdminPageAsync(
+        DateTimeOffset? from,
+        DateTimeOffset? to,
+        int page,
+        int pageSize,
+        CancellationToken cancellationToken = default)
+    {
+        var query = Context.Events.AsNoTracking();
+
+        if (from.HasValue)
+        {
+            query = query.Where(entity => entity.StartsAt >= from.Value);
+        }
+
+        if (to.HasValue)
+        {
+            query = query.Where(entity => entity.StartsAt < to.Value);
+        }
+
+        return await ToPageAsync(query, page, pageSize, cancellationToken);
+    }
+
     private static async Task<EventPage> ToPageAsync(
         IQueryable<Event> query,
         int page,

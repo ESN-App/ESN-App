@@ -19,4 +19,13 @@ public class DiscountRepository(AppDbContext context)
             .AsNoTracking()
             .Include(d => d.Partner)
             .FirstOrDefaultAsync(d => d.Id == id, cancellationToken);
+
+    public async Task<IReadOnlyList<Discount>> GetByPartnerIdAsync(
+        Guid partnerId,
+        CancellationToken cancellationToken = default) =>
+        await Context.Discounts
+            .AsNoTracking()
+            .Where(d => d.PartnerId == partnerId)
+            .OrderBy(d => d.CreatedAt)
+            .ToListAsync(cancellationToken);
 }

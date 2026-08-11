@@ -12,6 +12,7 @@ builder.Services.AddInfrastructure(builder.Configuration);
 
 builder.Services.AddControllers();
 builder.Services.AddScoped<EventImageStorage>();
+builder.Services.AddScoped<PartnerImageStorage>();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
