@@ -1,0 +1,21 @@
+<aside class="preview-panel">
+  <header class="preview-header">
+    <div><p class="eyebrow">Live preview</p><h2>{{ heading() }}</h2></div>
+    <div class="device-switch" aria-label="Preview size">
+      <button type="button" [class.active]="previewDevice() === 'desktop'" (click)="setPreviewDevice('desktop')">Desktop</button>
+      <button type="button" [class.active]="previewDevice() === 'mobile'" (click)="setPreviewDevice('mobile')">Mobile</button>
+    </div>
+  </header>
+
+  <div class="preview-stage" [class.preview-stage--mobile]="previewDevice() === 'mobile'">
+    <section class="preview-section">
+      <h3>{{ primaryTitle() }}</h3>
+      <ng-content select="[admin-preview-primary]" />
+    </section>
+
+    <section class="preview-section">
+      <h3>{{ secondaryTitle() }}</h3>
+      <ng-content select="[admin-preview-secondary]" />
+    </section>
+  </div>
+</aside>

@@ -1,7 +1,7 @@
 import { CurrencyPipe, DatePipe } from '@angular/common';
-import { Component, computed, effect, ElementRef, HostListener, inject, signal, ViewChild } from '@angular/core';
+import { Component, computed, effect, ElementRef, HostListener, inject, OnDestroy, signal, ViewChild } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
-import { RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { forkJoin } from 'rxjs';
 import { CancelledBadge, DraftBadge, LoadingSpinner, PublishedBadge } from '../../../../shared';
 import type { EventDetailsDto } from '../../../events/data-access/events.models';
@@ -41,8 +41,14 @@ interface SectionOption {
   templateUrl: './admin-panel.html',
   styleUrl: './admin-panel.scss',
 })
-export class AdminPanel {
+export class AdminPanel implements OnDestroy {
   private readonly api = inject(AdminApi);
+  private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
+  private static readonly DRAG_SCROLL_EDGE = 56;
+  private static readonly DRAG_SCROLL_MAX_SPEED = 14;
+  private dragAutoScrollRafId: number | null = null;
+  private dragPointerY: number | null = null;
 
   readonly sections: SectionOption[] = [
     { id: 'events', label: 'Events' },
@@ -51,16 +57,19 @@ export class AdminPanel {
     { id: 'info', label: 'Info' },
     { id: 'admins', label: 'Admins' },
   ];
-  readonly activeSection = signal<AdminSection>('events');
+  private readonly initialSection = this.resolveInitialSection();
+  readonly activeSection = signal<AdminSection>(this.initialSection);
   readonly searchTerm = signal('');
   readonly currentPage = signal(1);
   readonly pageSize = signal(10);
   readonly pageSizeOptions = [10, 20, 50];
-  readonly sortField = signal<ActiveSortField>('default');
+  readonly sortField = signal<ActiveSortField>(this.initialSection === 'events' ? 'default' : 'date');
   readonly sortDirection = signal<SortDirection>('ascending');
   readonly selectedIds = signal(new Set<string>());
-  readonly loading = signal(true);
+  readonly loading = signal(false);
   readonly error = signal<string | null>(null);
+  private readonly loadedSections = new Set<AdminSection>();
+  private readonly pendingSections = new Set<AdminSection>();
   readonly publishingIds = signal(new Set<string>());
   readonly eventPendingDelete = signal<EventDetailsDto | null>(null);
   readonly deletingEvent = signal(false);
@@ -283,7 +292,11 @@ export class AdminPanel {
   });
 
   constructor() {
-    this.loadData();
+    this.ensureSectionLoaded(this.activeSection());
+  }
+
+  ngOnDestroy(): void {
+    this.stopDragAutoScroll();
   }
 
   setSection(section: AdminSection): void {
@@ -293,6 +306,21 @@ export class AdminPanel {
     this.selectedIds.set(new Set());
     this.sortField.set(section === 'events' ? 'default' : 'date');
     this.sortDirection.set('ascending');
+    this.error.set(null);
+    void this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { section },
+      queryParamsHandling: 'merge',
+      replaceUrl: true,
+    });
+    this.ensureSectionLoaded(section);
+  }
+
+  private resolveInitialSection(): AdminSection {
+    const requested = this.route.snapshot.queryParamMap.get('section');
+    return this.sections.some((section) => section.id === requested)
+      ? (requested as AdminSection)
+      : 'events';
   }
 
   updateSearch(event: Event): void {
@@ -374,44 +402,89 @@ export class AdminPanel {
     return createPartnerSlug(name);
   }
 
-  loadData(): void {
-    this.loading.set(true);
-    this.error.set(null);
+  retryActiveSection(): void {
+    this.ensureSectionLoaded(this.activeSection(), true);
+  }
 
-    forkJoin({
-      events: this.api.getEvents(),
-      news: this.api.getNews(),
-      partners: this.api.getPartners(),
-      info: this.api.getInfo(),
-      admins: this.api.getAdmins(),
-    }).subscribe({
-      next: ({ events, news, partners, info, admins }) => {
-        this.events.set(
-          [...events].sort(
-            (left, right) => Date.parse(right.startsAt) - Date.parse(left.startsAt),
-          ),
-        );
-        this.news.set(
-          [...news].sort(
-            (left, right) => Date.parse(right.createdAt) - Date.parse(left.createdAt),
-          ),
-        );
-        this.partners.set(
-          [...partners].sort((left, right) => left.name.localeCompare(right.name)),
-        );
-        this.info.set([...info].sort((left, right) => left.title.localeCompare(right.title)));
-        this.admins.set(
-          [...admins].sort(
-            (left, right) => Date.parse(right.createdAt) - Date.parse(left.createdAt),
-          ),
-        );
+  private ensureSectionLoaded(section: AdminSection, force = false): void {
+    if (!force && (this.loadedSections.has(section) || this.pendingSections.has(section))) {
+      return;
+    }
+
+    this.pendingSections.add(section);
+    if (section === this.activeSection()) {
+      this.loading.set(true);
+      this.error.set(null);
+    }
+
+    const onLoaded = () => {
+      this.loadedSections.add(section);
+      this.pendingSections.delete(section);
+      if (section === this.activeSection()) {
         this.loading.set(false);
-      },
-      error: () => {
-        this.error.set('The admin data could not be loaded. Please try again.');
+      }
+    };
+    const onFailed = () => {
+      this.pendingSections.delete(section);
+      if (section === this.activeSection()) {
         this.loading.set(false);
-      },
-    });
+        this.error.set(`${this.activeLabel()} could not be loaded. Please try again.`);
+      }
+    };
+
+    switch (section) {
+      case 'events':
+        this.api.getEvents().subscribe({
+          next: (events) => {
+            this.events.set(
+              [...events].sort((left, right) => Date.parse(right.startsAt) - Date.parse(left.startsAt)),
+            );
+            onLoaded();
+          },
+          error: onFailed,
+        });
+        break;
+      case 'news':
+        this.api.getNews().subscribe({
+          next: (news) => {
+            this.news.set(
+              [...news].sort((left, right) => Date.parse(right.createdAt) - Date.parse(left.createdAt)),
+            );
+            onLoaded();
+          },
+          error: onFailed,
+        });
+        break;
+      case 'partners':
+        this.api.getPartners().subscribe({
+          next: (partners) => {
+            this.partners.set([...partners].sort((left, right) => left.name.localeCompare(right.name)));
+            onLoaded();
+          },
+          error: onFailed,
+        });
+        break;
+      case 'info':
+        this.api.getInfo().subscribe({
+          next: (info) => {
+            this.info.set([...info].sort((left, right) => left.title.localeCompare(right.title)));
+            onLoaded();
+          },
+          error: onFailed,
+        });
+        break;
+      case 'admins':
+        this.api.getAdmins().subscribe({
+          next: (admins) => {
+            this.admins.set(
+              [...admins].sort((left, right) => Date.parse(right.createdAt) - Date.parse(left.createdAt)),
+            );
+            onLoaded();
+          },
+          error: onFailed,
+        });
+        break;
+    }
   }
 
   eventStatus(status: number): string {
@@ -749,6 +822,7 @@ export class AdminPanel {
     this.displayOrderModalOpen.set(false);
     this.displayOrderError.set(null);
     this.draggedPartner.set(null);
+    this.stopDragAutoScroll();
   }
 
   onDragStart(event: DragEvent, partner: PartnerDto): void {
@@ -756,6 +830,7 @@ export class AdminPanel {
     if (event.dataTransfer) {
       event.dataTransfer.effectAllowed = 'move';
     }
+    this.startDragAutoScroll();
   }
 
   onDragOver(event: DragEvent): void {
@@ -763,6 +838,7 @@ export class AdminPanel {
     if (event.dataTransfer) {
       event.dataTransfer.dropEffect = 'move';
     }
+    this.dragPointerY = event.clientY;
   }
 
   onDrop(event: DragEvent, targetPartner: PartnerDto): void {
@@ -785,6 +861,55 @@ export class AdminPanel {
 
   onDragEnd(): void {
     this.draggedPartner.set(null);
+    this.stopDragAutoScroll();
+  }
+
+  private startDragAutoScroll(): void {
+    this.stopDragAutoScroll();
+    const step = () => {
+      this.runDragAutoScrollStep();
+      this.dragAutoScrollRafId = requestAnimationFrame(step);
+    };
+    this.dragAutoScrollRafId = requestAnimationFrame(step);
+  }
+
+  private stopDragAutoScroll(): void {
+    if (this.dragAutoScrollRafId !== null) {
+      cancelAnimationFrame(this.dragAutoScrollRafId);
+      this.dragAutoScrollRafId = null;
+    }
+    this.dragPointerY = null;
+  }
+
+  private runDragAutoScrollStep(): void {
+    const container = this.dragListScroll?.nativeElement;
+    if (!container || this.dragPointerY === null) {
+      return;
+    }
+
+    const rect = container.getBoundingClientRect();
+    const edge = AdminPanel.DRAG_SCROLL_EDGE;
+    const pointerY = this.dragPointerY;
+
+    let delta = 0;
+    if (pointerY < rect.top + edge) {
+      const intensity = Math.min(1, (rect.top + edge - pointerY) / edge);
+      delta = -Math.ceil(intensity * AdminPanel.DRAG_SCROLL_MAX_SPEED);
+    } else if (pointerY > rect.bottom - edge) {
+      const intensity = Math.min(1, (pointerY - (rect.bottom - edge)) / edge);
+      delta = Math.ceil(intensity * AdminPanel.DRAG_SCROLL_MAX_SPEED);
+    }
+
+    if (delta === 0) {
+      return;
+    }
+
+    const maxScrollTop = container.scrollHeight - container.clientHeight;
+    const nextScrollTop = Math.min(maxScrollTop, Math.max(0, container.scrollTop + delta));
+    if (nextScrollTop !== container.scrollTop) {
+      container.scrollTop = nextScrollTop;
+      this.captureDragListScroll(container);
+    }
   }
 
   saveDisplayOrder(): void {
@@ -838,6 +963,26 @@ export class AdminPanel {
     const position = Number((event.currentTarget as HTMLInputElement).value);
     if (this.dragListScroll) {
       this.dragListScroll.nativeElement.scrollTop = position;
+    }
+  }
+
+  onDragListWheel(event: WheelEvent): void {
+    if (!this.draggedPartner()) {
+      return;
+    }
+
+    const container = this.dragListScroll?.nativeElement;
+    if (!container) {
+      return;
+    }
+
+    event.preventDefault();
+
+    const maxScrollTop = container.scrollHeight - container.clientHeight;
+    const nextScrollTop = Math.min(maxScrollTop, Math.max(0, container.scrollTop + event.deltaY));
+    if (nextScrollTop !== container.scrollTop) {
+      container.scrollTop = nextScrollTop;
+      this.captureDragListScroll(container);
     }
   }
 

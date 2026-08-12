@@ -26,16 +26,10 @@
         </p>
       </div>
       <div class="table-header__actions">
-        @if (selectedCount()) {
-          <div class="selection-summary">
-            <span class="selection-count">{{ selectedCount() }} selected</span>
-            <button type="button" (click)="clearSelection()">Clear selection</button>
-          </div>
-        }
         @if ((activeSection() === 'events' || activeSection() === 'partners') && selectedCount()) {
           <div class="bulk-actions" [attr.aria-label]="'Actions for selected ' + activeLabel().toLowerCase()">
-            <button type="button" class="bulk-status-button" (click)="openBulkStatusDialog()">Change status</button>
             <button type="button" class="bulk-delete-button" (click)="requestBulkDelete()">Delete selected</button>
+            <button type="button" class="bulk-status-button" (click)="openBulkStatusDialog()">Change status</button>
           </div>
         }
         @if (activeSection() === 'events') { <a class="create-button" routerLink="/admin/events/new">Create new event</a> }
@@ -48,8 +42,7 @@
 
     <div class="list-tools">
       <label class="search-field" for="admin-section-search">
-        <span>Search {{ activeLabel().toLocaleLowerCase() }}</span>
-        <span class="search-control">
+         <span class="search-control">
           <span class="search-icon" aria-hidden="true"></span>
           <input id="admin-section-search" type="search" [value]="searchTerm()" [placeholder]="'Search ' + activeLabel().toLocaleLowerCase()" (input)="updateSearch($event)" />
           @if (searchTerm()) {
@@ -57,10 +50,16 @@
           }
         </span>
       </label>
+      @if (selectedCount()) {
+        <div class="selection-summary">
+          <span class="selection-count">{{ selectedCount() }} selected</span>
+          <button type="button" (click)="clearSelection()">Clear selection</button>
+        </div>
+      }
     </div>
 
     @if (error(); as message) {
-      <div class="error-banner" role="alert"><span>{{ message }}</span><button mat-button type="button" (click)="loadData()">Try again</button></div>
+      <div class="error-banner" role="alert"><span>{{ message }}</span><button mat-button type="button" (click)="retryActiveSection()">Try again</button></div>
     }
 
     @if (loading()) {
@@ -294,7 +293,7 @@
         } @else {
           <p class="drag-list-help">Drag partners to set their display order</p>
           <div class="drag-list-region">
-            <div class="drag-list" #dragListScroll (scroll)="updateDragListScroll($event)">
+            <div class="drag-list" #dragListScroll (scroll)="updateDragListScroll($event)" (wheel)="onDragListWheel($event)">
               @for (partner of activePartnersList(); track partner.id) {
                 <div class="drag-item" draggable="true" (dragstart)="onDragStart($event, partner)" (dragover)="onDragOver($event)" (drop)="onDrop($event, partner)" (dragend)="onDragEnd()" [class.dragging]="draggedPartner()?.id === partner.id">
                   <span class="drag-handle" aria-hidden="true">⋮⋮</span>

@@ -1,23 +1,22 @@
 <main class="create-page">
   <header class="page-header">
     <div>
-      <a class="back-link" routerLink="/admin">
+      <a class="back-link" routerLink="/admin" [queryParams]="{ section: 'events' }">
         <span class="back-icon" aria-hidden="true"></span>
         <span>Admin panel</span>
       </a>
       <p class="eyebrow">Events administration</p>
-      <h1>{{ isEditMode ? 'Edit event' : 'Create event' }}</h1>
-      <p>{{ isEditMode ? 'Update the event information and publishing status.' : 'Complete the required information and choose the event status.' }}</p>
+      <h1>Create event</h1>
+      <p>Complete the required information and choose the event status.</p>
     </div>
   </header>
 
-  <div class="editor-layout">
+  <div class="editor-layout" [class.editor-layout--preview-hidden]="!previewVisible()">
     <form class="event-form" [formGroup]="form" (ngSubmit)="submit()" novalidate>
       <div class="form-heading">
         <div><h2>Event information</h2><p>Fields marked with * are required.</p></div>
+        <button type="button" class="preview-toggle" (click)="togglePreview()">{{ previewVisible() ? 'Hide preview' : 'Show preview' }}</button>
       </div>
-
-      @if (loading()) { <p class="loading-message" role="status">Loading event data…</p> }
 
       <fieldset class="status-field">
         <legend>Event status</legend>
@@ -135,37 +134,17 @@
       @if (error(); as message) { <div class="save-error" role="alert">{{ message }}</div> }
 
       <div class="form-actions">
-        <a routerLink="/admin">Cancel</a>
+        <a routerLink="/admin" [queryParams]="{ section: 'events' }">Cancel</a>
         <div class="save-action">
-          <button type="submit" [disabled]="loading() || loadFailed() || form.invalid || submitting() || !hasChanges()">{{ submitting() ? 'Saving…' : (isEditMode ? 'Save changes' : 'Create event') }}</button>
-          @if (isEditMode && !loading() && !loadFailed() && !hasChanges()) {
-            <small>No changes to save yet.</small>
+          <button type="submit" [disabled]="form.invalid || submitting()">{{ submitting() ? 'Saving…' : 'Create event' }}</button>
+          @if (form.invalid) {
+            <small>Fill in all required fields to continue.</small>
           }
         </div>
       </div>
     </form>
 
-    <aside class="preview-panel">
-      <header class="preview-header">
-        <div><p class="eyebrow">Live preview</p><h2>How the event will look</h2></div>
-        <div class="device-switch" aria-label="Preview size">
-          <button type="button" [class.active]="previewDevice() === 'desktop'" (click)="setPreviewDevice('desktop')">Desktop</button>
-          <button type="button" [class.active]="previewDevice() === 'mobile'" (click)="setPreviewDevice('mobile')">Mobile</button>
-        </div>
-      </header>
-
-      <div class="preview-stage" [class.preview-stage--mobile]="previewDevice() === 'mobile'">
-        <section class="preview-section">
-          <h3>Events list</h3>
-          <app-event-list-item [event]="previewEvent()" [interactive]="false" [displayMode]="previewDevice()" />
-        </section>
-
-        <section class="preview-section">
-          <h3>Event details</h3>
-          <app-event-details-view [event]="previewEvent()" [interactive]="false" [showParticipants]="false" />
-        </section>
-      </div>
-    </aside>
+    <app-admin-event-preview [event]="previewEvent()" [attr.inert]="previewVisible() ? null : ''" />
   </div>
 
   @if (confirmationOpen()) {
@@ -176,15 +155,13 @@
         aria-modal="true"
         aria-labelledby="confirmation-title"
       >
-        <h2 id="confirmation-title">
-          {{ isEditMode ? 'Save these changes?' : 'Create this event?' }}
-        </h2>
+        <h2 id="confirmation-title">Create this event?</h2>
         <div class="confirmation-actions">
           <button type="button" class="confirmation-cancel" (click)="cancelConfirmation()">
             Keep editing
           </button>
           <button type="button" class="confirmation-submit" (click)="confirmSubmit()">
-            {{ isEditMode ? 'Yes, save changes' : 'Yes, create event' }}
+            Yes, create event
           </button>
         </div>
       </section>

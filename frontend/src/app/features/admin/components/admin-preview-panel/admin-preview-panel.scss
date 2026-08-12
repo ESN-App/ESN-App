@@ -1,0 +1,125 @@
+:host {
+  display: contents;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+.preview-panel {
+  background: #f8f9fb;
+  border: 1px solid #dedfe5;
+  border-radius: 1rem;
+  display: flex;
+  flex-direction: column;
+  max-height: 100%;
+  min-width: 0;
+  overflow: hidden;
+  position: sticky;
+  top: 1rem;
+}
+
+.preview-header {
+  align-items: center;
+  background: #fff;
+  border-bottom: 1px solid #dedfe5;
+  display: flex;
+  flex: 0 0 auto;
+  gap: 1rem;
+  justify-content: space-between;
+  padding: 1rem 1.15rem;
+}
+
+.preview-header h2 {
+  font-size: 1.15rem;
+  margin: 0;
+}
+
+.eyebrow {
+  color: var(--admin-accent-dark, #343897);
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  margin: 0 0 0.4rem;
+  text-transform: uppercase;
+}
+
+.device-switch {
+  background: #edeef2;
+  border-radius: 0.65rem;
+  display: flex;
+  gap: 0.2rem;
+  padding: 0.2rem;
+}
+
+.device-switch button {
+  background: transparent;
+  border: 0;
+  border-radius: 0.5rem;
+  color: #6c6e78;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.72rem;
+  font-weight: 750;
+  padding: 0.5rem 0.65rem;
+}
+
+.device-switch button.active {
+  background: #fff;
+  box-shadow: 0 1px 4px rgb(30 31 40 / 12%);
+  color: #343897;
+}
+
+.preview-stage {
+  flex: 1 1 auto;
+  margin: 0 auto;
+  max-width: 100%;
+  min-height: 0;
+  min-width: 0;
+  overflow: auto;
+  padding: 1.25rem;
+  transition: max-width 180ms ease;
+  width: 100%;
+}
+
+.preview-stage--mobile {
+  background: #eef0f4;
+  max-width: 26rem;
+}
+
+.preview-section + .preview-section {
+  margin-top: 1.5rem;
+}
+
+.preview-section > h3 {
+  color: #686a75;
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  margin: 0 0 0.6rem;
+  text-transform: uppercase;
+}
+
+@media (max-width: 850px) {
+  .preview-panel {
+    position: static;
+  }
+}
+
+@media (max-width: 520px) {
+  .preview-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .device-switch {
+    width: 100%;
+  }
+
+  .device-switch button {
+    flex: 1;
+  }
+
+  .preview-stage {
+    padding: 0.75rem;
+  }
+}

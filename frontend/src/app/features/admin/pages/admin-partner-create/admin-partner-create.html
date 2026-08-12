@@ -1,23 +1,22 @@
 <main class="create-page">
   <header class="page-header">
     <div>
-      <a class="back-link" routerLink="/admin">
+      <a class="back-link" routerLink="/admin" [queryParams]="{ section: 'partners' }">
         <span class="back-icon" aria-hidden="true"></span>
         <span>Admin panel</span>
       </a>
       <p class="eyebrow">Partners administration</p>
-      <h1>{{ isEditMode ? 'Edit partner' : 'Create partner' }}</h1>
-      <p>{{ isEditMode ? 'Update the partner information and publishing status.' : 'Complete the required information and choose the partner status.' }}</p>
+      <h1>Create partner</h1>
+      <p>Complete the required information and choose the partner status.</p>
     </div>
   </header>
 
-  <div class="editor-layout">
+  <div class="editor-layout" [class.editor-layout--preview-hidden]="!previewVisible()">
     <form class="partner-form" [formGroup]="form" (ngSubmit)="submit()" novalidate>
       <div class="form-heading">
         <div><h2>Partner information</h2><p>Fields marked with * are required.</p></div>
+        <button type="button" class="preview-toggle" (click)="togglePreview()">{{ previewVisible() ? 'Hide preview' : 'Show preview' }}</button>
       </div>
-
-      @if (loading()) { <p class="loading-message" role="status">Loading partner data…</p> }
 
       <fieldset class="status-field">
         <legend>Partner status</legend>
@@ -148,37 +147,17 @@
       @if (error(); as message) { <div class="save-error" role="alert">{{ message }}</div> }
 
       <div class="form-actions">
-        <a routerLink="/admin">Cancel</a>
+        <a routerLink="/admin" [queryParams]="{ section: 'partners' }">Cancel</a>
         <div class="save-action">
-          <button type="submit" [disabled]="loading() || loadFailed() || form.invalid || submitting() || !hasChanges() || (!isEditMode && !selectedLogo())">{{ submitting() ? 'Saving…' : (isEditMode ? 'Save changes' : 'Create partner') }}</button>
-          @if (isEditMode && !loading() && !loadFailed() && !hasChanges()) {
-            <small>No changes to save yet.</small>
+          <button type="submit" [disabled]="form.invalid || submitting() || !selectedLogo()">{{ submitting() ? 'Saving…' : 'Create partner' }}</button>
+          @if (form.invalid || !selectedLogo()) {
+            <small>Fill in all required fields to continue.</small>
           }
         </div>
       </div>
     </form>
 
-    <aside class="preview-panel">
-      <header class="preview-header">
-        <div><p class="eyebrow">Live preview</p><h2>How the partner will look</h2></div>
-        <div class="device-switch" aria-label="Preview size">
-          <button type="button" [class.active]="previewDevice() === 'desktop'" (click)="setPreviewDevice('desktop')">Desktop</button>
-          <button type="button" [class.active]="previewDevice() === 'mobile'" (click)="setPreviewDevice('mobile')">Mobile</button>
-        </div>
-      </header>
-
-      <div class="preview-stage" [class.preview-stage--mobile]="previewDevice() === 'mobile'">
-        <section class="preview-section">
-          <h3>Partners list</h3>
-          <app-partner-list-item [partner]="previewPartner()" [interactive]="false" />
-        </section>
-
-        <section class="preview-section">
-          <h3>Partner details</h3>
-          <app-partner-details-view [partner]="previewPartner()" [interactive]="false" />
-        </section>
-      </div>
-    </aside>
+    <app-admin-partner-preview [partner]="previewPartner()" [attr.inert]="previewVisible() ? null : ''" />
   </div>
 
   @if (confirmationOpen()) {
@@ -189,15 +168,13 @@
         aria-modal="true"
         aria-labelledby="confirmation-title"
       >
-        <h2 id="confirmation-title">
-          {{ isEditMode ? 'Save these changes?' : 'Create this partner?' }}
-        </h2>
+        <h2 id="confirmation-title">Create this partner?</h2>
         <div class="confirmation-actions">
           <button type="button" class="confirmation-cancel" (click)="cancelConfirmation()">
             Keep editing
           </button>
           <button type="button" class="confirmation-submit" (click)="confirmSubmit()">
-            {{ isEditMode ? 'Yes, save changes' : 'Yes, create partner' }}
+            Yes, create partner
           </button>
         </div>
       </section>

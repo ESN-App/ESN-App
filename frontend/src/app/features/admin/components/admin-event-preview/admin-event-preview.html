@@ -1,0 +1,19 @@
+<app-admin-preview-panel
+  #panel
+  heading="How the event will look"
+  primaryTitle="Events list"
+  secondaryTitle="Event details"
+>
+  <app-event-list-item
+    admin-preview-primary
+    [event]="event()"
+    [interactive]="false"
+    [displayMode]="panel.previewDevice()"
+  />
+  <app-event-details-view
+    admin-preview-secondary
+    [event]="event()"
+    [interactive]="false"
+    [showParticipants]="false"
+  />
+</app-admin-preview-panel>

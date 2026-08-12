@@ -1,0 +1,8 @@
+<app-admin-preview-panel
+  heading="How the partner will look"
+  primaryTitle="Partners list"
+  secondaryTitle="Partner details"
+>
+  <app-partner-list-item admin-preview-primary [partner]="partner()" [interactive]="false" />
+  <app-partner-details-view admin-preview-secondary [partner]="partner()" [interactive]="false" />
+</app-admin-preview-panel>

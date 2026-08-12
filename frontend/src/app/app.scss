@@ -98,7 +98,9 @@
   }
 
   .content:has(app-admin-event-create),
-  .content:has(app-admin-partner-create) {
+  .content:has(app-admin-event-edit),
+  .content:has(app-admin-partner-create),
+  .content:has(app-admin-partner-edit) {
     max-width: 96rem;
   }
 
