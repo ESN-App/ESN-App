@@ -28,7 +28,7 @@ export function createPartnerForm(formBuilder: FormBuilder) {
       status: [0, [Validators.required, Validators.min(0), Validators.max(2)]],
       name: ['', [Validators.required, Validators.maxLength(200)]],
       shortDescription: ['', [Validators.required, Validators.maxLength(500)]],
-      description: ['', [Validators.required]],
+      description: ['', [Validators.required, Validators.maxLength(5000)]],
       address: ['', [Validators.maxLength(500)]],
       websiteUrl: ['', [Validators.maxLength(2000), optionalAbsoluteUrl]],
       googleMapsUrl: ['', [Validators.maxLength(2000), optionalAbsoluteUrl]],

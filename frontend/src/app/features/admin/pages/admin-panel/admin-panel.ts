@@ -1,8 +1,9 @@
 import { CurrencyPipe, DatePipe } from '@angular/common';
-import { Component, computed, effect, ElementRef, HostListener, inject, OnDestroy, signal, ViewChild } from '@angular/core';
+import { Component, computed, ElementRef, HostListener, inject, signal, ViewChild } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { forkJoin } from 'rxjs';
+import { AuthService } from '../../../../core';
 import { CancelledBadge, DraftBadge, LoadingSpinner, PublishedBadge } from '../../../../shared';
 import type { EventDetailsDto } from '../../../events/data-access/events.models';
 import { createEventSlug } from '../../../events/utils/event-url';
@@ -10,6 +11,7 @@ import type { NewsItemDto } from '../../../home/data-access/news.models';
 import type { InfoArticleDto } from '../../../info/data-access/info-api';
 import type { PartnerDto } from '../../../partners/data-access/partners.models';
 import { createPartnerSlug } from '../../../partners/utils/partner-url';
+import { AdminDisplayOrderModal } from '../../components/admin-display-order-modal/admin-display-order-modal';
 import { AdminApi, AdminUserDto } from '../../data-access/admin-api';
 
 type AdminSection = 'events' | 'news' | 'partners' | 'info' | 'admins';
@@ -18,7 +20,8 @@ type ActiveSortField = SortField | 'default';
 type SortDirection = 'ascending' | 'descending';
 type EventStatusValue = 0 | 1 | 2 | 3 | 4;
 type PartnerStatusValue = 0 | 1 | 2;
-type AnyStatusValue = EventStatusValue | PartnerStatusValue;
+type InfoStatusValue = 0 | 1;
+type AnyStatusValue = EventStatusValue | PartnerStatusValue | InfoStatusValue;
 
 interface EventStatusOption {
   value: EventStatusValue;
@@ -30,6 +33,11 @@ interface PartnerStatusOption {
   label: string;
 }
 
+interface InfoStatusOption {
+  value: InfoStatusValue;
+  label: string;
+}
+
 interface SectionOption {
   id: AdminSection;
   label: string;
@@ -37,18 +45,15 @@ interface SectionOption {
 
 @Component({
   selector: 'app-admin-panel',
-  imports: [CurrencyPipe, DatePipe, MatButtonModule, RouterLink, CancelledBadge, DraftBadge, PublishedBadge, LoadingSpinner],
+  imports: [CurrencyPipe, DatePipe, MatButtonModule, RouterLink, AdminDisplayOrderModal, CancelledBadge, DraftBadge, PublishedBadge, LoadingSpinner],
   templateUrl: './admin-panel.html',
   styleUrl: './admin-panel.scss',
 })
-export class AdminPanel implements OnDestroy {
+export class AdminPanel {
   private readonly api = inject(AdminApi);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
-  private static readonly DRAG_SCROLL_EDGE = 56;
-  private static readonly DRAG_SCROLL_MAX_SPEED = 14;
-  private dragAutoScrollRafId: number | null = null;
-  private dragPointerY: number | null = null;
+  private readonly authService = inject(AuthService);
 
   readonly sections: SectionOption[] = [
     { id: 'events', label: 'Events' },
@@ -63,7 +68,7 @@ export class AdminPanel implements OnDestroy {
   readonly currentPage = signal(1);
   readonly pageSize = signal(10);
   readonly pageSizeOptions = [10, 20, 50];
-  readonly sortField = signal<ActiveSortField>(this.initialSection === 'events' ? 'default' : 'date');
+  readonly sortField = signal<ActiveSortField>(this.defaultSortField(this.initialSection));
   readonly sortDirection = signal<SortDirection>('ascending');
   readonly selectedIds = signal(new Set<string>());
   readonly loading = signal(false);
@@ -75,7 +80,17 @@ export class AdminPanel implements OnDestroy {
   readonly deletingEvent = signal(false);
   readonly partnerPendingDelete = signal<PartnerDto | null>(null);
   readonly deletingPartner = signal(false);
+  readonly infoPendingDelete = signal<InfoArticleDto | null>(null);
+  readonly deletingInfo = signal(false);
+  readonly adminPendingDelete = signal<AdminUserDto | null>(null);
+  readonly deletingAdmin = signal(false);
   readonly deleteError = signal<string | null>(null);
+  readonly openOptionsMenuId = signal<string | null>(null);
+  readonly optionsMenuPosition = signal<{ top: number; right: number } | null>(null);
+  readonly adminPendingReset = signal<AdminUserDto | null>(null);
+  readonly resettingPassword = signal(false);
+  readonly resetPasswordSent = signal<string | null>(null);
+  readonly bulkPasswordResetPending = signal(false);
   readonly bulkDeletePending = signal(false);
   readonly bulkStatusPending = signal(false);
   readonly selectedBulkStatus = signal<AnyStatusValue>(1);
@@ -84,16 +99,12 @@ export class AdminPanel implements OnDestroy {
   readonly displayOrderModalOpen = signal(false);
   readonly savingDisplayOrder = signal(false);
   readonly displayOrderError = signal<string | null>(null);
-  readonly activePartnersList = signal<PartnerDto[]>([]);
-  readonly initialDisplayOrder = signal<string[]>([]);
-  readonly draggedPartner = signal<PartnerDto | null>(null);
+  readonly infoOrderModalOpen = signal(false);
+  readonly savingInfoOrder = signal(false);
+  readonly infoOrderError = signal<string | null>(null);
   readonly tableScrollPosition = signal(0);
   readonly tableScrollMaximum = signal(0);
   @ViewChild('tableScroll') private tableScroll?: ElementRef<HTMLElement>;
-  readonly dragListScrollPosition = signal(0);
-  readonly dragListScrollMaximum = signal(0);
-  readonly dragListHeight = signal(0);
-  @ViewChild('dragListScroll') private dragListScroll?: ElementRef<HTMLElement>;
   readonly events = signal<EventDetailsDto[]>([]);
   readonly news = signal<NewsItemDto[]>([]);
   readonly partners = signal<PartnerDto[]>([]);
@@ -149,7 +160,7 @@ export class AdminPanel implements OnDestroy {
     ),
   );
   readonly filteredAdmins = computed(() =>
-    this.admins().filter((item) => this.matchesSearch(item.email, 'Active')),
+    this.admins().filter((item) => this.matchesSearch(item.email)),
   );
 
   readonly sortedEvents = computed(() => {
@@ -189,7 +200,7 @@ export class AdminPanel implements OnDestroy {
     this.sortItems(this.filteredAdmins(), {
       title: (item) => item.email,
       date: (item) => Date.parse(item.createdAt),
-      status: () => 'Active',
+      status: () => '',
     }),
   );
   readonly pagedEvents = computed(() => this.paginate(this.sortedEvents()));
@@ -250,7 +261,9 @@ export class AdminPanel implements OnDestroy {
       case 'info':
         return this.pagedInfo().map((item) => item.id);
       case 'admins':
-        return this.pagedAdmins().map((item) => item.id);
+        return this.pagedAdmins()
+          .filter((item) => !this.isCurrentAdmin(item))
+          .map((item) => item.id);
     }
   });
   readonly selectedCount = computed(() => this.selectedIds().size);
@@ -262,6 +275,14 @@ export class AdminPanel implements OnDestroy {
     const selectedIds = this.selectedIds();
     return this.partners().filter((item) => selectedIds.has(item.id));
   });
+  readonly selectedInfo = computed(() => {
+    const selectedIds = this.selectedIds();
+    return this.info().filter((item) => selectedIds.has(item.id));
+  });
+  readonly selectedAdmins = computed(() => {
+    const selectedIds = this.selectedIds();
+    return this.admins().filter((item) => selectedIds.has(item.id) && !this.isCurrentAdmin(item));
+  });
   readonly eventStatusOptions: EventStatusOption[] = [
     { value: 0, label: 'Draft' },
     { value: 1, label: 'Published' },
@@ -272,31 +293,27 @@ export class AdminPanel implements OnDestroy {
     { value: 1, label: 'Active' },
     { value: 2, label: 'Inactive' },
   ];
+  readonly infoStatusOptions: InfoStatusOption[] = [
+    { value: 0, label: 'Draft' },
+    { value: 1, label: 'Published' },
+  ];
   readonly allVisibleSelected = computed(() => {
     const ids = this.activePagedIds();
     return ids.length > 0 && ids.every((id) => this.selectedIds().has(id));
   });
-  readonly displayOrderHasChanged = computed(() => {
-    const current = this.activePartnersList().map((p) => p.id).join(',');
-    const initial = this.initialDisplayOrder().join(',');
-    return current !== initial;
-  });
-
-  private readonly refreshDragListScrollbar = effect(() => {
-    this.activePartnersList();
-    if (!this.displayOrderModalOpen()) {
-      return;
-    }
-
-    requestAnimationFrame(() => this.captureDragListScroll());
-  });
+  readonly activePartnersForReorder = computed(() =>
+    this.partners()
+      .filter((p) => p.status === 1)
+      .sort((a, b) => (a.displayOrder ?? 0) - (b.displayOrder ?? 0)),
+  );
+  readonly publishedInfoForReorder = computed(() =>
+    this.info()
+      .filter((item) => item.status === 1)
+      .sort((a, b) => (a.displayOrder ?? 0) - (b.displayOrder ?? 0)),
+  );
 
   constructor() {
     this.ensureSectionLoaded(this.activeSection());
-  }
-
-  ngOnDestroy(): void {
-    this.stopDragAutoScroll();
   }
 
   setSection(section: AdminSection): void {
@@ -304,7 +321,7 @@ export class AdminPanel implements OnDestroy {
     this.searchTerm.set('');
     this.currentPage.set(1);
     this.selectedIds.set(new Set());
-    this.sortField.set(section === 'events' ? 'default' : 'date');
+    this.sortField.set(this.defaultSortField(section));
     this.sortDirection.set('ascending');
     this.error.set(null);
     void this.router.navigate([], {
@@ -321,6 +338,14 @@ export class AdminPanel implements OnDestroy {
     return this.sections.some((section) => section.id === requested)
       ? (requested as AdminSection)
       : 'events';
+  }
+
+  private defaultSortField(section: AdminSection): ActiveSortField {
+    if (section === 'events') {
+      return 'default';
+    }
+
+    return section === 'partners' ? 'title' : 'date';
   }
 
   updateSearch(event: Event): void {
@@ -521,7 +546,15 @@ export class AdminPanel implements OnDestroy {
     }
 
     const section = this.activeSection();
-    const itemsToDelete = section === 'events' ? this.selectedEvents() : section === 'partners' ? this.selectedPartners() : [];
+    const itemsToDelete = section === 'events'
+      ? this.selectedEvents()
+      : section === 'partners'
+        ? this.selectedPartners()
+        : section === 'info'
+          ? this.selectedInfo()
+          : section === 'admins'
+            ? this.selectedAdmins()
+            : [];
 
     if (itemsToDelete.length === 0) {
       return;
@@ -531,7 +564,13 @@ export class AdminPanel implements OnDestroy {
     this.bulkActionError.set(null);
 
     const deleteObservables = itemsToDelete.map((item) =>
-      section === 'events' ? this.api.deleteEvent(item.id) : this.api.deletePartner(item.id)
+      section === 'events'
+        ? this.api.deleteEvent(item.id)
+        : section === 'partners'
+          ? this.api.deletePartner(item.id)
+          : section === 'admins'
+            ? this.api.deleteAdmin(item.id)
+            : this.api.deleteInfo(item.id)
     );
 
     forkJoin(deleteObservables).subscribe({
@@ -541,13 +580,17 @@ export class AdminPanel implements OnDestroy {
           this.events.update((items) => items.filter((item) => !deletedIds.has(item.id)));
         } else if (section === 'partners') {
           this.partners.update((items) => items.filter((item) => !deletedIds.has(item.id)));
+        } else if (section === 'info') {
+          this.info.update((items) => items.filter((item) => !deletedIds.has(item.id)));
+        } else if (section === 'admins') {
+          this.admins.update((items) => items.filter((item) => !deletedIds.has(item.id)));
         }
         this.selectedIds.set(new Set());
         this.applyingBulkAction.set(false);
         this.bulkDeletePending.set(false);
       },
       error: () => {
-        const itemName = section === 'events' ? 'events' : section === 'partners' ? 'partners' : 'items';
+        const itemName = section === 'events' ? 'events' : section === 'partners' ? 'partners' : section === 'info' ? 'articles' : section === 'admins' ? 'admins' : 'items';
         this.bulkActionError.set(`The selected ${itemName} could not be deleted. Please try again.`);
         this.applyingBulkAction.set(false);
       },
@@ -558,7 +601,12 @@ export class AdminPanel implements OnDestroy {
     if (this.selectedCount() === 0) {
       return;
     }
-    const statusOptions = this.activeSection() === 'partners' ? this.partnerStatusOptions : this.eventStatusOptions;
+    const statusOptions: readonly { value: AnyStatusValue; label: string }[] =
+      this.activeSection() === 'partners'
+        ? this.partnerStatusOptions
+        : this.activeSection() === 'info'
+          ? this.infoStatusOptions
+          : this.eventStatusOptions;
     const firstEligible = statusOptions.find(
       (option) => this.bulkStatusEligibleCount(option.value) > 0,
     );
@@ -582,7 +630,13 @@ export class AdminPanel implements OnDestroy {
 
   bulkStatusEligibleCount(status: AnyStatusValue): number {
     const section = this.activeSection();
-    const items = section === 'events' ? this.selectedEvents() : section === 'partners' ? this.selectedPartners() : [];
+    const items = section === 'events'
+      ? this.selectedEvents()
+      : section === 'partners'
+        ? this.selectedPartners()
+        : section === 'info'
+          ? this.selectedInfo()
+          : [];
     return items.filter((item) => item.status !== status).length;
   }
 
@@ -629,6 +683,27 @@ export class AdminPanel implements OnDestroy {
         },
         error: () => {
           this.bulkActionError.set('The selected partner statuses could not be changed. Please try again.');
+          this.applyingBulkAction.set(false);
+        },
+      });
+    } else if (section === 'info') {
+      const articles = this.selectedInfo().filter((item) => item.status !== status);
+      if (articles.length === 0 || this.applyingBulkAction()) {
+        return;
+      }
+
+      this.applyingBulkAction.set(true);
+      this.bulkActionError.set(null);
+      forkJoin(articles.map((item) => this.api.updateInfoStatus(item.id, status))).subscribe({
+        next: (updatedArticles) => {
+          const updatedById = new Map(updatedArticles.map((item) => [item.id, item]));
+          this.info.update((items) => items.map((item) => updatedById.get(item.id) ?? item));
+          this.selectedIds.set(new Set());
+          this.applyingBulkAction.set(false);
+          this.bulkStatusPending.set(false);
+        },
+        error: () => {
+          this.bulkActionError.set('The selected article statuses could not be changed. Please try again.');
           this.applyingBulkAction.set(false);
         },
       });
@@ -706,12 +781,209 @@ export class AdminPanel implements OnDestroy {
     });
   }
 
+  requestInfoDelete(item: InfoArticleDto): void {
+    this.deleteError.set(null);
+    this.infoPendingDelete.set(item);
+  }
+
+  cancelInfoDelete(): void {
+    if (!this.deletingInfo()) {
+      this.infoPendingDelete.set(null);
+      this.deleteError.set(null);
+    }
+  }
+
+  confirmInfoDelete(): void {
+    const item = this.infoPendingDelete();
+    if (!item || this.deletingInfo()) {
+      return;
+    }
+
+    this.deletingInfo.set(true);
+    this.deleteError.set(null);
+    this.api.deleteInfo(item.id).subscribe({
+      next: () => {
+        this.info.update((items) => items.filter((current) => current.id !== item.id));
+        this.selectedIds.update((ids) => {
+          const next = new Set(ids);
+          next.delete(item.id);
+          return next;
+        });
+        this.deletingInfo.set(false);
+        this.infoPendingDelete.set(null);
+      },
+      error: () => {
+        this.deleteError.set('The article could not be deleted. Please try again.');
+        this.deletingInfo.set(false);
+      },
+    });
+  }
+
+  isCurrentAdmin(item: AdminUserDto): boolean {
+    return item.email === this.authService.email();
+  }
+
+  requestAdminDelete(item: AdminUserDto): void {
+    if (this.isCurrentAdmin(item)) {
+      return;
+    }
+    this.deleteError.set(null);
+    this.adminPendingDelete.set(item);
+  }
+
+  cancelAdminDelete(): void {
+    if (!this.deletingAdmin()) {
+      this.adminPendingDelete.set(null);
+      this.deleteError.set(null);
+    }
+  }
+
+  confirmAdminDelete(): void {
+    const item = this.adminPendingDelete();
+    if (!item || this.deletingAdmin()) {
+      return;
+    }
+
+    this.deletingAdmin.set(true);
+    this.deleteError.set(null);
+    this.api.deleteAdmin(item.id).subscribe({
+      next: () => {
+        this.admins.update((items) => items.filter((current) => current.id !== item.id));
+        this.selectedIds.update((ids) => {
+          const next = new Set(ids);
+          next.delete(item.id);
+          return next;
+        });
+        this.deletingAdmin.set(false);
+        this.adminPendingDelete.set(null);
+      },
+      error: (response) => {
+        this.deleteError.set(
+          response?.error?.error ?? 'The admin could not be deleted. Please try again.',
+        );
+        this.deletingAdmin.set(false);
+      },
+    });
+  }
+
   @HostListener('document:keydown.escape')
   closeDeleteConfirmationOnEscape(): void {
     this.cancelEventDelete();
     this.cancelPartnerDelete();
+    this.cancelInfoDelete();
+    this.cancelAdminDelete();
+    this.cancelAdminPasswordReset();
     this.cancelBulkDelete();
     this.cancelBulkStatus();
+    this.cancelBulkPasswordReset();
+  }
+
+  toggleOptionsMenu(id: string, trigger: HTMLElement): void {
+    if (this.openOptionsMenuId() === id) {
+      this.closeOptionsMenu();
+      return;
+    }
+
+    const rect = trigger.getBoundingClientRect();
+    this.optionsMenuPosition.set({ top: rect.bottom + 4, right: window.innerWidth - rect.right });
+    this.openOptionsMenuId.set(id);
+  }
+
+  closeOptionsMenu(): void {
+    this.openOptionsMenuId.set(null);
+    this.optionsMenuPosition.set(null);
+  }
+
+  @HostListener('document:click', ['$event'])
+  closeOptionsMenuOnOutsideClick(event: MouseEvent): void {
+    if (!this.openOptionsMenuId()) {
+      return;
+    }
+    if (!(event.target as HTMLElement).closest('.row-menu')) {
+      this.closeOptionsMenu();
+    }
+  }
+
+  requestAdminPasswordReset(item: AdminUserDto): void {
+    if (this.isCurrentAdmin(item)) {
+      return;
+    }
+    this.closeOptionsMenu();
+    this.deleteError.set(null);
+    this.resetPasswordSent.set(null);
+    this.adminPendingReset.set(item);
+  }
+
+  cancelAdminPasswordReset(): void {
+    if (!this.resettingPassword()) {
+      this.adminPendingReset.set(null);
+      this.deleteError.set(null);
+    }
+  }
+
+  confirmAdminPasswordReset(): void {
+    const item = this.adminPendingReset();
+    if (!item || this.resettingPassword()) {
+      return;
+    }
+
+    this.resettingPassword.set(true);
+    this.deleteError.set(null);
+    this.api.requestPasswordReset(item.id).subscribe({
+      next: () => {
+        this.resettingPassword.set(false);
+        this.adminPendingReset.set(null);
+        this.resetPasswordSent.set(`A password reset link has been sent to ${item.email}.`);
+      },
+      error: (response) => {
+        this.deleteError.set(
+          response?.error?.error ?? 'The password reset link could not be sent. Please try again.',
+        );
+        this.resettingPassword.set(false);
+      },
+    });
+  }
+
+  openBulkPasswordResetDialog(): void {
+    if (this.selectedCount() === 0) {
+      return;
+    }
+    this.bulkActionError.set(null);
+    this.bulkPasswordResetPending.set(true);
+  }
+
+  cancelBulkPasswordReset(): void {
+    if (!this.applyingBulkAction()) {
+      this.bulkPasswordResetPending.set(false);
+      this.bulkActionError.set(null);
+    }
+  }
+
+  confirmBulkPasswordReset(): void {
+    const admins = this.selectedAdmins();
+    if (admins.length === 0 || this.applyingBulkAction()) {
+      return;
+    }
+
+    this.applyingBulkAction.set(true);
+    this.bulkActionError.set(null);
+
+    forkJoin(admins.map((item) => this.api.requestPasswordReset(item.id))).subscribe({
+      next: () => {
+        this.selectedIds.set(new Set());
+        this.applyingBulkAction.set(false);
+        this.bulkPasswordResetPending.set(false);
+        this.resetPasswordSent.set(
+          admins.length === 1
+            ? `A password reset link has been sent to ${admins[0].email}.`
+            : `Password reset links have been sent to ${admins.length} administrators.`,
+        );
+      },
+      error: () => {
+        this.bulkActionError.set('The password reset links could not be sent. Please try again.');
+        this.applyingBulkAction.set(false);
+      },
+    });
   }
 
   updateNewsStatus(item: NewsItemDto, status: number): void {
@@ -806,125 +1078,22 @@ export class AdminPanel implements OnDestroy {
     return items.slice(start, start + this.pageSize());
   }
 
+  readonly partnerLabel = (partner: PartnerDto): string => partner.name;
+  readonly infoLabel = (article: InfoArticleDto): string => article.title;
+
   openDisplayOrderModal(): void {
     this.displayOrderModalOpen.set(true);
     this.displayOrderError.set(null);
-
-    const activePartners = this.partners()
-      .filter((p) => p.status === 1)
-      .sort((a, b) => (a.displayOrder ?? 0) - (b.displayOrder ?? 0));
-
-    this.activePartnersList.set(activePartners);
-    this.initialDisplayOrder.set(activePartners.map((p) => p.id));
   }
 
   closeDisplayOrderModal(): void {
     this.displayOrderModalOpen.set(false);
     this.displayOrderError.set(null);
-    this.draggedPartner.set(null);
-    this.stopDragAutoScroll();
   }
 
-  onDragStart(event: DragEvent, partner: PartnerDto): void {
-    this.draggedPartner.set(partner);
-    if (event.dataTransfer) {
-      event.dataTransfer.effectAllowed = 'move';
-    }
-    this.startDragAutoScroll();
-  }
-
-  onDragOver(event: DragEvent): void {
-    event.preventDefault();
-    if (event.dataTransfer) {
-      event.dataTransfer.dropEffect = 'move';
-    }
-    this.dragPointerY = event.clientY;
-  }
-
-  onDrop(event: DragEvent, targetPartner: PartnerDto): void {
-    event.preventDefault();
-    const dragged = this.draggedPartner();
-    if (!dragged || dragged.id === targetPartner.id) {
-      return;
-    }
-
-    const list = [...this.activePartnersList()];
-    const draggedIndex = list.findIndex((p) => p.id === dragged.id);
-    const targetIndex = list.findIndex((p) => p.id === targetPartner.id);
-
-    if (draggedIndex !== -1 && targetIndex !== -1) {
-      const [movedItem] = list.splice(draggedIndex, 1);
-      list.splice(targetIndex, 0, movedItem);
-      this.activePartnersList.set(list);
-    }
-  }
-
-  onDragEnd(): void {
-    this.draggedPartner.set(null);
-    this.stopDragAutoScroll();
-  }
-
-  private startDragAutoScroll(): void {
-    this.stopDragAutoScroll();
-    const step = () => {
-      this.runDragAutoScrollStep();
-      this.dragAutoScrollRafId = requestAnimationFrame(step);
-    };
-    this.dragAutoScrollRafId = requestAnimationFrame(step);
-  }
-
-  private stopDragAutoScroll(): void {
-    if (this.dragAutoScrollRafId !== null) {
-      cancelAnimationFrame(this.dragAutoScrollRafId);
-      this.dragAutoScrollRafId = null;
-    }
-    this.dragPointerY = null;
-  }
-
-  private runDragAutoScrollStep(): void {
-    const container = this.dragListScroll?.nativeElement;
-    if (!container || this.dragPointerY === null) {
-      return;
-    }
-
-    const rect = container.getBoundingClientRect();
-    const edge = AdminPanel.DRAG_SCROLL_EDGE;
-    const pointerY = this.dragPointerY;
-
-    let delta = 0;
-    if (pointerY < rect.top + edge) {
-      const intensity = Math.min(1, (rect.top + edge - pointerY) / edge);
-      delta = -Math.ceil(intensity * AdminPanel.DRAG_SCROLL_MAX_SPEED);
-    } else if (pointerY > rect.bottom - edge) {
-      const intensity = Math.min(1, (pointerY - (rect.bottom - edge)) / edge);
-      delta = Math.ceil(intensity * AdminPanel.DRAG_SCROLL_MAX_SPEED);
-    }
-
-    if (delta === 0) {
-      return;
-    }
-
-    const maxScrollTop = container.scrollHeight - container.clientHeight;
-    const nextScrollTop = Math.min(maxScrollTop, Math.max(0, container.scrollTop + delta));
-    if (nextScrollTop !== container.scrollTop) {
-      container.scrollTop = nextScrollTop;
-      this.captureDragListScroll(container);
-    }
-  }
-
-  saveDisplayOrder(): void {
-    if (
-      this.savingDisplayOrder()
-      || this.activePartnersList().length === 0
-      || !this.displayOrderHasChanged()
-    ) {
-      return;
-    }
-
+  saveDisplayOrderPartners(reorderedIds: string[]): void {
     this.savingDisplayOrder.set(true);
     this.displayOrderError.set(null);
-
-    const reorderedIds = this.activePartnersList().map((partner) => partner.id);
 
     this.api.reorderPartners(reorderedIds).subscribe({
       next: (updatedPartners) => {
@@ -942,10 +1111,41 @@ export class AdminPanel implements OnDestroy {
     });
   }
 
+  openInfoOrderModal(): void {
+    this.infoOrderModalOpen.set(true);
+    this.infoOrderError.set(null);
+  }
+
+  closeInfoOrderModal(): void {
+    this.infoOrderModalOpen.set(false);
+    this.infoOrderError.set(null);
+  }
+
+  saveInfoOrder(reorderedIds: string[]): void {
+    this.savingInfoOrder.set(true);
+    this.infoOrderError.set(null);
+
+    this.api.reorderInfo(reorderedIds).subscribe({
+      next: (updatedInfo) => {
+        const updatedById = new Map(updatedInfo.map((item) => [item.id, item]));
+        this.info.update((items) =>
+          items.map((item) => updatedById.get(item.id) ?? item),
+        );
+        this.savingInfoOrder.set(false);
+        this.closeInfoOrderModal();
+      },
+      error: () => {
+        this.infoOrderError.set('Failed to save display order. Please try again.');
+        this.savingInfoOrder.set(false);
+      },
+    });
+  }
+
   updateTableScroll(event: Event): void {
     const element = event.currentTarget as HTMLElement;
     this.tableScrollPosition.set(element.scrollTop);
     this.tableScrollMaximum.set(Math.max(0, element.scrollHeight - element.clientHeight));
+    this.closeOptionsMenu();
   }
 
   scrollTable(event: Event): void {
@@ -953,46 +1153,5 @@ export class AdminPanel implements OnDestroy {
     if (this.tableScroll) {
       this.tableScroll.nativeElement.scrollTop = position;
     }
-  }
-
-  updateDragListScroll(event: Event): void {
-    this.captureDragListScroll(event.currentTarget as HTMLElement);
-  }
-
-  scrollDragList(event: Event): void {
-    const position = Number((event.currentTarget as HTMLInputElement).value);
-    if (this.dragListScroll) {
-      this.dragListScroll.nativeElement.scrollTop = position;
-    }
-  }
-
-  onDragListWheel(event: WheelEvent): void {
-    if (!this.draggedPartner()) {
-      return;
-    }
-
-    const container = this.dragListScroll?.nativeElement;
-    if (!container) {
-      return;
-    }
-
-    event.preventDefault();
-
-    const maxScrollTop = container.scrollHeight - container.clientHeight;
-    const nextScrollTop = Math.min(maxScrollTop, Math.max(0, container.scrollTop + event.deltaY));
-    if (nextScrollTop !== container.scrollTop) {
-      container.scrollTop = nextScrollTop;
-      this.captureDragListScroll(container);
-    }
-  }
-
-  private captureDragListScroll(element = this.dragListScroll?.nativeElement): void {
-    if (!element) {
-      return;
-    }
-
-    this.dragListScrollPosition.set(element.scrollTop);
-    this.dragListScrollMaximum.set(Math.max(0, element.scrollHeight - element.clientHeight));
-    this.dragListHeight.set(element.clientHeight);
   }
 }

@@ -1,0 +1,6 @@
+<div class="editor-layout" [class.editor-layout--preview-hidden]="!previewVisible()">
+  <ng-content select="[editor-form]" />
+  <div class="preview-slot" [attr.inert]="previewVisible() ? null : ''">
+    <ng-content select="[editor-preview]" />
+  </div>
+</div>

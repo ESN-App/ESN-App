@@ -19,8 +19,8 @@
       <a routerLink="/admin" [queryParams]="{ section: 'partners' }">Back to admin panel</a>
     </div>
   } @else {
-    <div class="editor-layout" [class.editor-layout--preview-hidden]="!previewVisible()">
-      <form class="partner-form" [formGroup]="form" (ngSubmit)="submit()" novalidate>
+    <app-admin-editor-layout [previewVisible]="previewVisible()">
+      <form class="partner-form" editor-form [formGroup]="form" (ngSubmit)="submit()" novalidate>
         <div class="form-heading">
           <div><h2>Partner information</h2><p>Fields marked with * are required.</p></div>
           <button type="button" class="preview-toggle" (click)="togglePreview()">{{ previewVisible() ? 'Hide preview' : 'Show preview' }}</button>
@@ -67,8 +67,9 @@
 
         <label class="field">
           <span>Full description *</span>
-          <textarea formControlName="description" cdkTextareaAutosize cdkAutosizeMinRows="6" placeholder="Describe the partner and what ESN members can expect"></textarea>
-          @if (showError('description')) { <small>Enter the full partner description.</small> }
+          <textarea formControlName="description" maxlength="5000" cdkTextareaAutosize cdkAutosizeMinRows="6" placeholder="Describe the partner and what ESN members can expect"></textarea>
+          <span class="character-count">{{ form.controls.description.value?.length || 0 }}/5000</span>
+          @if (showError('description')) { <small>Enter the full partner description (maximum 5,000 characters).</small> }
         </label>
 
         <div class="field">
@@ -123,6 +124,7 @@
                     maxlength="200"
                     placeholder="For example: 10% off all items"
                   />
+                  <span class="character-count">{{ discount.controls.title.value?.length || 0 }}/200</span>
                   @if (showDiscountError(index, 'title')) {
                     <small>Enter a discount title (maximum 200 characters).</small>
                   }
@@ -133,9 +135,10 @@
                     formControlName="description"
                     maxlength="2000"
                     cdkTextareaAutosize
-                    cdkAutosizeMinRows="2"
+                    cdkAutosizeMinRows="3"
                     placeholder="Explain how members can use this discount"
                   ></textarea>
+                  <span class="character-count">{{ discount.controls.description.value?.length || 0 }}/2000</span>
                 </label>
               </div>
               <button
@@ -165,8 +168,8 @@
         </div>
       </form>
 
-      <app-admin-partner-preview [partner]="previewPartner()" [attr.inert]="previewVisible() ? null : ''" />
-    </div>
+      <app-admin-partner-preview editor-preview [partner]="previewPartner()" />
+    </app-admin-editor-layout>
   }
 
   @if (confirmationOpen()) {

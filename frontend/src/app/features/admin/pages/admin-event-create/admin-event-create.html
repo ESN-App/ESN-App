@@ -11,8 +11,8 @@
     </div>
   </header>
 
-  <div class="editor-layout" [class.editor-layout--preview-hidden]="!previewVisible()">
-    <form class="event-form" [formGroup]="form" (ngSubmit)="submit()" novalidate>
+  <app-admin-editor-layout [previewVisible]="previewVisible()">
+    <form class="event-form" editor-form [formGroup]="form" (ngSubmit)="submit()" novalidate>
       <div class="form-heading">
         <div><h2>Event information</h2><p>Fields marked with * are required.</p></div>
         <button type="button" class="preview-toggle" (click)="togglePreview()">{{ previewVisible() ? 'Hide preview' : 'Show preview' }}</button>
@@ -144,8 +144,8 @@
       </div>
     </form>
 
-    <app-admin-event-preview [event]="previewEvent()" [attr.inert]="previewVisible() ? null : ''" />
-  </div>
+    <app-admin-event-preview editor-preview [event]="previewEvent()" />
+  </app-admin-editor-layout>
 
   @if (confirmationOpen()) {
     <div class="confirmation-backdrop">

@@ -1,0 +1,43 @@
+@let item = article();
+<article class="info-card" [class.info-card--draft]="item.status === 0">
+  @if (interactive()) {
+    <a
+      class="card-link"
+      [routerLink]="infoLink()"
+      [attr.aria-label]="'Read more about ' + item.title"
+    ></a>
+  }
+
+  <div class="article-image">
+    @if (item.imageUrl && !imageBroken()) {
+      <img
+        [src]="item.imageUrl"
+        [alt]="item.title"
+        [attr.loading]="interactive() ? 'lazy' : null"
+        (error)="imageBroken.set(true)"
+      />
+    } @else {
+      <span class="image-fallback" aria-hidden="true"></span>
+    }
+  </div>
+
+  <div class="article-copy">
+    @if (item.status === 0) {
+      <span class="draft-badge">Draft</span>
+    }
+    <h2>{{ item.title }}</h2>
+    <p class="article-description">{{ item.content }}</p>
+  </div>
+
+  @if (interactive()) {
+    <a class="details-link" [routerLink]="infoLink()" [attr.aria-label]="'Read more about ' + item.title">
+      <span>Read more</span>
+      <span class="arrow-icon" aria-hidden="true"></span>
+    </a>
+  } @else {
+    <span class="details-link" aria-hidden="true">
+      <span>Read more</span>
+      <span class="arrow-icon"></span>
+    </span>
+  }
+</article>

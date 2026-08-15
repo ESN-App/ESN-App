@@ -8,12 +8,13 @@ import { map, startWith, switchMap } from 'rxjs/operators';
 import { AdminApi, CreateDiscountRequest, CreatePartnerRequest } from '../../data-access/admin-api';
 import { PartnerDetailsViewModel } from '../../../partners/components/partner-details-view/partner-details-view';
 import { PartnerOffer } from '../../../partners/data-access/partners.models';
+import { AdminEditorLayout } from '../../components/admin-editor-layout/admin-editor-layout';
 import { AdminPartnerPreview } from '../../components/admin-partner-preview/admin-partner-preview';
 import { createDiscountGroup, createPartnerForm } from '../../utils/partner-form';
 
 @Component({
   selector: 'app-admin-partner-create',
-  imports: [AdminPartnerPreview, ReactiveFormsModule, RouterLink, TextFieldModule],
+  imports: [AdminEditorLayout, AdminPartnerPreview, ReactiveFormsModule, RouterLink, TextFieldModule],
   templateUrl: './admin-partner-create.html',
   styleUrl: './admin-partner-create.scss',
 })

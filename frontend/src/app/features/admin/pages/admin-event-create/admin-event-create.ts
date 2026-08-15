@@ -8,12 +8,13 @@ import { startWith, switchMap } from 'rxjs/operators';
 import { EventDetailsViewModel } from '../../../events/components/event-details-view/event-details-view';
 import { AdminApi, CreateEventRequest } from '../../data-access/admin-api';
 import { AdminDateTimePicker } from '../../components/admin-date-time-picker/admin-date-time-picker';
+import { AdminEditorLayout } from '../../components/admin-editor-layout/admin-editor-layout';
 import { AdminEventPreview } from '../../components/admin-event-preview/admin-event-preview';
 import { createEventForm } from '../../utils/event-form';
 
 @Component({
   selector: 'app-admin-event-create',
-  imports: [AdminDateTimePicker, AdminEventPreview, ReactiveFormsModule, RouterLink, TextFieldModule],
+  imports: [AdminDateTimePicker, AdminEditorLayout, AdminEventPreview, ReactiveFormsModule, RouterLink, TextFieldModule],
   templateUrl: './admin-event-create.html',
   styleUrl: './admin-event-create.scss',
 })

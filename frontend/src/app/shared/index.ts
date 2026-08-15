@@ -6,3 +6,4 @@ export * from './inactive-badge/inactive-badge';
 export * from './loading-spinner/loading-spinner';
 export * from './partner-status-title/partner-status-title';
 export * from './published-badge/published-badge';
+export * from './utils/password-validators';

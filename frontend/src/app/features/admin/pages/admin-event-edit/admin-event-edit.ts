@@ -9,12 +9,13 @@ import { LoadingSpinner } from '../../../../shared';
 import { EventDetailsViewModel } from '../../../events/components/event-details-view/event-details-view';
 import { AdminApi, CreateEventRequest } from '../../data-access/admin-api';
 import { AdminDateTimePicker } from '../../components/admin-date-time-picker/admin-date-time-picker';
+import { AdminEditorLayout } from '../../components/admin-editor-layout/admin-editor-layout';
 import { AdminEventPreview } from '../../components/admin-event-preview/admin-event-preview';
 import { createEventForm } from '../../utils/event-form';
 
 @Component({
   selector: 'app-admin-event-edit',
-  imports: [AdminDateTimePicker, AdminEventPreview, LoadingSpinner, ReactiveFormsModule, RouterLink, TextFieldModule],
+  imports: [AdminDateTimePicker, AdminEditorLayout, AdminEventPreview, LoadingSpinner, ReactiveFormsModule, RouterLink, TextFieldModule],
   templateUrl: './admin-event-edit.html',
   styleUrl: '../admin-event-create/admin-event-create.scss',
 })

@@ -29,43 +29,7 @@
       } @else {
         <div class="info-grid" aria-label="Information sections">
           @for (article of state().articles; track article.id) {
-            <article class="info-card" [class.info-card--draft]="article.status === 0">
-              <a
-                class="card-link"
-                [routerLink]="['/info', article.slug]"
-                [attr.aria-label]="'Read more about ' + article.title"
-              ></a>
-
-              <div class="article-image">
-                @if (!hasBrokenImage(article.id)) {
-                  <img
-                    [src]="article.imageUrl"
-                    [alt]="article.title"
-                    loading="lazy"
-                    (error)="markImageAsBroken(article.id)"
-                  />
-                } @else {
-                  <span class="image-fallback" aria-hidden="true"></span>
-                }
-              </div>
-
-              <div class="article-copy">
-                @if (article.status === 0) {
-                  <span class="draft-badge">Draft</span>
-                }
-                <h2>{{ article.title }}</h2>
-                <p class="article-description">{{ article.content }}</p>
-              </div>
-
-              <a
-                class="details-link"
-                [routerLink]="['/info', article.slug]"
-                [attr.aria-label]="'Read more about ' + article.title"
-              >
-                <span>Read more</span>
-                <span class="arrow-icon" aria-hidden="true"></span>
-              </a>
-            </article>
+            <app-info-list-item [article]="article" />
           }
         </div>
       }

@@ -26,10 +26,15 @@
         </p>
       </div>
       <div class="table-header__actions">
-        @if ((activeSection() === 'events' || activeSection() === 'partners') && selectedCount()) {
+        @if ((activeSection() === 'events' || activeSection() === 'partners' || activeSection() === 'info' || activeSection() === 'admins') && selectedCount()) {
           <div class="bulk-actions" [attr.aria-label]="'Actions for selected ' + activeLabel().toLowerCase()">
             <button type="button" class="bulk-delete-button" (click)="requestBulkDelete()">Delete selected</button>
-            <button type="button" class="bulk-status-button" (click)="openBulkStatusDialog()">Change status</button>
+            @if (activeSection() !== 'admins') {
+              <button type="button" class="bulk-status-button" (click)="openBulkStatusDialog()">Change status</button>
+            }
+            @if (activeSection() === 'admins') {
+              <button type="button" class="bulk-status-button" (click)="openBulkPasswordResetDialog()">Reset password</button>
+            }
           </div>
         }
         @if (activeSection() === 'events') { <a class="create-button" routerLink="/admin/events/new">Create new event</a> }
@@ -37,6 +42,11 @@
           <button type="button" class="create-button" (click)="openDisplayOrderModal()">Set display order</button>
           <a class="create-button" routerLink="/admin/partners/new">Create new partner</a>
         }
+        @if (activeSection() === 'info') {
+          <button type="button" class="create-button" (click)="openInfoOrderModal()">Set display order</button>
+          <a class="create-button" routerLink="/admin/info/new">Create new article</a>
+        }
+        @if (activeSection() === 'admins') { <a class="create-button" routerLink="/admin/admins/new">Create new admin</a> }
       </div>
     </header>
 
@@ -60,6 +70,13 @@
 
     @if (error(); as message) {
       <div class="error-banner" role="alert"><span>{{ message }}</span><button mat-button type="button" (click)="retryActiveSection()">Try again</button></div>
+    }
+
+    @if (resetPasswordSent(); as message) {
+      <div class="success-banner" role="status">
+        <span>{{ message }}</span>
+        <button type="button" aria-label="Dismiss" (click)="resetPasswordSent.set(null)">&times;</button>
+      </div>
     }
 
     @if (loading()) {
@@ -124,7 +141,7 @@
                     <td data-label="Address">{{ item.address || '—' }}</td>
                     <td data-label="Website">@if (item.websiteUrl) { <a class="website-link" [href]="item.websiteUrl" target="_blank" rel="noopener noreferrer">{{ item.name }} website</a> } @else { — }</td>
                     <td data-label="Created">{{ item.createdAt | date: 'd MMM y' }}</td>
-                    <td data-label="Status"><span class="status-badge" [class.draft-badge]="item.status === 0">{{ partnerStatus(item.status) }}</span></td>
+                    <td data-label="Status"><span class="status-badge" [class.draft-badge]="item.status === 0" [class.inactive-badge]="item.status === 2">{{ partnerStatus(item.status) }}</span></td>
                     <td class="row-tools"><div class="row-tools__buttons"><a class="icon-button icon-button--edit" [routerLink]="['/admin/partners', partnerSlug(item.name), 'edit']" [attr.aria-label]="'Edit ' + item.name" title="Edit"></a><button type="button" class="icon-button icon-button--delete" [attr.aria-label]="'Delete ' + item.name" title="Delete" (click)="requestPartnerDelete(item)"></button></div></td>
                   </tr>
                 }
@@ -142,23 +159,22 @@
                     <td data-label="Category">{{ item.category }}</td>
                     <td data-label="Created">{{ item.createdAt | date: 'd MMM y' }}</td>
                     <td data-label="Status"><span class="status-badge" [class.draft-badge]="item.status === 0">{{ item.status === 0 ? 'Draft' : 'Published' }}</span></td>
-                    <td class="row-tools"><div class="row-tools__buttons"><button type="button" class="icon-button icon-button--edit" [attr.aria-label]="'Edit ' + item.title" title="Edit"></button><button type="button" class="icon-button icon-button--delete" [attr.aria-label]="'Delete ' + item.title" title="Delete"></button><button type="button" class="icon-button icon-button--menu" [attr.aria-label]="'Options for ' + item.title" title="Options"></button></div></td>
+                    <td class="row-tools"><div class="row-tools__buttons"><a class="icon-button icon-button--edit" [routerLink]="['/admin/info', item.id, 'edit']" [attr.aria-label]="'Edit ' + item.title" title="Edit"></a><button type="button" class="icon-button icon-button--delete" [attr.aria-label]="'Delete ' + item.title" title="Delete" (click)="requestInfoDelete(item)"></button></div></td>
                   </tr>
                 }
               </tbody>
             </table>
           }
           @case ('admins') {
-            <table>
-              <thead><tr><th class="selection"><input type="checkbox" aria-label="Select all administrators on this page" [checked]="allVisibleSelected()" (change)="toggleVisibleSelection()" /></th><th class="primary-column"><button class="header-sort" type="button" (click)="setSort('title')">Administrator <span class="sort-indicator" [attr.data-direction]="sortState('title')" aria-hidden="true"></span></button></th><th><button class="header-sort" type="button" (click)="setSort('date')">Created <span class="sort-indicator" [attr.data-direction]="sortState('date')" aria-hidden="true"></span></button></th><th><button class="header-sort" type="button" (click)="setSort('status')">Status <span class="sort-indicator" [attr.data-direction]="sortState('status')" aria-hidden="true"></span></button></th><th class="row-tools"><span class="visually-hidden">Row options</span></th></tr></thead>
+            <table class="admins-table">
+              <thead><tr><th class="selection"><input type="checkbox" aria-label="Select all administrators on this page" [checked]="allVisibleSelected()" (change)="toggleVisibleSelection()" /></th><th class="primary-column"><button class="header-sort" type="button" (click)="setSort('title')">Administrator <span class="sort-indicator" [attr.data-direction]="sortState('title')" aria-hidden="true"></span></button></th><th><button class="header-sort" type="button" (click)="setSort('date')">Created <span class="sort-indicator" [attr.data-direction]="sortState('date')" aria-hidden="true"></span></button></th><th class="row-tools"><span class="visually-hidden">Row options</span></th></tr></thead>
               <tbody>
                 @for (item of pagedAdmins(); track item.id) {
                   <tr>
-                    <td class="selection"><input type="checkbox" [attr.aria-label]="'Select ' + item.email" [checked]="selectedIds().has(item.id)" (change)="toggleSelection(item.id)" /></td>
-                    <td class="primary-column" data-label="Administrator"><strong [title]="item.email">{{ item.email }}</strong></td>
+                    <td class="selection"><input type="checkbox" [attr.aria-label]="'Select ' + item.email" [checked]="selectedIds().has(item.id)" [disabled]="isCurrentAdmin(item)" (change)="toggleSelection(item.id)" /></td>
+                    <td class="primary-column" data-label="Administrator"><strong [title]="item.email">{{ item.email }}@if (isCurrentAdmin(item)) { <small>(you)</small> }</strong></td>
                     <td data-label="Created">{{ item.createdAt | date: 'd MMM y' }}</td>
-                    <td data-label="Status"><span class="status-badge">Active</span></td>
-                    <td class="row-tools"><div class="row-tools__buttons"><button type="button" class="icon-button icon-button--edit" [attr.aria-label]="'Edit ' + item.email" title="Edit"></button><button type="button" class="icon-button icon-button--delete" [attr.aria-label]="'Delete ' + item.email" title="Delete"></button><button type="button" class="icon-button icon-button--menu" [attr.aria-label]="'Options for ' + item.email" title="Options"></button></div></td>
+                    <td class="row-tools"><div class="row-tools__buttons"><button type="button" class="icon-button icon-button--delete" [attr.aria-label]="'Delete ' + item.email" title="Delete" [disabled]="isCurrentAdmin(item)" (click)="requestAdminDelete(item)"></button><div class="row-menu"><button type="button" class="icon-button icon-button--menu" [attr.aria-label]="'Options for ' + item.email" title="Options" (click)="toggleOptionsMenu(item.id, menuTrigger)" #menuTrigger></button>@if (openOptionsMenuId() === item.id && optionsMenuPosition(); as position) {<div class="row-menu__dropdown" role="menu" [style.top.px]="position.top" [style.right.px]="position.right"><button type="button" role="menuitem" [disabled]="isCurrentAdmin(item)" [title]="isCurrentAdmin(item) ? 'You cannot reset your own password this way' : ''" (click)="requestAdminPasswordReset(item)">Reset password</button></div>}</div></div></td>
                   </tr>
                 }
               </tbody>
@@ -233,10 +249,72 @@
   </div>
 }
 
+@if (infoPendingDelete(); as article) {
+  <div class="confirmation-backdrop">
+    <section class="confirmation-dialog" role="alertdialog" aria-modal="true" aria-labelledby="delete-info-title">
+      <h2 id="delete-info-title">Are you sure you want to delete {{ article.title }}?</h2>
+      @if (deleteError()) {
+        <p class="confirmation-error" role="alert">{{ deleteError() }}</p>
+      }
+      <div class="confirmation-actions">
+        <button type="button" class="confirmation-cancel" [disabled]="deletingInfo()" (click)="cancelInfoDelete()">Keep article</button>
+        <button type="button" class="confirmation-delete" [disabled]="deletingInfo()" (click)="confirmInfoDelete()">{{ deletingInfo() ? 'Deleting...' : 'Yes, delete article' }}</button>
+      </div>
+    </section>
+  </div>
+}
+
+@if (adminPendingDelete(); as admin) {
+  <div class="confirmation-backdrop">
+    <section class="confirmation-dialog" role="alertdialog" aria-modal="true" aria-labelledby="delete-admin-title">
+      <h2 id="delete-admin-title">Are you sure you want to delete {{ admin.email }}?</h2>
+      @if (deleteError()) {
+        <p class="confirmation-error" role="alert">{{ deleteError() }}</p>
+      }
+      <div class="confirmation-actions">
+        <button type="button" class="confirmation-cancel" [disabled]="deletingAdmin()" (click)="cancelAdminDelete()">Keep admin</button>
+        <button type="button" class="confirmation-delete" [disabled]="deletingAdmin()" (click)="confirmAdminDelete()">{{ deletingAdmin() ? 'Deleting...' : 'Yes, delete admin' }}</button>
+      </div>
+    </section>
+  </div>
+}
+
+@if (adminPendingReset(); as admin) {
+  <div class="confirmation-backdrop">
+    <section class="confirmation-dialog" role="alertdialog" aria-modal="true" aria-labelledby="reset-admin-title">
+      <h2 id="reset-admin-title">Send a password reset link to {{ admin.email }}?</h2>
+      <p>They'll receive an email with a link to set a new password. The link expires in 1 hour.</p>
+      @if (deleteError()) {
+        <p class="confirmation-error" role="alert">{{ deleteError() }}</p>
+      }
+      <div class="confirmation-actions">
+        <button type="button" class="confirmation-cancel" [disabled]="resettingPassword()" (click)="cancelAdminPasswordReset()">Cancel</button>
+        <button type="button" class="confirmation-submit" [disabled]="resettingPassword()" (click)="confirmAdminPasswordReset()">{{ resettingPassword() ? 'Sending...' : 'Yes, send link' }}</button>
+      </div>
+    </section>
+  </div>
+}
+
+@if (bulkPasswordResetPending()) {
+  <div class="confirmation-backdrop">
+    <section class="confirmation-dialog" role="alertdialog" aria-modal="true" aria-labelledby="bulk-reset-admins-title">
+      <h2 id="bulk-reset-admins-title">Send password reset links to {{ selectedCount() }} selected {{ selectedCount() === 1 ? 'admin' : 'admins' }}?</h2>
+      <p>They'll each receive an email with a link to set a new password. Links expire in 1 hour.</p>
+      @if (bulkActionError()) {
+        <p class="confirmation-error" role="alert">{{ bulkActionError() }}</p>
+      }
+      <div class="confirmation-actions">
+        <button type="button" class="confirmation-cancel" [disabled]="applyingBulkAction()" (click)="cancelBulkPasswordReset()">Cancel</button>
+        <button type="button" class="confirmation-submit" [disabled]="applyingBulkAction()" (click)="confirmBulkPasswordReset()">{{ applyingBulkAction() ? 'Sending...' : 'Yes, send links' }}</button>
+      </div>
+    </section>
+  </div>
+}
+
 @if (bulkDeletePending()) {
   <div class="confirmation-backdrop">
     <section class="confirmation-dialog" role="alertdialog" aria-modal="true" [attr.aria-labelledby]="'bulk-delete-' + activeSection() + '-title'">
-      @let itemLabel = activeSection() === 'events' ? 'event' : activeSection() === 'partners' ? 'partner' : 'item';
+      @let itemLabel = activeSection() === 'events' ? 'event' : activeSection() === 'partners' ? 'partner' : activeSection() === 'info' ? 'article' : activeSection() === 'admins' ? 'admin' : 'item';
       @let itemLabelPlural = selectedCount() === 1 ? itemLabel : (itemLabel + 's');
       <h2 [id]="'bulk-delete-' + activeSection() + '-title'">Delete {{ selectedCount() }} selected {{ itemLabelPlural }}?</h2>
       @if (bulkActionError()) {
@@ -253,8 +331,8 @@
 @if (bulkStatusPending()) {
   <div class="confirmation-backdrop">
     <section class="confirmation-dialog" role="dialog" aria-modal="true" [attr.aria-labelledby]="'bulk-status-' + activeSection() + '-title'">
-      @let statusOptions = activeSection() === 'partners' ? partnerStatusOptions : eventStatusOptions;
-      @let itemLabel = activeSection() === 'events' ? 'event' : activeSection() === 'partners' ? 'partner' : 'item';
+      @let statusOptions = activeSection() === 'partners' ? partnerStatusOptions : activeSection() === 'info' ? infoStatusOptions : eventStatusOptions;
+      @let itemLabel = activeSection() === 'events' ? 'event' : activeSection() === 'partners' ? 'partner' : activeSection() === 'info' ? 'article' : 'item';
       @let itemLabelPlural = selectedCount() === 1 ? itemLabel : (itemLabel + 's');
       <h2 [id]="'bulk-status-' + activeSection() + '-title'">Change status for selected {{ itemLabelPlural }}</h2>
       <label class="bulk-status-field" [for]="'bulk-' + activeSection() + '-status'">
@@ -279,57 +357,24 @@
   </div>
 }
 
-@if (displayOrderModalOpen()) {
-  <div class="confirmation-backdrop" (click)="closeDisplayOrderModal()">
-    <section class="confirmation-dialog" role="dialog" aria-modal="true" aria-labelledby="display-order-title" (click)="$event.stopPropagation()">
-      <div class="modal-header">
-        <h2 id="display-order-title">Manage display order</h2>
-        <button type="button" class="modal-close" (click)="closeDisplayOrderModal()" aria-label="Close">×</button>
-      </div>
+<app-admin-display-order-modal
+  [open]="displayOrderModalOpen()"
+  [items]="activePartnersForReorder()"
+  [itemLabel]="partnerLabel"
+  emptyMessage="No active partners yet. Create one to set display order."
+  [saving]="savingDisplayOrder()"
+  [error]="displayOrderError()"
+  (closeModal)="closeDisplayOrderModal()"
+  (save)="saveDisplayOrderPartners($event)"
+/>
 
-      <div class="modal-content">
-        @if (activePartnersList().length === 0) {
-          <p class="modal-message">No active partners yet. Create one to set display order.</p>
-        } @else {
-          <p class="drag-list-help">Drag partners to set their display order</p>
-          <div class="drag-list-region">
-            <div class="drag-list" #dragListScroll (scroll)="updateDragListScroll($event)" (wheel)="onDragListWheel($event)">
-              @for (partner of activePartnersList(); track partner.id) {
-                <div class="drag-item" draggable="true" (dragstart)="onDragStart($event, partner)" (dragover)="onDragOver($event)" (drop)="onDrop($event, partner)" (dragend)="onDragEnd()" [class.dragging]="draggedPartner()?.id === partner.id">
-                  <span class="drag-handle" aria-hidden="true">⋮⋮</span>
-                  <span class="partner-name">{{ partner.name }}</span>
-                </div>
-              }
-            </div>
-
-            <input
-              class="drag-list-scrollbar"
-              type="range"
-              min="0"
-              [max]="dragListScrollMaximum()"
-              [value]="dragListScrollPosition()"
-              [disabled]="dragListScrollMaximum() === 0"
-              [style.width.px]="dragListHeight()"
-              aria-label="Scroll display order list"
-              (input)="scrollDragList($event)"
-            />
-          </div>
-        }
-
-        @if (displayOrderError()) {
-          <p class="modal-error" role="alert">{{ displayOrderError() }}</p>
-        }
-      </div>
-
-      <div class="modal-actions">
-        <button type="button" class="confirmation-cancel" [disabled]="savingDisplayOrder()" (click)="closeDisplayOrderModal()">Cancel</button>
-        <div class="modal-save-action">
-          <button type="button" class="confirmation-submit" [disabled]="savingDisplayOrder() || activePartnersList().length === 0 || !displayOrderHasChanged()" (click)="saveDisplayOrder()">{{ savingDisplayOrder() ? 'Saving...' : 'Save' }}</button>
-          @if (!displayOrderHasChanged() && activePartnersList().length > 0) {
-            <small>Make changes to enable save</small>
-          }
-        </div>
-      </div>
-    </section>
-  </div>
-}
+<app-admin-display-order-modal
+  [open]="infoOrderModalOpen()"
+  [items]="publishedInfoForReorder()"
+  [itemLabel]="infoLabel"
+  emptyMessage="No published articles yet. Publish one to set display order."
+  [saving]="savingInfoOrder()"
+  [error]="infoOrderError()"
+  (closeModal)="closeInfoOrderModal()"
+  (save)="saveInfoOrder($event)"
+/>

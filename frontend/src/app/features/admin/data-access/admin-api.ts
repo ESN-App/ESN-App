@@ -28,6 +28,15 @@ export interface CreateEventRequest {
   price: number;
 }
 
+export interface CreateInfoArticleRequest {
+  title: string;
+  slug: string;
+  content: string;
+  category: string;
+  imageUrl: string;
+  externalLinks: string[];
+}
+
 export interface CreatePartnerRequest {
   name: string;
   shortDescription: string;
@@ -84,6 +93,18 @@ export class AdminApi {
 
   getAdmins(): Observable<AdminUserDto[]> {
     return this.http.get<AdminUserDto[]>(`${this.baseUrl}/admins`);
+  }
+
+  createAdmin(email: string, password: string): Observable<AdminUserDto> {
+    return this.http.post<AdminUserDto>(`${this.baseUrl}/admins`, { email, password });
+  }
+
+  deleteAdmin(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/admins/${id}`);
+  }
+
+  requestPasswordReset(id: string): Observable<void> {
+    return this.http.post<void>(`${this.baseUrl}/admins/${id}/reset-password`, {});
   }
 
   createEvent(request: CreateEventRequest, image: File | null): Observable<EventDetailsDto> {
@@ -225,6 +246,26 @@ export class AdminApi {
 
   updateInfoStatus(id: string, status: number): Observable<InfoArticleDto> {
     return this.http.patch<InfoArticleDto>(`${this.baseUrl}/info/${id}/status`, { status });
+  }
+
+  getInfoArticle(id: string): Observable<InfoArticleDto> {
+    return this.http.get<InfoArticleDto>(`${this.baseUrl}/info/${id}`);
+  }
+
+  createInfo(request: CreateInfoArticleRequest): Observable<InfoArticleDto> {
+    return this.http.post<InfoArticleDto>(`${this.baseUrl}/info`, request);
+  }
+
+  updateInfo(id: string, request: CreateInfoArticleRequest): Observable<InfoArticleDto> {
+    return this.http.put<InfoArticleDto>(`${this.baseUrl}/info/${id}`, request);
+  }
+
+  deleteInfo(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/info/${id}`);
+  }
+
+  reorderInfo(articleIds: string[]): Observable<InfoArticleDto[]> {
+    return this.http.put<InfoArticleDto[]>(`${this.baseUrl}/info/order`, { articleIds });
   }
 
   private getEventsPage(page: number): Observable<PagedResult<EventDetailsDto>> {

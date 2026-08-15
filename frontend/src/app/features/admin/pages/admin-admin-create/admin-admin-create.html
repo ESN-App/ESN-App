@@ -1,0 +1,77 @@
+<main class="create-page">
+  <header class="page-header">
+    <div>
+      <a class="back-link" routerLink="/admin" [queryParams]="{ section: 'admins' }">
+        <span class="back-icon" aria-hidden="true"></span>
+        <span>Admin panel</span>
+      </a>
+      <p class="eyebrow">Administrators</p>
+      <h1>Create admin</h1>
+      <p>Grant another team member administrator access to the ESN Gdańsk app.</p>
+    </div>
+  </header>
+
+  <form class="admin-form" [formGroup]="form" (ngSubmit)="submit()" novalidate>
+    <div class="form-heading">
+      <div><h2>Administrator details</h2><p>Fields marked with * are required.</p></div>
+    </div>
+
+    <label class="field">
+      <span>Email *</span>
+      <input type="email" formControlName="email" maxlength="256" placeholder="name@esngdansk.local" autocomplete="off" />
+      @if (showError('email')) { <small>Enter a valid email address.</small> }
+    </label>
+
+    <label class="field">
+      <span>Password *</span>
+      <span class="password-input">
+        <input [type]="passwordVisible() ? 'text' : 'password'" formControlName="password" placeholder="At least 8 characters" autocomplete="new-password" />
+        <button type="button" class="password-toggle" (click)="togglePasswordVisibility()" [attr.aria-label]="passwordVisible() ? 'Hide password' : 'Show password'">{{ passwordVisible() ? 'Hide' : 'Show' }}</button>
+      </span>
+      <span class="field-hint">{{ passwordHint }}</span>
+      @if (showError('password')) { <small>The password does not meet the required criteria.</small> }
+    </label>
+
+    <label class="field">
+      <span>Confirm password *</span>
+      <span class="password-input">
+        <input [type]="confirmPasswordVisible() ? 'text' : 'password'" formControlName="confirmPassword" placeholder="Repeat the password" autocomplete="new-password" [class.mismatch]="showMismatchError()" />
+      </span>
+      @if (showMismatchError()) { <small>Passwords do not match.</small> }
+    </label>
+
+    @if (error(); as message) { <div class="save-error" role="alert">{{ message }}</div> }
+
+    <div class="form-actions">
+      <a routerLink="/admin" [queryParams]="{ section: 'admins' }">Cancel</a>
+      <div class="save-action">
+        <button type="submit" [disabled]="form.invalid || submitting()">{{ submitting() ? 'Creating…' : 'Create admin' }}</button>
+        @if (form.invalid) {
+          <small>Fill in all required fields to continue.</small>
+        }
+      </div>
+    </div>
+  </form>
+
+  @if (confirmationOpen()) {
+    <div class="confirmation-backdrop">
+      <section
+        class="confirmation-dialog"
+        role="alertdialog"
+        aria-modal="true"
+        aria-labelledby="confirmation-title"
+      >
+        <h2 id="confirmation-title">Create this admin account?</h2>
+        <p>This grants full administrator access to the ESN Gdańsk app.</p>
+        <div class="confirmation-actions">
+          <button type="button" class="confirmation-cancel" (click)="cancelConfirmation()">
+            Keep editing
+          </button>
+          <button type="button" class="confirmation-submit" (click)="confirmSubmit()">
+            Yes, create admin
+          </button>
+        </div>
+      </section>
+    </div>
+  }
+</main>

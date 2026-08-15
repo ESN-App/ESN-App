@@ -1,5 +1,6 @@
 :host {
   --accent: #ec008c;
+  container-type: inline-size;
   display: block;
 }
 
@@ -81,7 +82,7 @@ article {
 }
 
 h1 {
-  font-size: clamp(2.2rem, 7vw, 4rem);
+  font-size: clamp(2.2rem, 7cqw, 4rem);
   font-weight: 900;
   letter-spacing: -0.055em;
   line-height: 0.92;
@@ -242,7 +243,7 @@ h2 {
   transform: translateX(2px);
 }
 
-@media (max-width: 700px) {
+@container (max-width: 700px) {
   .partner-hero {
     background: transparent;
     grid-template-columns: 1fr;

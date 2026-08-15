@@ -67,32 +67,6 @@
   margin: 0.6rem 0 0;
 }
 
-.editor-layout {
-  align-items: stretch;
-  display: grid;
-  gap: 1.25rem;
-  grid-template-columns: minmax(25rem, 30rem) minmax(0, 1fr);
-  transition: grid-template-columns 620ms ease;
-}
-
-.editor-layout.editor-layout--preview-hidden {
-  grid-template-columns: minmax(25rem, 100rem) minmax(0, 1fr);
-}
-
-app-admin-event-preview {
-  min-height: 0;
-  min-width: 0;
-  opacity: 1;
-  overflow: hidden;
-  transition: opacity 320ms ease 240ms;
-}
-
-.editor-layout--preview-hidden app-admin-event-preview {
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 220ms ease;
-}
-
 .preview-toggle {
   background: #eceeff;
   border: 0;
@@ -177,13 +151,13 @@ app-admin-event-preview {
   width: 100%;
 }
 
-.field:has(.character-count) input,
-.field:has(.character-count) textarea {
+.field:has(.character-count) input {
   padding-bottom: 1.4rem;
+  padding-right: 4rem;
 }
 
-.field:has(.character-count) input {
-  padding-right: 4rem;
+.field:has(.character-count) textarea {
+  padding-bottom: 2.3rem;
 }
 
 .field textarea[cdkTextareaAutosize] {
@@ -384,31 +358,6 @@ app-admin-event-preview {
 .form-actions button:disabled {
   cursor: not-allowed;
   opacity: 0.42;
-}
-
-@media (max-width: 1050px) {
-  .editor-layout {
-    grid-template-columns: minmax(22rem, 27rem) minmax(0, 1fr);
-  }
-
-  .editor-layout.editor-layout--preview-hidden {
-    grid-template-columns: minmax(22rem, 100rem) minmax(0, 1fr);
-  }
-}
-
-@media (max-width: 850px) {
-  .editor-layout {
-    grid-template-columns: 1fr;
-  }
-
-  app-admin-event-preview {
-    max-height: 120rem;
-    transition: max-height 620ms ease, opacity 320ms ease;
-  }
-
-  .editor-layout--preview-hidden app-admin-event-preview {
-    max-height: 0;
-  }
 }
 
 @media (max-width: 520px) {

@@ -9,12 +9,13 @@ import { LoadingSpinner } from '../../../../shared';
 import { AdminApi, CreateDiscountRequest, CreatePartnerRequest, DiscountDto } from '../../data-access/admin-api';
 import { PartnerDetailsViewModel } from '../../../partners/components/partner-details-view/partner-details-view';
 import { PartnerOffer } from '../../../partners/data-access/partners.models';
+import { AdminEditorLayout } from '../../components/admin-editor-layout/admin-editor-layout';
 import { AdminPartnerPreview } from '../../components/admin-partner-preview/admin-partner-preview';
 import { createDiscountGroup, createPartnerForm } from '../../utils/partner-form';
 
 @Component({
   selector: 'app-admin-partner-edit',
-  imports: [AdminPartnerPreview, LoadingSpinner, ReactiveFormsModule, RouterLink, TextFieldModule],
+  imports: [AdminEditorLayout, AdminPartnerPreview, LoadingSpinner, ReactiveFormsModule, RouterLink, TextFieldModule],
   templateUrl: './admin-partner-edit.html',
   styleUrl: '../admin-partner-create/admin-partner-create.scss',
 })

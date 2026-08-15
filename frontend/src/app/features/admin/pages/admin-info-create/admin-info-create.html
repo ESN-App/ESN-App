@@ -1,0 +1,138 @@
+<main class="create-page">
+  <header class="page-header">
+    <div>
+      <a class="back-link" routerLink="/admin" [queryParams]="{ section: 'info' }">
+        <span class="back-icon" aria-hidden="true"></span>
+        <span>Admin panel</span>
+      </a>
+      <p class="eyebrow">Info administration</p>
+      <h1>Create info article</h1>
+      <p>Complete the required information and choose the article status.</p>
+    </div>
+  </header>
+
+  <app-admin-editor-layout [previewVisible]="previewVisible()">
+    <form class="info-form" editor-form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+      <div class="form-heading">
+        <div><h2>Article information</h2><p>Fields marked with * are required.</p></div>
+        <button type="button" class="preview-toggle" (click)="togglePreview()">{{ previewVisible() ? 'Hide preview' : 'Show preview' }}</button>
+      </div>
+
+      <fieldset class="status-field">
+        <legend>Article status</legend>
+        <p>Choose who can see this article.</p>
+        <div class="status-options">
+          <label class="status-option status-option--draft">
+            <input type="radio" formControlName="status" [value]="0" (change)="updateStatusPreview()" />
+            <span class="status-option__dot" aria-hidden="true"></span>
+            <span class="status-option__copy"><strong>Draft</strong><small>Visible only to logged-in administrators.</small></span>
+            <span class="status-option__choice" aria-hidden="true"></span>
+          </label>
+          <label class="status-option status-option--published">
+            <input type="radio" formControlName="status" [value]="1" (change)="updateStatusPreview()" />
+            <span class="status-option__dot" aria-hidden="true"></span>
+            <span class="status-option__copy"><strong>Published</strong><small>Visible to everyone.</small></span>
+            <span class="status-option__choice" aria-hidden="true"></span>
+          </label>
+        </div>
+      </fieldset>
+
+      <label class="field">
+        <span>Title *</span>
+        <input type="text" formControlName="title" maxlength="200" placeholder="For example: Registering your stay" (input)="onTitleInput()" />
+        <span class="character-count">{{ form.controls.title.value?.length || 0 }}/200</span>
+        @if (showError('title')) { <small>Enter an article title (maximum 200 characters).</small> }
+      </label>
+
+      <label class="field">
+        <span>Slug *</span>
+        <input type="text" formControlName="slug" maxlength="200" placeholder="registering-your-stay" />
+        <span class="field-hint">Lowercase letters, numbers, and hyphens only.</span>
+        @if (showError('slug')) { <small>Enter a valid slug (lowercase letters, numbers, and hyphens).</small> }
+      </label>
+
+      <label class="field">
+        <span>Category *</span>
+        <input type="text" formControlName="category" maxlength="100" placeholder="For example: Housing" />
+        @if (showError('category')) { <small>Enter a category (maximum 100 characters).</small> }
+      </label>
+
+      <label class="field">
+        <span>Content *</span>
+        <textarea formControlName="content" maxlength="50000" cdkTextareaAutosize cdkAutosizeMinRows="6" placeholder="Write the full article content"></textarea>
+        <span class="character-count">{{ form.controls.content.value?.length || 0 }}/50000</span>
+        @if (showError('content')) { <small>Enter the article content (maximum 50,000 characters).</small> }
+      </label>
+
+      <label class="field">
+        <span>Image URL *</span>
+        <input type="url" formControlName="imageUrl" maxlength="2000" placeholder="Paste an absolute image link" />
+        @if (showError('imageUrl')) { <small>Enter a valid absolute URL.</small> }
+      </label>
+
+      <fieldset class="discounts-section">
+        <legend>External links</legend>
+        <p>Add links members can open for more information (optional, up to 20).</p>
+
+        @for (link of externalLinkControls; track link; let index = $index) {
+          <div class="discount-row">
+            <div class="discount-row__fields">
+              <label class="field">
+                <span>Link {{ index + 1 }} *</span>
+                <input type="url" [formControl]="link" maxlength="2000" placeholder="https://example.com" />
+                @if (showExternalLinkError(index)) {
+                  <small>Enter a valid absolute URL.</small>
+                }
+              </label>
+            </div>
+            <button
+              type="button"
+              class="discount-remove"
+              [attr.aria-label]="'Remove link ' + (index + 1)"
+              (click)="removeExternalLink(index)"
+            >
+              Remove
+            </button>
+          </div>
+        }
+
+        <button type="button" class="add-discount-button" [disabled]="externalLinkControls.length >= 20" (click)="addExternalLink()">Add link</button>
+      </fieldset>
+
+      @if (error(); as message) { <div class="save-error" role="alert">{{ message }}</div> }
+
+      <div class="form-actions">
+        <a routerLink="/admin" [queryParams]="{ section: 'info' }">Cancel</a>
+        <div class="save-action">
+          <button type="submit" [disabled]="form.invalid || submitting()">{{ submitting() ? 'Saving…' : 'Create article' }}</button>
+          @if (form.invalid) {
+            <small>Fill in all required fields to continue.</small>
+          }
+        </div>
+      </div>
+    </form>
+
+    <app-admin-info-preview editor-preview [listItem]="previewListItem()" [details]="previewDetails()" />
+  </app-admin-editor-layout>
+
+  @if (confirmationOpen()) {
+    <div class="confirmation-backdrop">
+      <section
+        class="confirmation-dialog"
+        role="alertdialog"
+        aria-modal="true"
+        aria-labelledby="confirmation-title"
+      >
+        <h2 id="confirmation-title">Create this article?</h2>
+        <div class="confirmation-actions">
+          <button type="button" class="confirmation-cancel" (click)="cancelConfirmation()">
+            Keep editing
+          </button>
+          <button type="button" class="confirmation-submit" (click)="confirmSubmit()">
+            Yes, create article
+          </button>
+        </div>
+      </section>
+    </div>
+  }
+</main>

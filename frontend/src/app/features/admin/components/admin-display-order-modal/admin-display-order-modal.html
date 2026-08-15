@@ -1,0 +1,54 @@
+@if (open()) {
+  <div class="confirmation-backdrop" (click)="requestClose()">
+    <section class="confirmation-dialog" role="dialog" aria-modal="true" [attr.aria-labelledby]="titleId" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2 [id]="titleId">{{ heading() }}</h2>
+        <button type="button" class="modal-close" (click)="requestClose()" aria-label="Close">×</button>
+      </div>
+
+      <div class="modal-content">
+        @if (workingList().length === 0) {
+          <p class="modal-message">{{ emptyMessage() }}</p>
+        } @else {
+          <p class="drag-list-help">Drag items to set their display order</p>
+          <div class="drag-list-region">
+            <div class="drag-list" #dragListScroll (scroll)="updateDragListScroll($event)" (wheel)="onDragListWheel($event)">
+              @for (item of workingList(); track item.id) {
+                <div class="drag-item" draggable="true" (dragstart)="onDragStart($event, item)" (dragover)="onDragOver($event)" (drop)="onDrop($event, item)" (dragend)="onDragEnd()" [class.dragging]="draggedItem()?.id === item.id">
+                  <span class="drag-handle" aria-hidden="true">⋮⋮</span>
+                  <span class="drag-item-label">{{ itemLabel()(item) }}</span>
+                </div>
+              }
+            </div>
+
+            <input
+              class="drag-list-scrollbar"
+              type="range"
+              min="0"
+              [max]="dragListScrollMaximum()"
+              [value]="dragListScrollPosition()"
+              [disabled]="dragListScrollMaximum() === 0"
+              [style.width.px]="dragListHeight()"
+              aria-label="Scroll display order list"
+              (input)="scrollDragList($event)"
+            />
+          </div>
+        }
+
+        @if (error()) {
+          <p class="modal-error" role="alert">{{ error() }}</p>
+        }
+      </div>
+
+      <div class="modal-actions">
+        <button type="button" class="confirmation-cancel" [disabled]="saving()" (click)="requestClose()">Cancel</button>
+        <div class="modal-save-action">
+          <button type="button" class="confirmation-submit" [disabled]="saving() || workingList().length === 0 || !hasChanged()" (click)="requestSave()">{{ saving() ? 'Saving...' : 'Save' }}</button>
+          @if (!hasChanged() && workingList().length > 0) {
+            <small>Make changes to enable save</small>
+          }
+        </div>
+      </div>
+    </section>
+  </div>
+}

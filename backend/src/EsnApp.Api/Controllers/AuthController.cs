@@ -28,4 +28,16 @@ public class AuthController(IIdentityService identityService) : ControllerBase
 
         return result.IsSuccess ? Ok(result.Value) : Unauthorized(new { error = result.Error });
     }
+
+    /// <summary>Sets a new password using a time-limited reset token emailed by an administrator.</summary>
+    [HttpPost("reset-password")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> ResetPassword(ResetPasswordRequest request, CancellationToken cancellationToken)
+    {
+        var result = await identityService.ResetPasswordAsync(
+            request.Email, request.Token, request.NewPassword, cancellationToken);
+
+        return result.IsSuccess ? Ok() : BadRequest(new { error = result.Error });
+    }
 }

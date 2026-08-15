@@ -53,6 +53,10 @@ export class AuthService {
       .pipe(tap((response) => this.storeSession(response)));
   }
 
+  resetPassword(email: string, token: string, newPassword: string): Observable<void> {
+    return this.http.post<void>(`${this.baseUrl}/reset-password`, { email, token, newPassword });
+  }
+
   logout(): void {
     localStorage.removeItem(TOKEN_KEY);
     localStorage.removeItem(EMAIL_KEY);
