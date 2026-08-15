@@ -12,4 +12,8 @@ export class NewsApi {
   getAll(): Observable<NewsItemDto[]> {
     return this.http.get<NewsItemDto[]>(this.baseUrl);
   }
+
+  getById(id: string): Observable<NewsItemDto> {
+    return this.http.get<NewsItemDto>(`${this.baseUrl}/${id}`);
+  }
 }
