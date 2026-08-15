@@ -1,5 +1,5 @@
 :host {
-  --accent: #7ac143;
+  --accent: #00aeef;
   display: block;
 }
 
@@ -36,7 +36,6 @@ article {
   border-radius: 2rem;
   display: grid;
   gap: 1.5rem;
-  grid-template-columns: minmax(13rem, 42%) 1fr;
   overflow: hidden;
   padding: 0.75rem;
 }
@@ -61,12 +60,7 @@ article {
 }
 
 .hero-copy {
-  align-self: end;
-  padding: 1.25rem 1.25rem 1.25rem 0;
-}
-
-.hero.no-image {
-  grid-template-columns: 1fr;
+  padding: 0 1.25rem 1.25rem;
 }
 
 .hero.no-image .hero-copy {
@@ -132,10 +126,6 @@ h1 {
 
   .back-label {
     display: none;
-  }
-
-  .hero {
-    grid-template-columns: 1fr;
   }
 
   .hero-image {
