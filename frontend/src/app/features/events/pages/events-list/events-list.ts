@@ -45,6 +45,19 @@ interface MonthOption {
   key: string;
 }
 
+interface MobileCalendarDay {
+  date: Date;
+  dateKey: string;
+  eventCount: number;
+  isToday: boolean;
+}
+
+interface MonthOption {
+  date: Date;
+  hasEvents: boolean;
+  key: string;
+}
+
 @Component({
   selector: 'app-events-list',
   imports: [DatePipe, EventListItem, LoadingSpinner, MatDatepickerModule],
@@ -260,18 +273,18 @@ export class EventsList {
     return lastMonth !== undefined && monthKey(this.selectedMonth()) < lastMonth;
   }
 
+  }
+
+  }
+
   toggleMonthPicker(): void {
     if (!this.monthPickerOpen()) {
       this.monthPickerYear.set(this.selectedMonth().getFullYear());
     }
 
     this.monthPickerOpen.update((isOpen) => !isOpen);
-  }
-
   closeMonthPicker(): void {
     this.monthPickerOpen.set(false);
-  }
-
   changeMonthPickerYear(offset: number): void {
     const years = this.monthPickerYears();
     const currentIndex = years.indexOf(this.monthPickerYear());
@@ -319,6 +332,19 @@ export class EventsList {
   clearFilters(): void {
     this.searchTerm.set('');
     this.selectedDateKey.set(null);
+  }
+
+  private dateFromKey(value: string): Date {
+    const [year, month, day] = value.split('-').map(Number);
+    return new Date(year, month - 1, day);
+  }
+
+  private dateKey(date: Date): string {
+    return [
+      date.getFullYear(),
+      String(date.getMonth() + 1).padStart(2, '0'),
+      String(date.getDate()).padStart(2, '0'),
+    ].join('-');
   }
 
   private dateFromKey(value: string): Date {

@@ -317,6 +317,16 @@ h1 {
     height: 0.22rem;
     left: 50%;
     position: absolute;
+  }
+
+  .details-label {
+    display: inline;
+  }
+
+  .arrow {
+    height: 1.5rem;
+    width: 1.5rem;
+  }
     transform: translateX(-50%);
     width: 0.22rem;
   }
@@ -562,6 +572,228 @@ h1 {
 @media (min-width: 701px) and (max-width: 1100px) {
   .events-results {
     padding: 0.9rem;
+}
+
+@media (max-width: 1100px) {
+  .mobile-date-calendar {
+    display: block;
+    margin: 0 0 1rem;
+    position: relative;
+  }
+
+  .mobile-date-calendar__header {
+    display: block;
+    margin-bottom: 0.55rem;
+  }
+
+  .month-picker-control {
+    align-items: center;
+    background: #fff;
+    border: 1px solid #d8ddd4;
+    border-radius: 0.8rem;
+    box-sizing: border-box;
+    color: #171916;
+    cursor: pointer;
+    display: flex;
+    font: inherit;
+    font-size: 0.9rem;
+    font-weight: 800;
+    gap: 0.5rem;
+    justify-content: space-between;
+    padding: 0.55rem 0.7rem 0.55rem 0.85rem;
+    width: 100%;
+  }
+
+  .mobile-calendar-icon {
+    background: var(--events-accent-dark);
+    display: block;
+    height: 1rem;
+    mask: url('/icons/calendar.svg') center / contain no-repeat;
+    width: 1rem;
+  }
+
+  .month-picker-backdrop {
+    background: transparent;
+    border: 0;
+    inset: 0;
+    padding: 0;
+    position: fixed;
+    z-index: 20;
+  }
+
+  .month-picker-popover {
+    background: #fff;
+    border: 1px solid #e0e3dd;
+    border-radius: 1.15rem;
+    box-shadow: 0 15px 35px rgba(22, 35, 15, 0.18);
+    left: 0;
+    overflow: hidden;
+    position: absolute;
+    top: 3.25rem;
+    width: 100%;
+    z-index: 21;
+  }
+
+  .month-picker-popover > header {
+    align-items: center;
+    border-bottom: 1px solid #e7e9e4;
+    display: grid;
+    grid-template-columns: 2.4rem minmax(0, 1fr) 2.4rem;
+    padding: 0.75rem;
+  }
+
+  .month-picker-popover h3 {
+    font-size: 1.05rem;
+    margin: 0;
+    text-align: center;
+  }
+
+  .month-picker-popover > header button {
+    background: #fff;
+    border: 1px solid #dfe3dc;
+    border-radius: 0.65rem;
+    height: 2.4rem;
+    padding: 0;
+    width: 2.4rem;
+  }
+
+  .month-picker-popover > header button:disabled {
+    opacity: 0.3;
+  }
+
+  .year-chevron {
+    border-bottom: 2px solid #62675f;
+    border-right: 2px solid #62675f;
+    display: block;
+    height: 0.45rem;
+    margin: auto;
+    width: 0.45rem;
+  }
+
+  .year-chevron.previous {
+    transform: rotate(135deg);
+  }
+
+  .year-chevron.next {
+    transform: rotate(-45deg);
+  }
+
+  .month-picker-grid {
+    display: grid;
+    gap: 0.35rem;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    padding: 0.8rem;
+  }
+
+  .month-picker-grid button {
+    background: transparent;
+    border: 0;
+    border-radius: 0.55rem;
+    color: #252824;
+    font: inherit;
+    min-height: 2.45rem;
+    padding: 0.35rem;
+  }
+
+  .month-picker-grid button:not(:disabled) {
+    cursor: pointer;
+  }
+
+  .month-picker-grid button.selected {
+    background: var(--events-accent-dark);
+    color: #fff;
+    font-weight: 800;
+  }
+
+  .month-picker-grid button:disabled {
+    color: #c3c6c0;
+  }
+
+  .mobile-date-strip {
+    display: flex;
+    gap: 0.45rem;
+    overflow-x: auto;
+    padding: 0.1rem 0 0.4rem;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+    touch-action: pan-x;
+  }
+
+  .mobile-date-strip::-webkit-scrollbar {
+    display: none;
+  }
+
+  .mobile-date {
+    align-items: center;
+    background: #fff;
+    border: 1px solid var(--events-border);
+    border-radius: 0.85rem;
+    color: #52574f;
+    display: flex;
+    flex: 0 0 3.5rem;
+    flex-direction: column;
+    min-height: 4.25rem;
+    padding: 0.4rem 0.2rem 0.3rem;
+    scroll-snap-align: start;
+  }
+
+  .mobile-date__number {
+    font-size: 1.15rem;
+    font-weight: 850;
+    line-height: 1.2;
+  }
+
+  .mobile-date__weekday {
+    font-size: 0.62rem;
+    font-weight: 750;
+    text-transform: uppercase;
+  }
+
+  .mobile-date__dot {
+    background: var(--events-accent-dark);
+    border-radius: 50%;
+    height: 0.3rem;
+    margin-top: 0.2rem;
+    width: 0.3rem;
+  }
+
+  .mobile-date--today {
+    border-color: var(--events-accent);
+  }
+
+  .mobile-date--has-events {
+    background: #edf6e8;
+    color: #315d18;
+  }
+
+  .mobile-date--selected {
+    background: var(--events-accent-dark);
+    border-color: var(--events-accent-dark);
+    color: #fff;
+  }
+
+  .mobile-date--selected .mobile-date__dot {
+    background: #fff;
+  }
+
+  .events-layout {
+    display: block;
+  }
+
+  .calendar-panel {
+    display: none;
+  }
+}
+
+@media (min-width: 701px) and (max-width: 1100px) {
+  .events-results {
+    padding: 0.9rem;
+  }
+
+  .event-item {
+    gap: 1rem;
+    grid-template-columns: 9rem minmax(0, 1fr) 8rem;
+    min-height: 12.5rem;
   }
 }
 
