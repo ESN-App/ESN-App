@@ -30,7 +30,7 @@
           <a
             class="news-card"
             [class.news-card--draft]="item.status === 0"
-            routerLink="/preview"
+            [routerLink]="item.status === 0 ? '/preview' : ['/news', item.id]"
             [class.active]="activeIndex() === itemIndex"
             [attr.aria-label]="'Open ' + item.title"
           >
