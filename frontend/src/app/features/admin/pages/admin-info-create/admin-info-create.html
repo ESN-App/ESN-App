@@ -64,11 +64,15 @@
         @if (showError('content')) { <small>Enter the article content (maximum 50,000 characters).</small> }
       </label>
 
-      <label class="field">
-        <span>Image URL *</span>
-        <input type="url" formControlName="imageUrl" maxlength="2000" placeholder="Paste an absolute image link" />
-        @if (showError('imageUrl')) { <small>Enter a valid absolute URL.</small> }
-      </label>
+      <div class="field">
+        <span>Image *</span>
+        <div class="upload-control">
+          <input #imageInput class="file-input" type="file" accept="image/jpeg,image/png,image/webp" (change)="chooseImage($event)" />
+          @if (imagePreviewUrl()) { <button type="button" (click)="removeImage(imageInput)">Remove image</button> }
+        </div>
+        <span class="field-hint">JPEG, PNG, or WebP, up to 8 MB.</span>
+        @if (imageError(); as message) { <small>{{ message }}</small> }
+      </div>
 
       <fieldset class="discounts-section">
         <legend>External links</legend>

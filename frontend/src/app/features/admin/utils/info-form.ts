@@ -25,7 +25,6 @@ export function createInfoForm(formBuilder: FormBuilder) {
     ],
     category: ['', [Validators.required, Validators.maxLength(100)]],
     content: ['', [Validators.required, Validators.maxLength(50_000)]],
-    imageUrl: ['', [Validators.required, Validators.maxLength(2000), optionalAbsoluteUrl]],
     externalLinks: formBuilder.array<ExternalLinkControl>([]),
   });
 }

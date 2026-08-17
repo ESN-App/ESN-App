@@ -1,10 +1,12 @@
 @let loaded = article();
 <article class="article">
+  @if (loaded.status === 0) { <app-draft-preview-banner /> }
+
   <section class="info-hero">
     <div class="hero-image">
-      @if (loaded.imageUrl && !imageBroken()) {
+      @if (loaded.imagePath && !imageBroken()) {
         <img
-          [src]="loaded.imageUrl"
+          [src]="loaded.imagePath"
           [alt]="loaded.title"
           (error)="imageBroken.set(true)"
         />

@@ -5,7 +5,6 @@
       <h1>Admin panel</h1>
       <p class="intro">Manage the content and people that keep the ESN Gdańsk app up to date.</p>
     </div>
-    <span class="access-label">Admin access</span>
   </header>
 
   <nav class="section-switch" aria-label="Admin panel sections" role="tablist">
@@ -26,7 +25,7 @@
         </p>
       </div>
       <div class="table-header__actions">
-        @if ((activeSection() === 'events' || activeSection() === 'partners' || activeSection() === 'info' || activeSection() === 'admins') && selectedCount()) {
+        @if ((activeSection() === 'events' || activeSection() === 'news' || activeSection() === 'partners' || activeSection() === 'info' || activeSection() === 'admins') && selectedCount()) {
           <div class="bulk-actions" [attr.aria-label]="'Actions for selected ' + activeLabel().toLowerCase()">
             <button type="button" class="bulk-delete-button" (click)="requestBulkDelete()">Delete selected</button>
             @if (activeSection() !== 'admins') {
@@ -38,6 +37,7 @@
           </div>
         }
         @if (activeSection() === 'events') { <a class="create-button" routerLink="/admin/events/new">Create new event</a> }
+        @if (activeSection() === 'news') { <a class="create-button" routerLink="/admin/news/new">Create new news article</a> }
         @if (activeSection() === 'partners') {
           <button type="button" class="create-button" (click)="openDisplayOrderModal()">Set display order</button>
           <a class="create-button" routerLink="/admin/partners/new">Create new partner</a>
@@ -121,10 +121,10 @@
                 @for (item of pagedNews(); track item.id) {
                   <tr [class.draft-row]="item.status === 0">
                     <td class="selection"><input type="checkbox" [attr.aria-label]="'Select ' + item.title" [checked]="selectedIds().has(item.id)" (change)="toggleSelection(item.id)" /></td>
-                    <td class="primary-column" data-label="News item"><a class="details-link" routerLink="/preview" [title]="item.title">{{ item.title }}</a></td>
+                    <td class="primary-column" data-label="News item"><a class="details-link" [routerLink]="['/news', item.id]" [title]="item.title">{{ item.title }}</a></td>
                     <td data-label="Created">{{ item.createdAt | date: 'd MMM y' }}</td>
                     <td data-label="Status"><span class="status-badge" [class.draft-badge]="item.status === 0">{{ item.status === 0 ? 'Draft' : 'Published' }}</span></td>
-                    <td class="row-tools"><div class="row-tools__buttons"><button type="button" class="icon-button icon-button--edit" [attr.aria-label]="'Edit ' + item.title" title="Edit"></button><button type="button" class="icon-button icon-button--delete" [attr.aria-label]="'Delete ' + item.title" title="Delete"></button><button type="button" class="icon-button icon-button--menu" [attr.aria-label]="'Options for ' + item.title" title="Options"></button></div></td>
+                    <td class="row-tools"><div class="row-tools__buttons"><a class="icon-button icon-button--edit" [routerLink]="['/admin/news', item.id, 'edit']" [attr.aria-label]="'Edit ' + item.title" title="Edit"></a><button type="button" class="icon-button icon-button--delete" [attr.aria-label]="'Delete ' + item.title" title="Delete" (click)="requestNewsDelete(item)"></button></div></td>
                   </tr>
                 }
               </tbody>
@@ -264,6 +264,21 @@
   </div>
 }
 
+@if (newsPendingDelete(); as newsArticle) {
+  <div class="confirmation-backdrop">
+    <section class="confirmation-dialog" role="alertdialog" aria-modal="true" aria-labelledby="delete-news-title">
+      <h2 id="delete-news-title">Are you sure you want to delete {{ newsArticle.title }}?</h2>
+      @if (deleteError()) {
+        <p class="confirmation-error" role="alert">{{ deleteError() }}</p>
+      }
+      <div class="confirmation-actions">
+        <button type="button" class="confirmation-cancel" [disabled]="deletingNews()" (click)="cancelNewsDelete()">Keep news article</button>
+        <button type="button" class="confirmation-delete" [disabled]="deletingNews()" (click)="confirmNewsDelete()">{{ deletingNews() ? 'Deleting...' : 'Yes, delete news article' }}</button>
+      </div>
+    </section>
+  </div>
+}
+
 @if (adminPendingDelete(); as admin) {
   <div class="confirmation-backdrop">
     <section class="confirmation-dialog" role="alertdialog" aria-modal="true" aria-labelledby="delete-admin-title">
@@ -314,7 +329,7 @@
 @if (bulkDeletePending()) {
   <div class="confirmation-backdrop">
     <section class="confirmation-dialog" role="alertdialog" aria-modal="true" [attr.aria-labelledby]="'bulk-delete-' + activeSection() + '-title'">
-      @let itemLabel = activeSection() === 'events' ? 'event' : activeSection() === 'partners' ? 'partner' : activeSection() === 'info' ? 'article' : activeSection() === 'admins' ? 'admin' : 'item';
+      @let itemLabel = activeSection() === 'events' ? 'event' : activeSection() === 'news' ? 'news article' : activeSection() === 'partners' ? 'partner' : activeSection() === 'info' ? 'article' : activeSection() === 'admins' ? 'admin' : 'item';
       @let itemLabelPlural = selectedCount() === 1 ? itemLabel : (itemLabel + 's');
       <h2 [id]="'bulk-delete-' + activeSection() + '-title'">Delete {{ selectedCount() }} selected {{ itemLabelPlural }}?</h2>
       @if (bulkActionError()) {
@@ -331,8 +346,8 @@
 @if (bulkStatusPending()) {
   <div class="confirmation-backdrop">
     <section class="confirmation-dialog" role="dialog" aria-modal="true" [attr.aria-labelledby]="'bulk-status-' + activeSection() + '-title'">
-      @let statusOptions = activeSection() === 'partners' ? partnerStatusOptions : activeSection() === 'info' ? infoStatusOptions : eventStatusOptions;
-      @let itemLabel = activeSection() === 'events' ? 'event' : activeSection() === 'partners' ? 'partner' : activeSection() === 'info' ? 'article' : 'item';
+      @let statusOptions = activeSection() === 'partners' ? partnerStatusOptions : activeSection() === 'info' ? infoStatusOptions : activeSection() === 'news' ? newsStatusOptions : eventStatusOptions;
+      @let itemLabel = activeSection() === 'events' ? 'event' : activeSection() === 'news' ? 'news article' : activeSection() === 'partners' ? 'partner' : activeSection() === 'info' ? 'article' : 'item';
       @let itemLabelPlural = selectedCount() === 1 ? itemLabel : (itemLabel + 's');
       <h2 [id]="'bulk-status-' + activeSection() + '-title'">Change status for selected {{ itemLabelPlural }}</h2>
       <label class="bulk-status-field" [for]="'bulk-' + activeSection() + '-status'">

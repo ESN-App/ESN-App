@@ -1,4 +1,4 @@
-import { Component, HostListener, computed, inject, signal } from '@angular/core';
+import { Component, HostListener, OnDestroy, computed, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { TextFieldModule } from '@angular/cdk/text-field';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
@@ -19,11 +19,12 @@ import { createExternalLinkControl, createInfoForm } from '../../utils/info-form
   templateUrl: './admin-info-edit.html',
   styleUrl: '../admin-info-create/admin-info-create.scss',
 })
-export class AdminInfoEdit {
+export class AdminInfoEdit implements OnDestroy {
   private readonly formBuilder = inject(FormBuilder);
   private readonly api = inject(AdminApi);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
+  private objectImageUrl: string | null = null;
 
   readonly infoId = this.route.snapshot.paramMap.get('infoId')!;
 
@@ -36,6 +37,10 @@ export class AdminInfoEdit {
   readonly initialInfoStatus = signal(0);
   readonly initialFormState = signal<string | null>(null);
   readonly previewVisible = signal(true);
+  readonly selectedImage = signal<File | null>(null);
+  readonly currentImagePath = signal<string | null>(null);
+  readonly imagePreviewUrl = signal<string | null>(null);
+  readonly imageError = signal<string | null>(null);
 
   readonly form = createInfoForm(this.formBuilder);
 
@@ -52,22 +57,27 @@ export class AdminInfoEdit {
       .map((link) => link?.trim() ?? '')
       .filter((link) => link.length > 0),
   );
+  readonly displayedImagePath = computed(() => this.imagePreviewUrl() ?? this.currentImagePath());
   readonly previewListItem = computed<InfoListItemView>(() => ({
     id: this.infoId,
     title: this.previewTitle(),
     slug: this.preview().slug?.trim() || null,
     content: this.previewContent(),
-    imageUrl: this.optionalText(this.preview().imageUrl),
+    imagePath: this.displayedImagePath(),
     status: this.infoStatus(),
   }));
   readonly previewDetails = computed<InfoDetailsViewModel>(() => ({
     id: this.infoId,
     title: this.previewTitle(),
     content: this.previewContent(),
-    imageUrl: this.optionalText(this.preview().imageUrl),
+    imagePath: this.displayedImagePath(),
     externalLinks: this.previewExternalLinks(),
+    status: this.infoStatus(),
   }));
   readonly hasChanges = computed(() => {
+    if (this.selectedImage() !== null) {
+      return true;
+    }
     const currentState = this.serializeForm(this.preview());
     const initialState = this.initialFormState();
     return initialState !== null && currentState !== initialState;
@@ -111,6 +121,45 @@ export class AdminInfoEdit {
     this.previewVisible.update((visible) => !visible);
   }
 
+  chooseImage(event: Event): void {
+    const input = event.currentTarget as HTMLInputElement;
+    const file = input.files?.[0] ?? null;
+    this.revokeImagePreview();
+    this.selectedImage.set(null);
+    this.imagePreviewUrl.set(null);
+    this.imageError.set(null);
+
+    if (!file) {
+      return;
+    }
+    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+      this.imageError.set('Choose a JPEG, PNG, or WebP image.');
+      input.value = '';
+      return;
+    }
+    if (file.size > 8 * 1024 * 1024) {
+      this.imageError.set('The image must be no larger than 8 MB.');
+      input.value = '';
+      return;
+    }
+
+    this.selectedImage.set(file);
+    this.objectImageUrl = URL.createObjectURL(file);
+    this.imagePreviewUrl.set(this.objectImageUrl);
+  }
+
+  removeImage(input: HTMLInputElement): void {
+    this.revokeImagePreview();
+    this.selectedImage.set(null);
+    this.imagePreviewUrl.set(null);
+    this.imageError.set(null);
+    input.value = '';
+  }
+
+  ngOnDestroy(): void {
+    this.revokeImagePreview();
+  }
+
   submit(): void {
     if (this.form.invalid || this.submitting() || !this.hasChanges()) {
       this.form.markAllAsTouched();
@@ -138,7 +187,6 @@ export class AdminInfoEdit {
       slug: value.slug!.trim(),
       content: value.content!.trim(),
       category: value.category!.trim(),
-      imageUrl: value.imageUrl!.trim(),
       externalLinks: (value.externalLinks ?? [])
         .map((link) => link?.trim() ?? '')
         .filter((link) => link.length > 0),
@@ -147,7 +195,7 @@ export class AdminInfoEdit {
     this.submitting.set(true);
     this.error.set(null);
 
-    this.api.updateInfo(this.infoId, request).pipe(
+    this.api.updateInfo(this.infoId, request, this.selectedImage()).pipe(
       switchMap((updated) =>
         value.status !== this.initialInfoStatus()
           ? this.api.updateInfoStatus(this.infoId, value.status!)
@@ -171,8 +219,11 @@ export class AdminInfoEdit {
     }
   }
 
-  private optionalText(value: string | null | undefined): string | null {
-    return value?.trim() || null;
+  private revokeImagePreview(): void {
+    if (this.objectImageUrl) {
+      URL.revokeObjectURL(this.objectImageUrl);
+      this.objectImageUrl = null;
+    }
   }
 
   private loadInfoArticle(id: string): void {
@@ -185,8 +236,8 @@ export class AdminInfoEdit {
           slug: article.slug,
           category: article.category,
           content: article.content,
-          imageUrl: article.imageUrl,
         });
+        this.currentImagePath.set(article.imagePath);
         this.applyExternalLinks(article.externalLinks);
         this.infoStatus.set(article.status);
         this.initialInfoStatus.set(article.status);

@@ -1,0 +1,140 @@
+// Mirrors the .news-card rules in home-highlights.scss, minus the carousel-only
+// concerns (scroll-snap, the inactive scale/opacity, hover and focus states).
+:host {
+  --accent: #00aeef;
+  // container-type + cqw so the admin live preview reacts to the 26rem mobile stage
+  // rather than the viewport, matching the events/partners/info preview components.
+  container-type: inline-size;
+  display: block;
+}
+
+.news-card {
+  background: #fff;
+  // The card paints its own background behind the rounded image, so it needs the same
+  // radius or the draft grey shows as square corners around the rounded photo.
+  border-radius: 1.75rem;
+  color: #111;
+  display: block;
+  height: 20rem;
+  position: relative;
+}
+
+.news-card--draft {
+  background: #f1f1f2;
+  filter: saturate(0.55);
+}
+
+.news-card img,
+.image-fallback {
+  border: 3px solid var(--accent);
+  border-radius: 1.75rem;
+  box-sizing: border-box;
+  display: block;
+  height: 100%;
+  object-fit: cover;
+  width: 100%;
+}
+
+.image-fallback {
+  background: #f1f1f2;
+}
+
+.news-card--draft .image-fallback,
+.news-card--draft img {
+  // #f1f1f2 / #cfd1d4 are the shared draft colours used by the event, partner and info
+  // list items, so a draft news card reads the same grey as every other section.
+  background: #f1f1f2;
+  border-color: #cfd1d4;
+}
+
+// With no image chosen there is no photo to keep a white title legible, so the
+// placeholder uses dark text on the flat grey instead.
+.news-card:has(.image-fallback) .news-overlay strong {
+  color: #4f515a;
+}
+
+.news-overlay {
+  background: transparent;
+  box-sizing: border-box;
+  color: #fff;
+  inset: 0;
+  padding: 1.5rem;
+  position: absolute;
+}
+
+.news-badge {
+  background: var(--accent);
+  border-radius: 100px;
+  display: block;
+  flex: 0 0 auto;
+  font-size: 0.82rem;
+  font-weight: 900;
+  justify-self: start;
+  padding: 0.48rem 0.85rem;
+  text-transform: uppercase;
+  width: fit-content;
+}
+
+.news-badge.draft-badge {
+  background: #dedfe2;
+  color: #45474d;
+}
+
+.news-overlay strong {
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  bottom: 1.5rem;
+  display: block;
+  display: -webkit-box;
+  font-size: clamp(1.4rem, 6cqw, 2.35rem);
+  left: 1.5rem;
+  letter-spacing: -0.035em;
+  line-height: 1.05;
+  margin: 0;
+  max-width: 70%;
+  overflow: hidden;
+  position: absolute;
+}
+
+// The phone rendering of the carousel card, keyed off the preview panel's Desktop/Mobile
+// switch rather than a container query: inside the editor the card is only ~26rem wide in
+// BOTH modes, so any width-based query fires in Desktop too. :host-context reads the
+// stage class instead.
+//
+// The image keeps its border and radius here. home-highlights.scss drops both under
+// 700px, but the rounded corners are wanted in the preview, so the gradient overlay is
+// given a matching radius to stop it painting square corners over the rounded image.
+:host-context(.preview-stage--mobile) {
+  .news-card {
+    height: 16rem;
+  }
+
+  .news-overlay {
+    border-radius: 1.75rem;
+    padding: 1rem;
+  }
+
+  // The darkening gradient only exists to keep the white title readable over a photo.
+  // Scoping it to cards that actually have an image means the placeholder shows the same
+  // flat grey in Mobile as it does in Desktop, instead of a dark gradient.
+  .news-card:has(img) .news-overlay {
+    background: linear-gradient(
+      180deg,
+      rgba(10, 14, 18, 0.68) 0%,
+      rgba(10, 14, 18, 0.2) 48%,
+      rgba(10, 14, 18, 0.72) 100%
+    );
+  }
+
+  .news-overlay strong {
+    bottom: 1rem;
+    font-size: clamp(1rem, 5.5cqw, 1.25rem);
+    left: 1rem;
+    max-width: 72%;
+  }
+
+  .news-badge {
+    font-size: 0.65rem;
+    padding: 0.35rem 0.65rem;
+  }
+}

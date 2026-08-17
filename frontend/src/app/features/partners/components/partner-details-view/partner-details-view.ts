@@ -1,5 +1,5 @@
 import { Component, input, signal } from '@angular/core';
-import { DraftBadge, InactiveBadge } from '../../../../shared';
+import { DraftPreviewBanner, InactiveBadge } from '../../../../shared';
 import { PartnerOffer } from '../../data-access/partners.models';
 import { PartnerListItemView } from '../partner-list-item/partner-list-item';
 
@@ -15,7 +15,7 @@ export interface PartnerDetailsViewModel extends PartnerListItemView {
 
 @Component({
   selector: 'app-partner-details-view',
-  imports: [DraftBadge, InactiveBadge],
+  imports: [DraftPreviewBanner, InactiveBadge],
   templateUrl: './partner-details-view.html',
   styleUrl: './partner-details-view.scss',
 })

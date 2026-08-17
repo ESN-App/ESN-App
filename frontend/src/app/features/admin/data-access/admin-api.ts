@@ -28,12 +28,16 @@ export interface CreateEventRequest {
   price: number;
 }
 
+export interface CreateNewsItemRequest {
+  title: string;
+  description: string;
+}
+
 export interface CreateInfoArticleRequest {
   title: string;
   slug: string;
   content: string;
   category: string;
-  imageUrl: string;
   externalLinks: string[];
 }
 
@@ -167,6 +171,37 @@ export class AdminApi {
     });
   }
 
+  getNewsItem(id: string): Observable<NewsItemDto> {
+    return this.http.get<NewsItemDto>(`${this.baseUrl}/news/${id}`);
+  }
+
+  createNews(request: CreateNewsItemRequest, image: File): Observable<NewsItemDto> {
+    return this.http.post<NewsItemDto>(`${this.baseUrl}/news`, this.newsFormData(request, image));
+  }
+
+  updateNews(
+    id: string,
+    request: CreateNewsItemRequest,
+    image: File | null,
+  ): Observable<NewsItemDto> {
+    return this.http.put<NewsItemDto>(`${this.baseUrl}/news/${id}`, this.newsFormData(request, image));
+  }
+
+  deleteNews(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/news/${id}`);
+  }
+
+  private newsFormData(request: CreateNewsItemRequest, image: File | null): FormData {
+    const formData = new FormData();
+    formData.append('title', request.title);
+    formData.append('description', request.description);
+    if (image) {
+      formData.append('image', image, image.name);
+    }
+
+    return formData;
+  }
+
   updateNewsStatus(id: string, status: number): Observable<NewsItemDto> {
     return this.http.patch<NewsItemDto>(`${this.baseUrl}/news/${id}/status`, { status });
   }
@@ -252,12 +287,30 @@ export class AdminApi {
     return this.http.get<InfoArticleDto>(`${this.baseUrl}/info/${id}`);
   }
 
-  createInfo(request: CreateInfoArticleRequest): Observable<InfoArticleDto> {
-    return this.http.post<InfoArticleDto>(`${this.baseUrl}/info`, request);
+  createInfo(request: CreateInfoArticleRequest, image: File): Observable<InfoArticleDto> {
+    return this.http.post<InfoArticleDto>(`${this.baseUrl}/info`, this.infoFormData(request, image));
   }
 
-  updateInfo(id: string, request: CreateInfoArticleRequest): Observable<InfoArticleDto> {
-    return this.http.put<InfoArticleDto>(`${this.baseUrl}/info/${id}`, request);
+  updateInfo(
+    id: string,
+    request: CreateInfoArticleRequest,
+    image: File | null,
+  ): Observable<InfoArticleDto> {
+    return this.http.put<InfoArticleDto>(`${this.baseUrl}/info/${id}`, this.infoFormData(request, image));
+  }
+
+  private infoFormData(request: CreateInfoArticleRequest, image: File | null): FormData {
+    const formData = new FormData();
+    formData.append('title', request.title);
+    formData.append('slug', request.slug);
+    formData.append('content', request.content);
+    formData.append('category', request.category);
+    request.externalLinks.forEach((link) => formData.append('externalLinks', link));
+    if (image) {
+      formData.append('image', image, image.name);
+    }
+
+    return formData;
   }
 
   deleteInfo(id: string): Observable<void> {

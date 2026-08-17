@@ -1,0 +1,14 @@
+@let item = newsItem();
+<div class="news-card" [class.news-card--draft]="item.status === 0">
+  @if (item.imagePath && !imageBroken()) {
+    <img [src]="item.imagePath" [alt]="item.title" (error)="imageBroken.set(true)" />
+  } @else {
+    <span class="image-fallback" aria-hidden="true"></span>
+  }
+  <span class="news-overlay">
+    <span class="news-badge" [class.draft-badge]="item.status === 0">
+      {{ item.status === 0 ? 'Draft' : 'New' }}
+    </span>
+    <strong>{{ item.title }}</strong>
+  </span>
+</div>

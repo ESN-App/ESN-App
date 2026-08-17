@@ -9,9 +9,9 @@
   }
 
   <div class="article-image">
-    @if (item.imageUrl && !imageBroken()) {
+    @if (item.imagePath && !imageBroken()) {
       <img
-        [src]="item.imageUrl"
+        [src]="item.imagePath"
         [alt]="item.title"
         [attr.loading]="interactive() ? 'lazy' : null"
         (error)="imageBroken.set(true)"

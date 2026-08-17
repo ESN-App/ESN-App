@@ -21,7 +21,8 @@ type SortDirection = 'ascending' | 'descending';
 type EventStatusValue = 0 | 1 | 2 | 3 | 4;
 type PartnerStatusValue = 0 | 1 | 2;
 type InfoStatusValue = 0 | 1;
-type AnyStatusValue = EventStatusValue | PartnerStatusValue | InfoStatusValue;
+type NewsStatusValue = 0 | 1;
+type AnyStatusValue = EventStatusValue | PartnerStatusValue | InfoStatusValue | NewsStatusValue;
 
 interface EventStatusOption {
   value: EventStatusValue;
@@ -35,6 +36,11 @@ interface PartnerStatusOption {
 
 interface InfoStatusOption {
   value: InfoStatusValue;
+  label: string;
+}
+
+interface NewsStatusOption {
+  value: NewsStatusValue;
   label: string;
 }
 
@@ -82,6 +88,8 @@ export class AdminPanel {
   readonly deletingPartner = signal(false);
   readonly infoPendingDelete = signal<InfoArticleDto | null>(null);
   readonly deletingInfo = signal(false);
+  readonly newsPendingDelete = signal<NewsItemDto | null>(null);
+  readonly deletingNews = signal(false);
   readonly adminPendingDelete = signal<AdminUserDto | null>(null);
   readonly deletingAdmin = signal(false);
   readonly deleteError = signal<string | null>(null);
@@ -271,6 +279,10 @@ export class AdminPanel {
     const selectedIds = this.selectedIds();
     return this.events().filter((item) => selectedIds.has(item.id));
   });
+  readonly selectedNews = computed(() => {
+    const selectedIds = this.selectedIds();
+    return this.news().filter((item) => selectedIds.has(item.id));
+  });
   readonly selectedPartners = computed(() => {
     const selectedIds = this.selectedIds();
     return this.partners().filter((item) => selectedIds.has(item.id));
@@ -294,6 +306,10 @@ export class AdminPanel {
     { value: 2, label: 'Inactive' },
   ];
   readonly infoStatusOptions: InfoStatusOption[] = [
+    { value: 0, label: 'Draft' },
+    { value: 1, label: 'Published' },
+  ];
+  readonly newsStatusOptions: NewsStatusOption[] = [
     { value: 0, label: 'Draft' },
     { value: 1, label: 'Published' },
   ];
@@ -548,13 +564,15 @@ export class AdminPanel {
     const section = this.activeSection();
     const itemsToDelete = section === 'events'
       ? this.selectedEvents()
-      : section === 'partners'
-        ? this.selectedPartners()
-        : section === 'info'
-          ? this.selectedInfo()
-          : section === 'admins'
-            ? this.selectedAdmins()
-            : [];
+      : section === 'news'
+        ? this.selectedNews()
+        : section === 'partners'
+          ? this.selectedPartners()
+          : section === 'info'
+            ? this.selectedInfo()
+            : section === 'admins'
+              ? this.selectedAdmins()
+              : [];
 
     if (itemsToDelete.length === 0) {
       return;
@@ -566,11 +584,13 @@ export class AdminPanel {
     const deleteObservables = itemsToDelete.map((item) =>
       section === 'events'
         ? this.api.deleteEvent(item.id)
-        : section === 'partners'
-          ? this.api.deletePartner(item.id)
-          : section === 'admins'
-            ? this.api.deleteAdmin(item.id)
-            : this.api.deleteInfo(item.id)
+        : section === 'news'
+          ? this.api.deleteNews(item.id)
+          : section === 'partners'
+            ? this.api.deletePartner(item.id)
+            : section === 'admins'
+              ? this.api.deleteAdmin(item.id)
+              : this.api.deleteInfo(item.id)
     );
 
     forkJoin(deleteObservables).subscribe({
@@ -578,6 +598,8 @@ export class AdminPanel {
         const deletedIds = new Set(itemsToDelete.map((item) => item.id));
         if (section === 'events') {
           this.events.update((items) => items.filter((item) => !deletedIds.has(item.id)));
+        } else if (section === 'news') {
+          this.news.update((items) => items.filter((item) => !deletedIds.has(item.id)));
         } else if (section === 'partners') {
           this.partners.update((items) => items.filter((item) => !deletedIds.has(item.id)));
         } else if (section === 'info') {
@@ -590,7 +612,7 @@ export class AdminPanel {
         this.bulkDeletePending.set(false);
       },
       error: () => {
-        const itemName = section === 'events' ? 'events' : section === 'partners' ? 'partners' : section === 'info' ? 'articles' : section === 'admins' ? 'admins' : 'items';
+        const itemName = section === 'events' ? 'events' : section === 'news' ? 'news articles' : section === 'partners' ? 'partners' : section === 'info' ? 'articles' : section === 'admins' ? 'admins' : 'items';
         this.bulkActionError.set(`The selected ${itemName} could not be deleted. Please try again.`);
         this.applyingBulkAction.set(false);
       },
@@ -606,7 +628,9 @@ export class AdminPanel {
         ? this.partnerStatusOptions
         : this.activeSection() === 'info'
           ? this.infoStatusOptions
-          : this.eventStatusOptions;
+          : this.activeSection() === 'news'
+            ? this.newsStatusOptions
+            : this.eventStatusOptions;
     const firstEligible = statusOptions.find(
       (option) => this.bulkStatusEligibleCount(option.value) > 0,
     );
@@ -632,11 +656,13 @@ export class AdminPanel {
     const section = this.activeSection();
     const items = section === 'events'
       ? this.selectedEvents()
-      : section === 'partners'
-        ? this.selectedPartners()
-        : section === 'info'
-          ? this.selectedInfo()
-          : [];
+      : section === 'news'
+        ? this.selectedNews()
+        : section === 'partners'
+          ? this.selectedPartners()
+          : section === 'info'
+            ? this.selectedInfo()
+            : [];
     return items.filter((item) => item.status !== status).length;
   }
 
@@ -683,6 +709,27 @@ export class AdminPanel {
         },
         error: () => {
           this.bulkActionError.set('The selected partner statuses could not be changed. Please try again.');
+          this.applyingBulkAction.set(false);
+        },
+      });
+    } else if (section === 'news') {
+      const newsArticles = this.selectedNews().filter((item) => item.status !== status);
+      if (newsArticles.length === 0 || this.applyingBulkAction()) {
+        return;
+      }
+
+      this.applyingBulkAction.set(true);
+      this.bulkActionError.set(null);
+      forkJoin(newsArticles.map((item) => this.api.updateNewsStatus(item.id, status))).subscribe({
+        next: (updatedNews) => {
+          const updatedById = new Map(updatedNews.map((item) => [item.id, item]));
+          this.news.update((items) => items.map((item) => updatedById.get(item.id) ?? item));
+          this.selectedIds.set(new Set());
+          this.applyingBulkAction.set(false);
+          this.bulkStatusPending.set(false);
+        },
+        error: () => {
+          this.bulkActionError.set('The selected news article statuses could not be changed. Please try again.');
           this.applyingBulkAction.set(false);
         },
       });
@@ -815,6 +862,44 @@ export class AdminPanel {
       error: () => {
         this.deleteError.set('The article could not be deleted. Please try again.');
         this.deletingInfo.set(false);
+      },
+    });
+  }
+
+  requestNewsDelete(item: NewsItemDto): void {
+    this.deleteError.set(null);
+    this.newsPendingDelete.set(item);
+  }
+
+  cancelNewsDelete(): void {
+    if (!this.deletingNews()) {
+      this.newsPendingDelete.set(null);
+      this.deleteError.set(null);
+    }
+  }
+
+  confirmNewsDelete(): void {
+    const item = this.newsPendingDelete();
+    if (!item || this.deletingNews()) {
+      return;
+    }
+
+    this.deletingNews.set(true);
+    this.deleteError.set(null);
+    this.api.deleteNews(item.id).subscribe({
+      next: () => {
+        this.news.update((items) => items.filter((current) => current.id !== item.id));
+        this.selectedIds.update((ids) => {
+          const next = new Set(ids);
+          next.delete(item.id);
+          return next;
+        });
+        this.deletingNews.set(false);
+        this.newsPendingDelete.set(null);
+      },
+      error: () => {
+        this.deleteError.set('The news article could not be deleted. Please try again.');
+        this.deletingNews.set(false);
       },
     });
   }

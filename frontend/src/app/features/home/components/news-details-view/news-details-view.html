@@ -1,0 +1,32 @@
+@let item = newsItem();
+<article>
+  @if (item.status === 0) { <app-draft-preview-banner /> }
+
+  <section class="hero" [class.no-image]="!item.imagePath || imageBroken()">
+    @if (item.imagePath && !imageBroken()) {
+      <div class="hero-image">
+        <img
+          [src]="item.imagePath"
+          [alt]="item.title"
+          [attr.loading]="interactive() ? 'lazy' : null"
+          (error)="imageBroken.set(true)"
+        />
+      </div>
+    }
+
+    <div class="hero-copy">
+      <p class="eyebrow">
+        Fresh from ESN
+        @if (item.createdAt) {
+          &middot; {{ item.createdAt | date: 'd MMMM yyyy' }}
+        }
+      </p>
+      <h1>{{ item.title }}</h1>
+    </div>
+  </section>
+
+  <section class="about">
+    <p class="eyebrow">Story</p>
+    <p>{{ item.description }}</p>
+  </section>
+</article>

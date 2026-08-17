@@ -53,7 +53,7 @@ public class ManageInfoArticleCommandHandlerTests
                 existing.Slug,
                 "Content",
                 "General",
-                new Uri("https://example.com/image.jpg"),
+                "/api/images/uploads/info/image.jpg",
                 []),
             CancellationToken.None);
 
@@ -67,7 +67,7 @@ public class ManageInfoArticleCommandHandlerTests
         Slug = $"article-{Guid.NewGuid():N}",
         Content = "Content",
         Category = "General",
-        ImageUrl = new Uri("https://example.com/image.jpg"),
+        ImagePath = "/api/images/uploads/info/image.jpg",
         Status = status,
         DisplayOrder = displayOrder,
     };

@@ -84,6 +84,10 @@
 }
 
 .partner-form {
+  // align-self / align-content: start keep the form box at its natural height instead of
+  // being stretched to match the taller preview panel beside it.
+  align-self: start;
+  align-content: start;
   border: 1px solid #dedfe5;
   border-radius: 1rem;
   display: grid;

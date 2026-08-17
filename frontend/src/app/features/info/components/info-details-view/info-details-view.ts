@@ -1,15 +1,18 @@
 import { Component, input, signal } from '@angular/core';
+import { DraftPreviewBanner } from '../../../../shared';
 
 export interface InfoDetailsViewModel {
   id: string;
   title: string;
   content: string;
-  imageUrl: string | null;
+  imagePath: string | null;
   externalLinks: string[];
+  status: number;
 }
 
 @Component({
   selector: 'app-info-details-view',
+  imports: [DraftPreviewBanner],
   templateUrl: './info-details-view.html',
   styleUrl: './info-details-view.scss',
 })

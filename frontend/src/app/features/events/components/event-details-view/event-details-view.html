@@ -1,5 +1,7 @@
 @let item = event();
 <article>
+  @if (item.status === 0) { <app-draft-preview-banner /> }
+
   <section class="hero" [class.no-image]="!item.imagePath || imageBroken()">
     @if (item.imagePath && !imageBroken()) {
       <div class="hero-image">
@@ -10,8 +12,7 @@
     <div class="hero-copy">
       <div class="eyebrow-row">
         <p class="eyebrow">ESN Gdańsk event</p>
-        @if (item.status === 0) { <app-draft-badge /> }
-        @else if (item.status === 2) { <app-cancelled-badge /> }
+        @if (item.status === 2) { <app-cancelled-badge /> }
       </div>
       <h1>{{ item.title }}</h1>
       <p class="summary">{{ item.shortDescription }}</p>

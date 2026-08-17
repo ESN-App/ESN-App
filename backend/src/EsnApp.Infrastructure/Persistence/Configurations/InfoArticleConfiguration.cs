@@ -12,11 +12,8 @@ public class InfoArticleConfiguration : IEntityTypeConfiguration<InfoArticle>
         builder.Property(article => article.Slug).IsRequired().HasMaxLength(200);
         builder.Property(article => article.Content).IsRequired();
         builder.Property(article => article.Category).IsRequired().HasMaxLength(100);
-        builder.Property(article => article.ImageUrl)
+        builder.Property(article => article.ImagePath)
             .IsRequired()
-            .HasConversion(
-                url => url.ToString(),
-                value => new Uri(value))
             .HasMaxLength(2000);
         builder.Property(article => article.ExternalLinks).IsRequired();
         builder.Property(article => article.Status).IsRequired();

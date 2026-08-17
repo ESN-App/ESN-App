@@ -84,6 +84,14 @@
 }
 
 .info-form {
+  // align-self: start stops the form box itself from being stretched to the height of
+  // the (much taller) preview panel next to it, so a short form stays short instead of
+  // rendering as a tall bordered card with content bunched at the top.
+  align-self: start;
+  // align-content: start keeps the auto rows at their natural height. The form is a
+  // grid item, so without it any spare vertical space is distributed between the rows
+  // and the field spacing visibly balloons.
+  align-content: start;
   border: 1px solid #dedfe5;
   border-radius: 1rem;
   display: grid;
@@ -277,6 +285,49 @@
   opacity: 0.5;
 }
 
+.upload-control {
+  align-items: center;
+  display: flex;
+  gap: 0.55rem;
+}
+
+.upload-control .file-input {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.upload-control button {
+  background: #fff1ef;
+  border: 0;
+  border-radius: 0.55rem;
+  color: #9a3931;
+  cursor: pointer;
+  flex: 0 0 auto;
+  font: inherit;
+  font-size: 0.72rem;
+  font-weight: 750;
+  min-height: 2.5rem;
+  padding: 0.55rem 0.7rem;
+}
+
+.field input.file-input {
+  color: #666875;
+  padding: 0.42rem;
+}
+
+.file-input::file-selector-button {
+  background: #eceeff;
+  border: 0;
+  border-radius: 0.45rem;
+  color: #3d4297;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.72rem;
+  font-weight: 750;
+  margin-right: 0.6rem;
+  padding: 0.55rem 0.65rem;
+}
+
 @media (max-width: 520px) {
   .discount-row {
     grid-template-columns: 1fr;
@@ -284,6 +335,11 @@
 
   .discount-remove {
     justify-self: start;
+  }
+
+  .upload-control {
+    align-items: stretch;
+    flex-direction: column;
   }
 }
 

@@ -6,7 +6,7 @@ export interface InfoListItemView {
   title: string;
   slug: string | null;
   content: string;
-  imageUrl: string | null;
+  imagePath: string | null;
   status: number;
 }
 

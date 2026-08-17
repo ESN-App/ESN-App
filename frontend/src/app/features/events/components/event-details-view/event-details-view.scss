@@ -122,3 +122,12 @@ h1 {
   .facts.has-participants .fact:nth-child(2) { border-right: 0; }
   .facts.has-participants .fact:nth-child(n + 3) { border-top: 1px solid #ddd; }
 }
+
+// Cap the space between the draft banner and the hero copy at 1rem so every section
+// matches. Scoped to the banner via the adjacent sibling combinator, so published pages
+// keep their normal hero padding. The .no-image / container-query variants are listed
+// explicitly because they are more specific than the base .hero-copy rule.
+app-draft-preview-banner + .hero .hero-copy,
+app-draft-preview-banner + .hero.no-image .hero-copy {
+  padding-top: 0.25rem;
+}

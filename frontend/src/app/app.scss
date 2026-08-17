@@ -102,7 +102,9 @@
   .content:has(app-admin-partner-create),
   .content:has(app-admin-partner-edit),
   .content:has(app-admin-info-create),
-  .content:has(app-admin-info-edit) {
+  .content:has(app-admin-info-edit),
+  .content:has(app-admin-news-create),
+  .content:has(app-admin-news-edit) {
     max-width: 96rem;
   }
 

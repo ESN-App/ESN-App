@@ -6,6 +6,8 @@ import { AdminEventCreate } from './pages/admin-event-create/admin-event-create'
 import { AdminEventEdit } from './pages/admin-event-edit/admin-event-edit';
 import { AdminInfoCreate } from './pages/admin-info-create/admin-info-create';
 import { AdminInfoEdit } from './pages/admin-info-edit/admin-info-edit';
+import { AdminNewsCreate } from './pages/admin-news-create/admin-news-create';
+import { AdminNewsEdit } from './pages/admin-news-edit/admin-news-edit';
 import { AdminPartnerCreate } from './pages/admin-partner-create/admin-partner-create';
 import { AdminPartnerEdit } from './pages/admin-partner-edit/admin-partner-edit';
 
@@ -37,6 +39,18 @@ export const ADMIN_ROUTES: Routes = [
   {
     path: 'partners/:partnerSlug/edit',
     component: AdminPartnerEdit,
+    canActivate: [adminGuard],
+    data: { hideMobileNavigation: true },
+  },
+  {
+    path: 'news/new',
+    component: AdminNewsCreate,
+    canActivate: [adminGuard],
+    data: { hideMobileNavigation: true },
+  },
+  {
+    path: 'news/:newsId/edit',
+    component: AdminNewsEdit,
     canActivate: [adminGuard],
     data: { hideMobileNavigation: true },
   },

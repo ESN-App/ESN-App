@@ -1,5 +1,7 @@
 @let item = partner();
 <article>
+  @if (item.status === 0) { <app-draft-preview-banner /> }
+
   <section class="partner-hero">
     <div class="hero-logo">
       @if (item.logoPath && !logoBroken()) {
@@ -16,8 +18,7 @@
     <div class="hero-copy">
       <div class="eyebrow-row">
         <p class="eyebrow">ESN GDAŃSK PARTNER</p>
-        @if (item.status === 0) { <app-draft-badge /> }
-        @else if (item.status === 2) { <app-inactive-badge /> }
+        @if (item.status === 2) { <app-inactive-badge /> }
       </div>
       <h1>{{ item.name }}</h1>
       <p class="summary">{{ item.shortDescription }}</p>

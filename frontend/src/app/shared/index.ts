@@ -1,5 +1,6 @@
 export * from './cancelled-badge/cancelled-badge';
 export * from './draft-badge/draft-badge';
+export * from './draft-preview-banner/draft-preview-banner';
 export * from './empty-state/empty-state';
 export * from './event-status-title/event-status-title';
 export * from './inactive-badge/inactive-badge';

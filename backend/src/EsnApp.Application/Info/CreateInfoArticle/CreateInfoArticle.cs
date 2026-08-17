@@ -10,7 +10,7 @@ public record CreateInfoArticleCommand(
     string Slug,
     string Content,
     string Category,
-    Uri ImageUrl,
+    string ImagePath,
     IReadOnlyList<string> ExternalLinks) : IRequest<Result<InfoArticleDto>>;
 
 public class CreateInfoArticleCommandValidator : AbstractValidator<CreateInfoArticleCommand>
@@ -24,10 +24,7 @@ public class CreateInfoArticleCommandValidator : AbstractValidator<CreateInfoArt
             .Matches("^[a-z0-9]+(?:-[a-z0-9]+)*$");
         RuleFor(c => c.Content).NotEmpty().MaximumLength(50_000);
         RuleFor(c => c.Category).NotEmpty().MaximumLength(100);
-        RuleFor(c => c.ImageUrl)
-            .NotNull()
-            .Must(url => url is not null && url.Scheme is "http" or "https")
-            .WithMessage("ImageUrl must use HTTP or HTTPS.");
+        RuleFor(c => c.ImagePath).NotEmpty().MaximumLength(2000);
         RuleFor(c => c.ExternalLinks)
             .NotNull()
             .Must(links => links is not null && links.Count <= 20);
@@ -58,7 +55,7 @@ public class CreateInfoArticleCommandHandler(IInfoArticleRepository repository)
             Slug = request.Slug,
             Content = request.Content,
             Category = request.Category.Trim(),
-            ImageUrl = request.ImageUrl,
+            ImagePath = request.ImagePath,
             ExternalLinks = [.. request.ExternalLinks],
         };
 

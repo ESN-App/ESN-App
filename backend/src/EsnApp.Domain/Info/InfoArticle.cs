@@ -12,7 +12,7 @@ public class InfoArticle : BaseEntity
 
     public required string Category { get; set; }
 
-    public required Uri ImageUrl { get; set; }
+    public required string ImagePath { get; set; }
 
     public List<string> ExternalLinks { get; set; } = [];
 

@@ -1,4 +1,4 @@
-import { Component, HostListener, computed, inject, signal } from '@angular/core';
+import { Component, HostListener, OnDestroy, computed, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { TextFieldModule } from '@angular/cdk/text-field';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
@@ -19,16 +19,20 @@ import { createExternalLinkControl, createInfoForm } from '../../utils/info-form
   templateUrl: './admin-info-create.html',
   styleUrl: './admin-info-create.scss',
 })
-export class AdminInfoCreate {
+export class AdminInfoCreate implements OnDestroy {
   private readonly formBuilder = inject(FormBuilder);
   private readonly api = inject(AdminApi);
   private readonly router = inject(Router);
+  private objectImageUrl: string | null = null;
 
   readonly submitting = signal(false);
   readonly confirmationOpen = signal(false);
   readonly error = signal<string | null>(null);
   readonly infoStatus = signal(0);
   readonly previewVisible = signal(true);
+  readonly selectedImage = signal<File | null>(null);
+  readonly imagePreviewUrl = signal<string | null>(null);
+  readonly imageError = signal<string | null>(null);
 
   readonly form = createInfoForm(this.formBuilder);
 
@@ -50,15 +54,16 @@ export class AdminInfoCreate {
     title: this.previewTitle(),
     slug: this.preview().slug?.trim() || null,
     content: this.previewContent(),
-    imageUrl: this.optionalText(this.preview().imageUrl),
+    imagePath: this.imagePreviewUrl(),
     status: this.infoStatus(),
   }));
   readonly previewDetails = computed<InfoDetailsViewModel>(() => ({
     id: 'info-preview',
     title: this.previewTitle(),
     content: this.previewContent(),
-    imageUrl: this.optionalText(this.preview().imageUrl),
+    imagePath: this.imagePreviewUrl(),
     externalLinks: this.previewExternalLinks(),
+    status: this.infoStatus(),
   }));
 
   get externalLinkControls() {
@@ -94,6 +99,45 @@ export class AdminInfoCreate {
     this.previewVisible.update((visible) => !visible);
   }
 
+  chooseImage(event: Event): void {
+    const input = event.currentTarget as HTMLInputElement;
+    const file = input.files?.[0] ?? null;
+    this.revokeImagePreview();
+    this.selectedImage.set(null);
+    this.imagePreviewUrl.set(null);
+    this.imageError.set(null);
+
+    if (!file) {
+      return;
+    }
+    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+      this.imageError.set('Choose a JPEG, PNG, or WebP image.');
+      input.value = '';
+      return;
+    }
+    if (file.size > 8 * 1024 * 1024) {
+      this.imageError.set('The image must be no larger than 8 MB.');
+      input.value = '';
+      return;
+    }
+
+    this.selectedImage.set(file);
+    this.objectImageUrl = URL.createObjectURL(file);
+    this.imagePreviewUrl.set(this.objectImageUrl);
+  }
+
+  removeImage(input: HTMLInputElement): void {
+    this.revokeImagePreview();
+    this.selectedImage.set(null);
+    this.imagePreviewUrl.set(null);
+    this.imageError.set(null);
+    input.value = '';
+  }
+
+  ngOnDestroy(): void {
+    this.revokeImagePreview();
+  }
+
   onTitleInput(): void {
     if (this.form.controls.slug.dirty) {
       return;
@@ -104,8 +148,11 @@ export class AdminInfoCreate {
   }
 
   submit(): void {
-    if (this.form.invalid || this.submitting()) {
+    if (this.form.invalid || this.submitting() || !this.selectedImage()) {
       this.form.markAllAsTouched();
+      if (!this.selectedImage()) {
+        this.imageError.set('Choose an image for this article.');
+      }
       return;
     }
 
@@ -117,7 +164,7 @@ export class AdminInfoCreate {
   }
 
   confirmSubmit(): void {
-    if (this.form.invalid || this.submitting()) {
+    if (this.form.invalid || this.submitting() || !this.selectedImage()) {
       this.confirmationOpen.set(false);
       return;
     }
@@ -130,7 +177,6 @@ export class AdminInfoCreate {
       slug: value.slug!.trim(),
       content: value.content!.trim(),
       category: value.category!.trim(),
-      imageUrl: value.imageUrl!.trim(),
       externalLinks: (value.externalLinks ?? [])
         .map((link) => link?.trim() ?? '')
         .filter((link) => link.length > 0),
@@ -139,7 +185,7 @@ export class AdminInfoCreate {
     this.submitting.set(true);
     this.error.set(null);
 
-    this.api.createInfo(request).pipe(
+    this.api.createInfo(request, this.selectedImage()!).pipe(
       switchMap((created) =>
         value.status === 0 ? of(created) : this.api.updateInfoStatus(created.id, value.status!),
       ),
@@ -161,7 +207,10 @@ export class AdminInfoCreate {
     }
   }
 
-  private optionalText(value: string | null | undefined): string | null {
-    return value?.trim() || null;
+  private revokeImagePreview(): void {
+    if (this.objectImageUrl) {
+      URL.revokeObjectURL(this.objectImageUrl);
+      this.objectImageUrl = null;
+    }
   }
 }

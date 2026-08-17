@@ -19,6 +19,11 @@ export class NewsApi {
   }
 
   getById(id: string): Observable<NewsItemDto> {
-    return this.http.get<NewsItemDto>(`${this.baseUrl}/${id}`);
+    // Drafts are filtered out of the public endpoint, so administrators read through the
+    // admin one to be able to preview an unpublished article, mirroring getAll().
+    const url = this.auth.isAdmin()
+      ? `${environment.apiBaseUrl}/api/admin/news/${id}`
+      : `${this.baseUrl}/${id}`;
+    return this.http.get<NewsItemDto>(url);
   }
 }
