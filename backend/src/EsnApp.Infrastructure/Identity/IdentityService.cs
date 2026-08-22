@@ -13,34 +13,6 @@ public class IdentityService(
 {
     private readonly EmailSettings _emailSettings = emailOptions.Value;
 
-    public async Task<Result<AuthResponse>> RegisterAsync(
-        RegisterRequest request,
-        CancellationToken cancellationToken = default)
-    {
-        var existing = await userManager.FindByEmailAsync(request.Email);
-
-        if (existing is not null)
-        {
-            return Result.Failure<AuthResponse>("An account with this email already exists.");
-        }
-
-        var user = new ApplicationUser
-        {
-            UserName = request.Email,
-            Email = request.Email,
-        };
-
-        var result = await userManager.CreateAsync(user, request.Password);
-
-        if (!result.Succeeded)
-        {
-            return Result.Failure<AuthResponse>(
-                string.Join(" ", result.Errors.Select(e => e.Description)));
-        }
-
-        return await BuildAuthResponseAsync(user);
-    }
-
     public async Task<Result<AuthResponse>> LoginAsync(
         LoginRequest request,
         CancellationToken cancellationToken = default)

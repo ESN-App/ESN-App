@@ -1,6 +1,5 @@
 using EsnApp.Application.Info;
 using MediatR;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EsnApp.Api.Controllers;
@@ -19,17 +18,6 @@ public class InfoController(ISender sender) : ControllerBase
         var result = await sender.Send(new GetInfoArticlesListQuery(category), cancellationToken);
 
         return Ok(result.Value);
-    }
-
-    /// <summary>Gets a single info article by id.</summary>
-    [HttpGet("{id:guid}")]
-    [ProducesResponseType(typeof(InfoArticleDto), StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> GetById(Guid id, CancellationToken cancellationToken)
-    {
-        var result = await sender.Send(new GetInfoArticleByIdQuery(id), cancellationToken);
-
-        return result.IsSuccess ? Ok(result.Value) : NotFound(new { error = result.Error });
     }
 
     /// <summary>Gets a published info article by slug.</summary>

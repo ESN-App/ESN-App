@@ -4,7 +4,7 @@ import { TextFieldModule } from '@angular/cdk/text-field';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { of } from 'rxjs';
-import { startWith, switchMap } from 'rxjs/operators';
+import { map, startWith, switchMap } from 'rxjs/operators';
 import { InfoDetailsViewModel } from '../../../info/components/info-details-view/info-details-view';
 import { InfoListItemView } from '../../../info/components/info-list-item/info-list-item';
 import { createInfoSlug } from '../../../info/utils/info-url';
@@ -24,6 +24,7 @@ export class AdminInfoCreate implements OnDestroy {
   private readonly api = inject(AdminApi);
   private readonly router = inject(Router);
   private objectImageUrl: string | null = null;
+  private createdId: string | null = null;
 
   readonly submitting = signal(false);
   readonly confirmationOpen = signal(false);
@@ -185,16 +186,27 @@ export class AdminInfoCreate implements OnDestroy {
     this.submitting.set(true);
     this.error.set(null);
 
-    this.api.createInfo(request, this.selectedImage()!).pipe(
-      switchMap((created) =>
-        value.status === 0 ? of(created) : this.api.updateInfoStatus(created.id, value.status!),
-      ),
+    // The status is a second request. If it fails after the create succeeded, the item
+    // exists — remember its id so retrying finishes the job instead of creating a duplicate.
+    const create$ = this.createdId !== null
+      ? of(this.createdId)
+      : this.api.createInfo(request, this.selectedImage()!).pipe(
+          map((created) => {
+            this.createdId = created.id;
+            return created.id;
+          }),
+        );
+
+    create$.pipe(
+      switchMap((id) => (value.status === 0 ? of(null) : this.api.updateInfoStatus(id, value.status!))),
     ).subscribe({
       next: () => void this.router.navigate(['/admin'], { queryParams: { section: 'info' } }),
       error: (response) => {
         this.submitting.set(false);
         this.error.set(
-          response?.error?.detail ?? response?.error?.error ?? 'The info article could not be created.',
+          this.createdId !== null
+            ? 'The info article was created but could not be published. Save again to retry publishing — this will not create a duplicate.'
+            : response?.error?.detail ?? response?.error?.error ?? 'The info article could not be created.',
         );
       },
     });

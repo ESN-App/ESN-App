@@ -4,7 +4,7 @@ import { TextFieldModule } from '@angular/cdk/text-field';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { of } from 'rxjs';
-import { startWith, switchMap } from 'rxjs/operators';
+import { map, startWith, switchMap } from 'rxjs/operators';
 import { NewsDetailsViewModel } from '../../../home/components/news-details-view/news-details-view';
 import { NewsListItemView } from '../../../home/components/news-list-item/news-list-item';
 import { AdminEditorLayout } from '../../components/admin-editor-layout/admin-editor-layout';
@@ -23,6 +23,7 @@ export class AdminNewsCreate implements OnDestroy {
   private readonly api = inject(AdminApi);
   private readonly router = inject(Router);
   private objectImageUrl: string | null = null;
+  private createdId: string | null = null;
 
   readonly submitting = signal(false);
   readonly confirmationOpen = signal(false);
@@ -143,16 +144,27 @@ export class AdminNewsCreate implements OnDestroy {
     this.submitting.set(true);
     this.error.set(null);
 
-    this.api.createNews(request, this.selectedImage()!).pipe(
-      switchMap((created) =>
-        value.status === 0 ? of(created) : this.api.updateNewsStatus(created.id, value.status!),
-      ),
+    // The status is a second request. If it fails after the create succeeded, the item
+    // exists — remember its id so retrying finishes the job instead of creating a duplicate.
+    const create$ = this.createdId !== null
+      ? of(this.createdId)
+      : this.api.createNews(request, this.selectedImage()!).pipe(
+          map((created) => {
+            this.createdId = created.id;
+            return created.id;
+          }),
+        );
+
+    create$.pipe(
+      switchMap((id) => (value.status === 0 ? of(null) : this.api.updateNewsStatus(id, value.status!))),
     ).subscribe({
       next: () => void this.router.navigate(['/admin'], { queryParams: { section: 'news' } }),
       error: (response) => {
         this.submitting.set(false);
         this.error.set(
-          response?.error?.detail ?? response?.error?.error ?? 'The news article could not be created.',
+          this.createdId !== null
+            ? 'The news article was created but could not be published. Save again to retry publishing — this will not create a duplicate.'
+            : response?.error?.detail ?? response?.error?.error ?? 'The news article could not be created.',
         );
       },
     });

@@ -1,8 +1,9 @@
 import { CurrencyPipe, DatePipe } from '@angular/common';
-import { Component, computed, ElementRef, HostListener, inject, signal, ViewChild } from '@angular/core';
+import { Component, computed, ElementRef, HostListener, inject, signal, ViewChild, WritableSignal } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { forkJoin } from 'rxjs';
+import { forkJoin, Observable, of } from 'rxjs';
+import { catchError, map } from 'rxjs/operators';
 import { AuthService } from '../../../../core';
 import { CancelledBadge, DraftBadge, LoadingSpinner, PublishedBadge } from '../../../../shared';
 import type { EventDetailsDto } from '../../../events/data-access/events.models';
@@ -149,7 +150,6 @@ export class AdminPanel {
         item.name,
         item.shortDescription,
         item.description,
-        item.category,
         item.address,
         item.websiteUrl,
         this.partnerStatus(item.status),
@@ -581,41 +581,56 @@ export class AdminPanel {
     this.applyingBulkAction.set(true);
     this.bulkActionError.set(null);
 
+    const itemName = section === 'events' ? 'events' : section === 'news' ? 'news articles' : section === 'partners' ? 'partners' : section === 'info' ? 'articles' : 'admins';
     const deleteObservables = itemsToDelete.map((item) =>
-      section === 'events'
-        ? this.api.deleteEvent(item.id)
-        : section === 'news'
-          ? this.api.deleteNews(item.id)
-          : section === 'partners'
-            ? this.api.deletePartner(item.id)
-            : section === 'admins'
-              ? this.api.deleteAdmin(item.id)
-              : this.api.deleteInfo(item.id)
+      this.settle(
+        item.id,
+        section === 'events'
+          ? this.api.deleteEvent(item.id)
+          : section === 'news'
+            ? this.api.deleteNews(item.id)
+            : section === 'partners'
+              ? this.api.deletePartner(item.id)
+              : section === 'admins'
+                ? this.api.deleteAdmin(item.id)
+                : this.api.deleteInfo(item.id),
+      ),
     );
 
-    forkJoin(deleteObservables).subscribe({
-      next: () => {
-        const deletedIds = new Set(itemsToDelete.map((item) => item.id));
+    // Every request is settled, so a failure on one row still lets the rows that
+    // did delete disappear from the table instead of lingering until a reload.
+    forkJoin(deleteObservables).subscribe((results) => {
+      const deletedIds = new Set(results.filter((result) => result.ok).map((result) => result.id));
+      if (deletedIds.size > 0) {
+        const remove = <T extends { id: string }>(items: T[]) => items.filter((item) => !deletedIds.has(item.id));
         if (section === 'events') {
-          this.events.update((items) => items.filter((item) => !deletedIds.has(item.id)));
+          this.events.update(remove);
         } else if (section === 'news') {
-          this.news.update((items) => items.filter((item) => !deletedIds.has(item.id)));
+          this.news.update(remove);
         } else if (section === 'partners') {
-          this.partners.update((items) => items.filter((item) => !deletedIds.has(item.id)));
+          this.partners.update(remove);
         } else if (section === 'info') {
-          this.info.update((items) => items.filter((item) => !deletedIds.has(item.id)));
+          this.info.update(remove);
         } else if (section === 'admins') {
-          this.admins.update((items) => items.filter((item) => !deletedIds.has(item.id)));
+          this.admins.update(remove);
         }
-        this.selectedIds.set(new Set());
-        this.applyingBulkAction.set(false);
+      }
+
+      // Keep only the rows that failed selected, so retrying retries just those.
+      this.selectedIds.update((ids) => new Set([...ids].filter((id) => !deletedIds.has(id))));
+      this.applyingBulkAction.set(false);
+
+      const failedCount = results.length - deletedIds.size;
+      if (failedCount === 0) {
         this.bulkDeletePending.set(false);
-      },
-      error: () => {
-        const itemName = section === 'events' ? 'events' : section === 'news' ? 'news articles' : section === 'partners' ? 'partners' : section === 'info' ? 'articles' : section === 'admins' ? 'admins' : 'items';
-        this.bulkActionError.set(`The selected ${itemName} could not be deleted. Please try again.`);
-        this.applyingBulkAction.set(false);
-      },
+        return;
+      }
+
+      this.bulkActionError.set(
+        failedCount === results.length
+          ? `The selected ${itemName} could not be deleted. Please try again.`
+          : `${failedCount} of ${results.length} ${itemName} could not be deleted. The rest were deleted.`,
+      );
     });
   }
 
@@ -668,93 +683,78 @@ export class AdminPanel {
 
   confirmBulkStatus(): void {
     const status = this.selectedBulkStatus() as number;
-    const section = this.activeSection();
 
-    if (section === 'events') {
-      const events = this.selectedEvents().filter((item) => item.status !== status);
-      if (events.length === 0 || this.applyingBulkAction()) {
-        return;
-      }
-
-      this.applyingBulkAction.set(true);
-      this.bulkActionError.set(null);
-      forkJoin(events.map((item) => this.api.updateEventStatus(item.id, status))).subscribe({
-        next: (updatedEvents) => {
-          const updatedById = new Map(updatedEvents.map((item) => [item.id, item]));
-          this.events.update((items) => items.map((item) => updatedById.get(item.id) ?? item));
-          this.selectedIds.set(new Set());
-          this.applyingBulkAction.set(false);
-          this.bulkStatusPending.set(false);
-        },
-        error: () => {
-          this.bulkActionError.set('The selected event statuses could not be changed. Please try again.');
-          this.applyingBulkAction.set(false);
-        },
-      });
-    } else if (section === 'partners') {
-      const partners = this.selectedPartners().filter((item) => item.status !== status);
-      if (partners.length === 0 || this.applyingBulkAction()) {
-        return;
-      }
-
-      this.applyingBulkAction.set(true);
-      this.bulkActionError.set(null);
-      forkJoin(partners.map((item) => this.api.updatePartnerStatus(item.id, status))).subscribe({
-        next: (updatedPartners) => {
-          const updatedById = new Map(updatedPartners.map((item) => [item.id, item]));
-          this.partners.update((items) => items.map((item) => updatedById.get(item.id) ?? item));
-          this.selectedIds.set(new Set());
-          this.applyingBulkAction.set(false);
-          this.bulkStatusPending.set(false);
-        },
-        error: () => {
-          this.bulkActionError.set('The selected partner statuses could not be changed. Please try again.');
-          this.applyingBulkAction.set(false);
-        },
-      });
-    } else if (section === 'news') {
-      const newsArticles = this.selectedNews().filter((item) => item.status !== status);
-      if (newsArticles.length === 0 || this.applyingBulkAction()) {
-        return;
-      }
-
-      this.applyingBulkAction.set(true);
-      this.bulkActionError.set(null);
-      forkJoin(newsArticles.map((item) => this.api.updateNewsStatus(item.id, status))).subscribe({
-        next: (updatedNews) => {
-          const updatedById = new Map(updatedNews.map((item) => [item.id, item]));
-          this.news.update((items) => items.map((item) => updatedById.get(item.id) ?? item));
-          this.selectedIds.set(new Set());
-          this.applyingBulkAction.set(false);
-          this.bulkStatusPending.set(false);
-        },
-        error: () => {
-          this.bulkActionError.set('The selected news article statuses could not be changed. Please try again.');
-          this.applyingBulkAction.set(false);
-        },
-      });
-    } else if (section === 'info') {
-      const articles = this.selectedInfo().filter((item) => item.status !== status);
-      if (articles.length === 0 || this.applyingBulkAction()) {
-        return;
-      }
-
-      this.applyingBulkAction.set(true);
-      this.bulkActionError.set(null);
-      forkJoin(articles.map((item) => this.api.updateInfoStatus(item.id, status))).subscribe({
-        next: (updatedArticles) => {
-          const updatedById = new Map(updatedArticles.map((item) => [item.id, item]));
-          this.info.update((items) => items.map((item) => updatedById.get(item.id) ?? item));
-          this.selectedIds.set(new Set());
-          this.applyingBulkAction.set(false);
-          this.bulkStatusPending.set(false);
-        },
-        error: () => {
-          this.bulkActionError.set('The selected article statuses could not be changed. Please try again.');
-          this.applyingBulkAction.set(false);
-        },
-      });
+    switch (this.activeSection()) {
+      case 'events':
+        this.applyBulkStatus(
+          this.selectedEvents().filter((item) => item.status !== status),
+          this.events,
+          (item) => this.api.updateEventStatus(item.id, status),
+          'event statuses',
+        );
+        break;
+      case 'partners':
+        this.applyBulkStatus(
+          this.selectedPartners().filter((item) => item.status !== status),
+          this.partners,
+          (item) => this.api.updatePartnerStatus(item.id, status),
+          'partner statuses',
+        );
+        break;
+      case 'news':
+        this.applyBulkStatus(
+          this.selectedNews().filter((item) => item.status !== status),
+          this.news,
+          (item) => this.api.updateNewsStatus(item.id, status),
+          'news article statuses',
+        );
+        break;
+      case 'info':
+        this.applyBulkStatus(
+          this.selectedInfo().filter((item) => item.status !== status),
+          this.info,
+          (item) => this.api.updateInfoStatus(item.id, status),
+          'article statuses',
+        );
+        break;
     }
+  }
+
+  private applyBulkStatus<T extends { id: string }>(
+    items: T[],
+    store: WritableSignal<T[]>,
+    request: (item: T) => Observable<T>,
+    itemName: string,
+  ): void {
+    if (items.length === 0 || this.applyingBulkAction()) {
+      return;
+    }
+
+    this.applyingBulkAction.set(true);
+    this.bulkActionError.set(null);
+
+    forkJoin(items.map((item) => this.settle(item.id, request(item)))).subscribe((results) => {
+      const updatedById = new Map(
+        results
+          .filter((result) => result.ok && result.value !== null)
+          .map((result) => [result.id, result.value as T]),
+      );
+      store.update((current) => current.map((item) => updatedById.get(item.id) ?? item));
+      this.selectedIds.update((ids) => new Set([...ids].filter((id) => !updatedById.has(id))));
+      this.applyingBulkAction.set(false);
+
+      const failedCount = results.length - updatedById.size;
+      if (failedCount === 0) {
+        this.bulkStatusPending.set(false);
+        return;
+      }
+
+      this.bulkActionError.set(
+        failedCount === results.length
+          ? `The selected ${itemName} could not be changed. Please try again.`
+          : `${failedCount} of ${results.length} selected ${itemName} could not be changed. The rest were updated.`,
+      );
+    });
   }
 
   cancelEventDelete(): void {
@@ -956,6 +956,7 @@ export class AdminPanel {
     this.cancelEventDelete();
     this.cancelPartnerDelete();
     this.cancelInfoDelete();
+    this.cancelNewsDelete();
     this.cancelAdminDelete();
     this.cancelAdminPasswordReset();
     this.cancelBulkDelete();
@@ -1053,22 +1054,34 @@ export class AdminPanel {
     this.applyingBulkAction.set(true);
     this.bulkActionError.set(null);
 
-    forkJoin(admins.map((item) => this.api.requestPasswordReset(item.id))).subscribe({
-      next: () => {
-        this.selectedIds.set(new Set());
+    forkJoin(admins.map((item) => this.settle(item.id, this.api.requestPasswordReset(item.id)))).subscribe(
+      (results) => {
+        const sentIds = new Set(results.filter((result) => result.ok).map((result) => result.id));
+        this.selectedIds.update((ids) => new Set([...ids].filter((id) => !sentIds.has(id))));
         this.applyingBulkAction.set(false);
-        this.bulkPasswordResetPending.set(false);
+
+        const failedCount = results.length - sentIds.size;
+        if (failedCount > 0) {
+          this.bulkActionError.set(
+            failedCount === results.length
+              ? 'The password reset links could not be sent. Please try again.'
+              : `${failedCount} of ${results.length} password reset links could not be sent. The rest were sent.`,
+          );
+        }
+
+        if (sentIds.size === 0) {
+          return;
+        }
+
+        this.bulkPasswordResetPending.set(failedCount > 0);
+        const sentAdmins = admins.filter((item) => sentIds.has(item.id));
         this.resetPasswordSent.set(
-          admins.length === 1
-            ? `A password reset link has been sent to ${admins[0].email}.`
-            : `Password reset links have been sent to ${admins.length} administrators.`,
+          sentAdmins.length === 1
+            ? `A password reset link has been sent to ${sentAdmins[0].email}.`
+            : `Password reset links have been sent to ${sentAdmins.length} administrators.`,
         );
       },
-      error: () => {
-        this.bulkActionError.set('The password reset links could not be sent. Please try again.');
-        this.applyingBulkAction.set(false);
-      },
-    });
+    );
   }
 
   updateNewsStatus(item: NewsItemDto, status: number): void {
@@ -1089,7 +1102,7 @@ export class AdminPanel {
     );
   }
 
-  private updateStatus<T>(id: string, request: import('rxjs').Observable<T>, update: (item: T) => void): void {
+  private updateStatus<T>(id: string, request: Observable<T>, update: (item: T) => void): void {
     this.publishingIds.update((ids) => new Set(ids).add(id));
 
     request.subscribe({
@@ -1102,6 +1115,14 @@ export class AdminPanel {
         this.removePublishingId(id);
       },
     });
+  }
+
+  /** Runs a request so it always completes, reporting success or failure per row. */
+  private settle<T>(id: string, request: Observable<T>): Observable<{ id: string; ok: boolean; value: T | null }> {
+    return request.pipe(
+      map((value) => ({ id, ok: true, value: value as T | null })),
+      catchError(() => of({ id, ok: false, value: null as T | null })),
+    );
   }
 
   private removePublishingId(id: string): void {

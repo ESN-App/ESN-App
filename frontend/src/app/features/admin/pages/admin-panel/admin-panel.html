@@ -298,7 +298,6 @@
   <div class="confirmation-backdrop">
     <section class="confirmation-dialog" role="alertdialog" aria-modal="true" aria-labelledby="reset-admin-title">
       <h2 id="reset-admin-title">Send a password reset link to {{ admin.email }}?</h2>
-      <p>They'll receive an email with a link to set a new password. The link expires in 1 hour.</p>
       @if (deleteError()) {
         <p class="confirmation-error" role="alert">{{ deleteError() }}</p>
       }
@@ -314,7 +313,6 @@
   <div class="confirmation-backdrop">
     <section class="confirmation-dialog" role="alertdialog" aria-modal="true" aria-labelledby="bulk-reset-admins-title">
       <h2 id="bulk-reset-admins-title">Send password reset links to {{ selectedCount() }} selected {{ selectedCount() === 1 ? 'admin' : 'admins' }}?</h2>
-      <p>They'll each receive an email with a link to set a new password. Links expire in 1 hour.</p>
       @if (bulkActionError()) {
         <p class="confirmation-error" role="alert">{{ bulkActionError() }}</p>
       }

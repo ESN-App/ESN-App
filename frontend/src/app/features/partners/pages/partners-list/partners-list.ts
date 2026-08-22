@@ -82,7 +82,6 @@ export class PartnersList {
       (partner) =>
         partner.name.toLocaleLowerCase().includes(query) ||
         partner.shortDescription.toLocaleLowerCase().includes(query) ||
-        partner.category?.toLocaleLowerCase().includes(query) ||
         partner.offers.some(
           (offer) =>
             offer.title.toLocaleLowerCase().includes(query) ||

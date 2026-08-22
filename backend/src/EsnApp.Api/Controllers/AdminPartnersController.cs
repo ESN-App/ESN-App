@@ -217,45 +217,6 @@ public class AdminPartnersController(
             : NotFound(new { error = result.Error });
     }
 
-    /// <summary>Updates a partner's display order. Non-Active partners should have displayOrder set to NULL.</summary>
-    [HttpPatch("{id:guid}")]
-    [ProducesResponseType(typeof(PartnerDto), StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(StatusCodes.Status403Forbidden)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> UpdateDisplayOrder(
-        Guid id,
-        [FromBody] UpdatePartnerDisplayOrderRequest request,
-        CancellationToken cancellationToken)
-    {
-        var existingResult = await sender.Send(new GetAdminPartnerByIdQuery(id), cancellationToken);
-        if (!existingResult.IsSuccess)
-        {
-            return NotFound(new { error = existingResult.Error });
-        }
-
-        var existing = existingResult.Value!;
-        var updateCommand = new UpdatePartnerCommand(
-            id,
-            existing.Name,
-            existing.LogoPath,
-            existing.ShortDescription,
-            existing.Description,
-            existing.Address,
-            existing.WebsiteUrl is null ? null : new Uri(existing.WebsiteUrl),
-            existing.GoogleMapsUrl is null ? null : new Uri(existing.GoogleMapsUrl),
-            existing.Latitude,
-            existing.Longitude,
-            displayOrder: request.DisplayOrder);
-
-        var result = await sender.Send(updateCommand, cancellationToken);
-
-        return result.IsSuccess
-            ? Ok(result.Value)
-            : BadRequest(new { error = result.Error });
-    }
-
     /// <summary>Deletes a partner.</summary>
     [HttpDelete("{id:guid}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]

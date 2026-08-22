@@ -4,7 +4,7 @@ import { TextFieldModule } from '@angular/cdk/text-field';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { Observable, forkJoin, of } from 'rxjs';
-import { map, startWith, switchMap } from 'rxjs/operators';
+import { map, startWith, switchMap, tap } from 'rxjs/operators';
 import { AdminApi, CreateDiscountRequest, CreatePartnerRequest } from '../../data-access/admin-api';
 import { PartnerDetailsViewModel } from '../../../partners/components/partner-details-view/partner-details-view';
 import { PartnerOffer } from '../../../partners/data-access/partners.models';
@@ -23,6 +23,9 @@ export class AdminPartnerCreate implements OnDestroy {
   private readonly api = inject(AdminApi);
   private readonly router = inject(Router);
   private objectLogoUrl: string | null = null;
+  private createdPartnerId: string | null = null;
+  private statusApplied = false;
+  private readonly createdDiscountIndexes = new Set<number>();
 
   readonly submitting = signal(false);
   readonly confirmationOpen = signal(false);
@@ -188,14 +191,28 @@ export class AdminPartnerCreate implements OnDestroy {
     this.submitting.set(true);
     this.error.set(null);
 
-    this.api.createPartner(request, this.selectedLogo()!).pipe(
-      switchMap((created) => {
-        const statusUpdate$ = value.status === 0
-          ? of(created)
-          : this.api.updatePartnerStatus(created.id, value.status!);
+    // Creating a partner takes three requests (partner, status, offers). If a later one
+    // fails, the partner already exists — remember what landed so retrying finishes the
+    // job instead of creating a duplicate partner or duplicate offers.
+    const create$ = this.createdPartnerId !== null
+      ? of(this.createdPartnerId)
+      : this.api.createPartner(request, this.selectedLogo()!).pipe(
+          map((created) => {
+            this.createdPartnerId = created.id;
+            return created.id;
+          }),
+        );
+
+    create$.pipe(
+      switchMap((partnerId) => {
+        const statusUpdate$: Observable<unknown> = value.status === 0 || this.statusApplied
+          ? of(null)
+          : this.api.updatePartnerStatus(partnerId, value.status!).pipe(
+              tap(() => (this.statusApplied = true)),
+            );
 
         return statusUpdate$.pipe(
-          switchMap((updated) => this.saveNewDiscounts(created.id, newDiscounts).pipe(map(() => updated))),
+          switchMap(() => this.saveNewDiscounts(partnerId, newDiscounts)),
         );
       }),
     ).subscribe({
@@ -203,7 +220,9 @@ export class AdminPartnerCreate implements OnDestroy {
       error: (response) => {
         this.submitting.set(false);
         this.error.set(
-          response?.error?.detail ?? response?.error?.error ?? 'The partner could not be created.',
+          this.createdPartnerId !== null
+            ? 'The partner was created but some details could not be saved. Save again to finish — this will not create a duplicate.'
+            : response?.error?.detail ?? response?.error?.error ?? 'The partner could not be created.',
         );
       },
     });
@@ -224,14 +243,21 @@ export class AdminPartnerCreate implements OnDestroy {
     partnerId: string,
     newDiscounts: { title: string; description: string }[],
   ): Observable<unknown> {
-    if (newDiscounts.length === 0) {
+    // Skip offers a previous attempt already created, so a retry does not duplicate them.
+    const pending = newDiscounts
+      .map((discount, index) => ({ discount, index }))
+      .filter(({ index }) => !this.createdDiscountIndexes.has(index));
+
+    if (pending.length === 0) {
       return of(null);
     }
 
     return forkJoin(
-      newDiscounts.map((discount): ReturnType<AdminApi['createDiscount']> => {
+      pending.map(({ discount, index }): ReturnType<AdminApi['createDiscount']> => {
         const request: CreateDiscountRequest = { ...discount, partnerId };
-        return this.api.createDiscount(request);
+        return this.api.createDiscount(request).pipe(
+          tap(() => this.createdDiscountIndexes.add(index)),
+        );
       }),
     );
   }

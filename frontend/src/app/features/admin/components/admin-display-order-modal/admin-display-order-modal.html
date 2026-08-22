@@ -1,6 +1,6 @@
 @if (open()) {
-  <div class="confirmation-backdrop" (click)="requestClose()">
-    <section class="confirmation-dialog" role="dialog" aria-modal="true" [attr.aria-labelledby]="titleId" (click)="$event.stopPropagation()">
+  <div class="confirmation-backdrop">
+    <section class="confirmation-dialog" role="dialog" aria-modal="true" [attr.aria-labelledby]="titleId">
       <div class="modal-header">
         <h2 [id]="titleId">{{ heading() }}</h2>
         <button type="button" class="modal-close" (click)="requestClose()" aria-label="Close">×</button>

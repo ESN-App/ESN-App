@@ -47,12 +47,6 @@ export class AuthService {
       .pipe(tap((response) => this.storeSession(response)));
   }
 
-  register(email: string, password: string): Observable<AuthResponse> {
-    return this.http
-      .post<AuthResponse>(`${this.baseUrl}/register`, { email, password })
-      .pipe(tap((response) => this.storeSession(response)));
-  }
-
   resetPassword(email: string, token: string, newPassword: string): Observable<void> {
     return this.http.post<void>(`${this.baseUrl}/reset-password`, { email, token, newPassword });
   }

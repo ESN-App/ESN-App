@@ -4,7 +4,7 @@ import { TextFieldModule } from '@angular/cdk/text-field';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { of } from 'rxjs';
-import { startWith, switchMap } from 'rxjs/operators';
+import { map, startWith, switchMap } from 'rxjs/operators';
 import { EventDetailsViewModel } from '../../../events/components/event-details-view/event-details-view';
 import { AdminApi, CreateEventRequest } from '../../data-access/admin-api';
 import { AdminDateTimePicker } from '../../components/admin-date-time-picker/admin-date-time-picker';
@@ -23,6 +23,7 @@ export class AdminEventCreate implements OnDestroy {
   private readonly api = inject(AdminApi);
   private readonly router = inject(Router);
   private objectImageUrl: string | null = null;
+  private createdId: string | null = null;
 
   readonly submitting = signal(false);
   readonly confirmationOpen = signal(false);
@@ -160,16 +161,27 @@ export class AdminEventCreate implements OnDestroy {
     this.submitting.set(true);
     this.error.set(null);
 
-    this.api.createEvent(request, this.selectedImage()).pipe(
-      switchMap((created) =>
-        value.status === 0 ? of(created) : this.api.updateEventStatus(created.id, value.status!),
-      ),
+    // The status is a second request. If it fails after the create succeeded, the item
+    // exists — remember its id so retrying finishes the job instead of creating a duplicate.
+    const create$ = this.createdId !== null
+      ? of(this.createdId)
+      : this.api.createEvent(request, this.selectedImage()).pipe(
+          map((created) => {
+            this.createdId = created.id;
+            return created.id;
+          }),
+        );
+
+    create$.pipe(
+      switchMap((id) => (value.status === 0 ? of(null) : this.api.updateEventStatus(id, value.status!))),
     ).subscribe({
       next: () => void this.router.navigate(['/admin'], { queryParams: { section: 'events' } }),
       error: (response) => {
         this.submitting.set(false);
         this.error.set(
-          response?.error?.detail ?? response?.error?.error ?? 'The event could not be created.',
+          this.createdId !== null
+            ? 'The event was created but could not be published. Save again to retry publishing — this will not create a duplicate.'
+            : response?.error?.detail ?? response?.error?.error ?? 'The event could not be created.',
         );
       },
     });

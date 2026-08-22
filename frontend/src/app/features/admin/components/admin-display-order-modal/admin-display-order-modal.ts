@@ -1,4 +1,4 @@
-import { Component, computed, effect, ElementRef, input, OnDestroy, output, signal, untracked, ViewChild } from '@angular/core';
+import { Component, computed, effect, ElementRef, HostListener, input, OnDestroy, output, signal, untracked, ViewChild } from '@angular/core';
 
 export interface DisplayOrderItem {
   id: string;
@@ -64,6 +64,13 @@ export class AdminDisplayOrderModal<T extends DisplayOrderItem> implements OnDes
 
   ngOnDestroy(): void {
     this.stopDragAutoScroll();
+  }
+
+  @HostListener('document:keydown.escape')
+  closeOnEscape(): void {
+    if (this.open() && !this.saving()) {
+      this.requestClose();
+    }
   }
 
   requestClose(): void {

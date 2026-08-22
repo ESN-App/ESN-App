@@ -210,20 +210,12 @@ export class AdminApi {
     return this.http.patch<PartnerDto>(`${this.baseUrl}/partners/${id}/status`, { status });
   }
 
-  updatePartnerDisplayOrder(id: string, displayOrder: number): Observable<PartnerDto> {
-    return this.http.patch<PartnerDto>(`${this.baseUrl}/partners/${id}`, { displayOrder });
-  }
-
   reorderPartners(partnerIds: string[]): Observable<PartnerDto[]> {
     return this.http.put<PartnerDto[]>(`${this.baseUrl}/partners/order`, { partnerIds });
   }
 
   createPartner(request: CreatePartnerRequest, logo: File): Observable<PartnerDto> {
     return this.http.post<PartnerDto>(`${this.baseUrl}/partners`, this.partnerFormData(request, logo));
-  }
-
-  getPartner(id: string): Observable<PartnerDto> {
-    return this.http.get<PartnerDto>(`${this.baseUrl}/partners/${id}`);
   }
 
   getPartnerBySlug(slug: string): Observable<PartnerDto> {
@@ -264,7 +256,7 @@ export class AdminApi {
   }
 
   createDiscount(request: CreateDiscountRequest): Observable<DiscountDto> {
-    return this.http.post<DiscountDto>(`${environment.apiBaseUrl}/api/discounts`, request);
+    return this.http.post<DiscountDto>(`${this.baseUrl}/discounts`, request);
   }
 
   getPartnerDiscounts(partnerId: string): Observable<DiscountDto[]> {
@@ -272,11 +264,11 @@ export class AdminApi {
   }
 
   updateDiscount(id: string, request: UpdateDiscountRequest): Observable<DiscountDto> {
-    return this.http.put<DiscountDto>(`${environment.apiBaseUrl}/api/discounts/${id}`, request);
+    return this.http.put<DiscountDto>(`${this.baseUrl}/discounts/${id}`, request);
   }
 
   deleteDiscount(id: string): Observable<void> {
-    return this.http.delete<void>(`${environment.apiBaseUrl}/api/discounts/${id}`);
+    return this.http.delete<void>(`${this.baseUrl}/discounts/${id}`);
   }
 
   updateInfoStatus(id: string, status: number): Observable<InfoArticleDto> {

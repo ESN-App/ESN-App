@@ -52,6 +52,14 @@ public class EventImageStorage(IWebHostEnvironment environment)
 
     public void Delete(string? publicPath)
     {
+        // Only uploaded images are owned by this storage. The seeded items point at
+        // frontend assets under /images/, which must survive edits and deletes.
+        if (publicPath is null ||
+            !publicPath.StartsWith("/api/images/uploads/events/", StringComparison.Ordinal))
+        {
+            return;
+        }
+
         var fileName = Path.GetFileName(publicPath);
         if (string.IsNullOrWhiteSpace(fileName))
         {

@@ -72,8 +72,7 @@ public class AdminInfoController(
                 return BadRequest(new { error = result.Error });
             }
 
-            return CreatedAtAction(nameof(InfoController.GetById), "Info",
-                new { id = result.Value!.Id }, result.Value);
+            return CreatedAtAction(nameof(GetById), new { id = result.Value!.Id }, result.Value);
         }
         catch (InvalidOperationException exception)
         {

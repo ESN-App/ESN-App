@@ -25,7 +25,6 @@ export interface PartnerDto {
   logoPath: string;
   shortDescription: string;
   description: string;
-  category?: string | null;
   address: string | null;
   websiteUrl: string | null;
   googleMapsUrl: string | null;

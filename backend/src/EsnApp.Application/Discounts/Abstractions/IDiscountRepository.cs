@@ -6,6 +6,8 @@ public interface IDiscountRepository
 {
     Task<IReadOnlyList<Discount>> GetAllAsync(CancellationToken cancellationToken = default);
 
+    Task<IReadOnlyList<Discount>> GetAdminListAsync(CancellationToken cancellationToken = default);
+
     Task<Discount?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
 
     Task<IReadOnlyList<Discount>> GetByPartnerIdAsync(

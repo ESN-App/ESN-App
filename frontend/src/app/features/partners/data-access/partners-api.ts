@@ -17,7 +17,9 @@ export class PartnersApi {
       partners: this.http.get<PartnerDto[]>(
         this.auth.isAdmin() ? `${this.baseUrl}/admin/partners` : `${this.baseUrl}/partners`,
       ),
-      offers: this.http.get<PartnerOffer[]>(`${this.baseUrl}/discounts`),
+      offers: this.http.get<PartnerOffer[]>(
+        this.auth.isAdmin() ? `${this.baseUrl}/admin/discounts` : `${this.baseUrl}/discounts`,
+      ),
     }).pipe(
       map(({ partners, offers }) =>
         partners
