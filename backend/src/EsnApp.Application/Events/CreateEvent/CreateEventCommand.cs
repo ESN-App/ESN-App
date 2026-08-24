@@ -10,8 +10,6 @@ public record CreateEventCommand(
     string Description,
     string Location,
     string? GoogleMapsUrl,
-    decimal? Latitude,
-    decimal? Longitude,
     DateTimeOffset StartsAt,
     DateTimeOffset? EndsAt,
     string? ImagePath,

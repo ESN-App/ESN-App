@@ -32,7 +32,10 @@
                 "input": "public"
               }
             ],
-            "styles": ["maplibre-gl/dist/maplibre-gl.css", "src/styles.scss"]
+            "styles": [
+              "maplibre-gl/dist/maplibre-gl.css",
+              "src/styles.scss"
+            ]
           },
           "configurations": {
             "production": {

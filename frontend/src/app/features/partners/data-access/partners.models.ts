@@ -25,7 +25,6 @@ export interface PartnerDto {
   logoPath: string;
   shortDescription: string;
   description: string;
-  category?: string | null;
   address: string | null;
   websiteUrl: string | null;
   googleMapsUrl: string | null;
@@ -33,6 +32,7 @@ export interface PartnerDto {
   longitude: number | null;
   status: PartnerStatus;
   displayOrder: number;
+  createdAt: string;
 }
 
 export interface PartnerView extends PartnerDto {

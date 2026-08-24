@@ -1,5 +1,7 @@
 namespace EsnApp.Application.Events.Common;
 
+using EsnApp.Domain.Events;
+
 public record EventListItemDto(
     Guid Id,
     string Title,
@@ -10,4 +12,5 @@ public record EventListItemDto(
     string? ImagePath,
     int? CurrentParticipants,
     int? MaximumParticipants,
-    decimal Price);
+    decimal Price,
+    EventStatus Status);

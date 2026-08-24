@@ -1,0 +1,195 @@
+<main class="create-page">
+  <header class="page-header">
+    <div>
+      <a class="back-link" routerLink="/admin" [queryParams]="{ section: 'partners' }">
+        <span class="back-icon" aria-hidden="true"></span>
+        <span>Admin panel</span>
+      </a>
+      <p class="eyebrow">Partners administration</p>
+      <h1>Edit partner</h1>
+      <p>Update the partner information and publishing status.</p>
+    </div>
+  </header>
+
+  @if (loading()) {
+    <app-loading-spinner />
+  } @else if (loadFailed()) {
+    <div class="save-error" role="alert">
+      <p>{{ error() }}</p>
+      <a routerLink="/admin" [queryParams]="{ section: 'partners' }">Back to admin panel</a>
+    </div>
+  } @else {
+    <app-admin-editor-layout [previewVisible]="previewVisible()">
+      <form class="partner-form" editor-form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+        <div class="form-heading">
+          <div><h2>Partner information</h2><p>Fields marked with * are required.</p></div>
+          <button type="button" class="preview-toggle" (click)="togglePreview()">{{ previewVisible() ? 'Hide preview' : 'Show preview' }}</button>
+        </div>
+
+        <fieldset class="status-field">
+          <legend>Partner status</legend>
+          <p>Choose who can see this partner and how it appears.</p>
+          <div class="status-options">
+            <label class="status-option status-option--draft">
+              <input type="radio" formControlName="status" [value]="0" (change)="updateStatusPreview()" />
+              <span class="status-option__dot" aria-hidden="true"></span>
+              <span class="status-option__copy"><strong>Draft</strong><small>Visible only to logged-in administrators.</small></span>
+              <span class="status-option__choice" aria-hidden="true"></span>
+            </label>
+            <label class="status-option status-option--published">
+              <input type="radio" formControlName="status" [value]="1" (change)="updateStatusPreview()" />
+              <span class="status-option__dot" aria-hidden="true"></span>
+              <span class="status-option__copy"><strong>Active</strong><small>Visible to everyone.</small></span>
+              <span class="status-option__choice" aria-hidden="true"></span>
+            </label>
+            <label class="status-option status-option--cancelled">
+              <input type="radio" formControlName="status" [value]="2" (change)="updateStatusPreview()" />
+              <span class="status-option__dot" aria-hidden="true"></span>
+              <span class="status-option__copy"><strong>Inactive</strong><small>Hidden from the public partners list.</small></span>
+              <span class="status-option__choice" aria-hidden="true"></span>
+            </label>
+          </div>
+        </fieldset>
+
+        <label class="field">
+          <span>Name *</span>
+          <input type="text" formControlName="name" maxlength="200" placeholder="For example: Decathlon" />
+          <span class="character-count">{{ form.controls.name.value?.length || 0 }}/200</span>
+          @if (showError('name')) { <small>Enter a partner name (maximum 200 characters).</small> }
+        </label>
+
+        <label class="field">
+          <span>Short description *</span>
+          <textarea formControlName="shortDescription" maxlength="500" cdkTextareaAutosize cdkAutosizeMinRows="3" placeholder="A short summary shown on the partners list"></textarea>
+          <span class="character-count">{{ form.controls.shortDescription.value?.length || 0 }}/500</span>
+          @if (showError('shortDescription')) { <small>Enter a short description (maximum 500 characters).</small> }
+        </label>
+
+        <label class="field">
+          <span>Full description *</span>
+          <textarea formControlName="description" maxlength="5000" cdkTextareaAutosize cdkAutosizeMinRows="6" placeholder="Describe the partner and what ESN members can expect"></textarea>
+          <span class="character-count">{{ form.controls.description.value?.length || 0 }}/5000</span>
+          @if (showError('description')) { <small>Enter the full partner description (maximum 5,000 characters).</small> }
+        </label>
+
+        <div class="field">
+          <span>Logo *</span>
+          <div class="upload-control">
+            <input #logoInput class="file-input" type="file" accept="image/jpeg,image/png,image/webp" (change)="chooseLogo($event)" />
+            @if (logoPreviewUrl()) { <button type="button" (click)="removeLogo(logoInput)">Remove logo</button> }
+          </div>
+          <span class="field-hint">JPEG, PNG, or WebP, up to 8 MB.</span>
+          @if (logoError(); as message) { <small>{{ message }}</small> }
+        </div>
+
+        <label class="field">
+          <span>Address</span>
+          <input type="text" formControlName="address" maxlength="500" placeholder="Street and city" />
+          @if (showError('address')) { <small>The address is too long (maximum 500 characters).</small> }
+        </label>
+
+        <label class="field">
+          <span>Website URL</span>
+          <input type="url" formControlName="websiteUrl" maxlength="2000" placeholder="Paste the partner's website link" />
+          @if (showError('websiteUrl')) { <small>Enter a valid absolute URL.</small> }
+        </label>
+
+        <label class="field">
+          <span>Google Maps URL</span>
+          <input type="url" formControlName="googleMapsUrl" maxlength="2000" placeholder="Paste a Google Maps link" />
+          @if (showError('googleMapsUrl')) { <small>Enter a valid absolute URL.</small> }
+        </label>
+
+        <fieldset class="participant-section">
+          <legend>Map coordinates</legend>
+          <div class="participant-fields">
+            <label class="field"><span>Latitude</span><input type="number" formControlName="latitude" min="-90" max="90" step="0.000001" /></label>
+            <label class="field"><span>Longitude</span><input type="number" formControlName="longitude" min="-180" max="180" step="0.000001" /></label>
+          </div>
+          @if (form.hasError('coordinatesIncomplete')) { <p class="group-error">Provide both latitude and longitude, or leave both empty.</p> }
+        </fieldset>
+
+        <fieldset class="discounts-section">
+          <legend>Discounts</legend>
+          <p>Add one or more discounts ESN members can use at this partner.</p>
+
+          @for (discount of discountGroups; track discount; let index = $index) {
+            <div class="discount-row" [formGroup]="discount">
+              <div class="discount-row__fields">
+                <label class="field">
+                  <span>Title *</span>
+                  <input
+                    type="text"
+                    formControlName="title"
+                    maxlength="200"
+                    placeholder="For example: 10% off all items"
+                  />
+                  <span class="character-count">{{ discount.controls.title.value?.length || 0 }}/200</span>
+                  @if (showDiscountError(index, 'title')) {
+                    <small>Enter a discount title (maximum 200 characters).</small>
+                  }
+                </label>
+                <label class="field">
+                  <span>Description</span>
+                  <textarea
+                    formControlName="description"
+                    maxlength="2000"
+                    cdkTextareaAutosize
+                    cdkAutosizeMinRows="3"
+                    placeholder="Explain how members can use this discount"
+                  ></textarea>
+                  <span class="character-count">{{ discount.controls.description.value?.length || 0 }}/2000</span>
+                </label>
+              </div>
+              <button
+                type="button"
+                class="discount-remove"
+                [attr.aria-label]="'Remove discount ' + (index + 1)"
+                (click)="removeDiscount(index)"
+              >
+                Remove
+              </button>
+            </div>
+          }
+
+          <button type="button" class="add-discount-button" (click)="addDiscount()">Add discount</button>
+        </fieldset>
+
+        @if (error(); as message) { <div class="save-error" role="alert">{{ message }}</div> }
+
+        <div class="form-actions">
+          <a routerLink="/admin" [queryParams]="{ section: 'partners' }">Cancel</a>
+          <div class="save-action">
+            <button type="submit" [disabled]="form.invalid || submitting() || !hasChanges()">{{ submitting() ? 'Saving…' : 'Save changes' }}</button>
+            @if (!hasChanges()) {
+              <small>No changes to save yet.</small>
+            }
+          </div>
+        </div>
+      </form>
+
+      <app-admin-partner-preview editor-preview [partner]="previewPartner()" />
+    </app-admin-editor-layout>
+  }
+
+  @if (confirmationOpen()) {
+    <div class="confirmation-backdrop">
+      <section
+        class="confirmation-dialog"
+        role="alertdialog"
+        aria-modal="true"
+        aria-labelledby="confirmation-title"
+      >
+        <h2 id="confirmation-title">Save these changes?</h2>
+        <div class="confirmation-actions">
+          <button type="button" class="confirmation-cancel" (click)="cancelConfirmation()">
+            Keep editing
+          </button>
+          <button type="button" class="confirmation-submit" (click)="confirmSubmit()">
+            Yes, save changes
+          </button>
+        </div>
+      </section>
+    </div>
+  }
+</main>

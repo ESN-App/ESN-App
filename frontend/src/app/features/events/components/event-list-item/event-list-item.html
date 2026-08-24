@@ -1,0 +1,66 @@
+@let item = event();
+<article class="event-item" [class.event-item--draft]="item.status === 0">
+  @if (interactive()) {
+    <a
+      class="mobile-card-link"
+      [routerLink]="eventLink()"
+      queryParamsHandling="preserve"
+      [attr.aria-label]="'Read more about ' + item.title"
+    ></a>
+  }
+
+  <div class="event-image">
+    <span aria-hidden="true">{{ item.startsAt ? (item.startsAt | date: 'dd') : '—' }}</span>
+    @if (item.imagePath) {
+      <img
+        [src]="item.imagePath"
+        [alt]="item.title"
+        [attr.loading]="interactive() ? 'lazy' : null"
+        (error)="hideBrokenImage($event)"
+      />
+    }
+  </div>
+
+  <div class="event-copy">
+    <app-event-status-title [status]="item.status"><h3>{{ item.title }}</h3></app-event-status-title>
+    <p class="description">{{ item.shortDescription }}</p>
+
+    <div class="desktop-facts">
+      <p class="location desktop-location">
+        <span class="event-icon location-icon" aria-hidden="true"></span>
+        <span>{{ item.location }}</span>
+      </p>
+      <strong class="price">
+        <span class="event-icon wallet-icon" aria-hidden="true"></span>
+        <span>{{ item.price === 0 ? 'Free' : (item.price | currency: 'PLN') }}</span>
+      </strong>
+      @if (item.currentParticipants !== null) {
+        <span class="participants">
+          <span class="event-icon participants-icon" aria-hidden="true"></span>
+          <span>{{ item.currentParticipants }}@if (item.maximumParticipants !== null) { /{{ item.maximumParticipants }} } going</span>
+        </span>
+      }
+    </div>
+  </div>
+
+  <div class="event-meta">
+    <p class="event-date">
+      @if (item.startsAt) {
+        <time [attr.datetime]="item.startsAt">{{ item.startsAt | date: 'd MMM' }}</time>
+        @if (item.endsAt && !isSameDay(item.startsAt, item.endsAt)) {
+          <span class="event-end">— {{ item.endsAt | date: 'dd MMM' }}</span>
+        }
+      } @else {
+        <time>Date</time>
+      }
+    </p>
+
+    @if (interactive()) {
+      <a class="arrow-link" [routerLink]="eventLink()" queryParamsHandling="preserve" [attr.aria-label]="'Read more about ' + item.title">
+        <span class="details-label">Read more</span><span class="arrow" aria-hidden="true"></span>
+      </a>
+    } @else {
+      <span class="arrow-link" aria-hidden="true"><span class="details-label">Read more</span><span class="arrow"></span></span>
+    }
+  </div>
+</article>

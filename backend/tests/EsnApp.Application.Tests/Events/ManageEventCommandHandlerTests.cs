@@ -1,6 +1,6 @@
 using EsnApp.Application.Events.Abstractions;
 using EsnApp.Application.Events.DeleteEvent;
-using EsnApp.Application.Events.PatchEvent;
+using EsnApp.Application.Events.UpdateEventStatus;
 using EsnApp.Domain.Events;
 
 namespace EsnApp.Application.Tests.Events;
@@ -8,63 +8,31 @@ namespace EsnApp.Application.Tests.Events;
 public class ManageEventCommandHandlerTests
 {
     [Fact]
-    public async Task Patch_ExistingEvent_UpdatesOnlyProvidedProperties()
+    public async Task UpdateStatus_ExistingEvent_ChangesStatus()
     {
         var entity = CreateEvent();
         var repository = new FakeEventRepository(entity);
-        var handler = new PatchEventCommandHandler(repository);
+        var handler = new UpdateEventStatusCommandHandler(repository);
 
         var result = await handler.Handle(
-            new PatchEventCommand(
-                entity.Id,
-                "Updated title",
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null),
+            new UpdateEventStatusCommand(entity.Id, EventStatus.Published),
             CancellationToken.None);
 
         Assert.True(result.IsSuccess);
-        Assert.Equal("Updated title", result.Value!.Title);
+        Assert.Equal(EventStatus.Published, result.Value!.Status);
+        Assert.NotNull(entity.PublishedAt);
+        Assert.Equal("Event", result.Value.Title);
         Assert.Equal("Summary", result.Value.ShortDescription);
         Assert.Equal(entity.Location, result.Value.Location);
     }
 
     [Fact]
-    public async Task Patch_MissingEvent_ReturnsFailure()
+    public async Task UpdateStatus_MissingEvent_ReturnsFailure()
     {
-        var handler = new PatchEventCommandHandler(new FakeEventRepository());
+        var handler = new UpdateEventStatusCommandHandler(new FakeEventRepository());
 
         var result = await handler.Handle(
-            new PatchEventCommand(
-                Guid.NewGuid(),
-                "Title",
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null),
+            new UpdateEventStatusCommand(Guid.NewGuid(), EventStatus.Cancelled),
             CancellationToken.None);
 
         Assert.False(result.IsSuccess);
@@ -111,7 +79,7 @@ public class ManageEventCommandHandlerTests
         public Task<IReadOnlyList<Event>> GetAllAsync(CancellationToken cancellationToken = default) =>
             Task.FromResult<IReadOnlyList<Event>>(_events);
 
-        public Task<EventPage> GetPublishedPageAsync(
+        public Task<EventPage> GetPublicPageAsync(
             DateTimeOffset from,
             DateTimeOffset to,
             int page,
@@ -120,18 +88,29 @@ public class ManageEventCommandHandlerTests
             Task.FromResult(new EventPage(_events, _events.Count));
 
         public Task<EventPage> GetAdminPageAsync(
-            EventStatus? status,
-            DateTimeOffset? from,
-            DateTimeOffset? to,
             int page,
             int pageSize,
             CancellationToken cancellationToken = default) =>
             Task.FromResult(new EventPage(_events, _events.Count));
 
+        public Task<EventPage> GetAdminPageAsync(
+            DateTimeOffset? from,
+            DateTimeOffset? to,
+            int page,
+            int pageSize,
+            CancellationToken cancellationToken = default)
+        {
+            var filtered = _events.AsEnumerable();
+            if (from.HasValue) filtered = filtered.Where(e => e.StartsAt >= from.Value);
+            if (to.HasValue) filtered = filtered.Where(e => e.StartsAt < to.Value);
+            var list = filtered.ToList();
+            return Task.FromResult(new EventPage(list, list.Count));
+        }
+
         public Task<Event?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default) =>
             Task.FromResult(_events.FirstOrDefault(entity => entity.Id == id));
 
-        public Task<Event?> GetPublishedByIdAsync(
+        public Task<Event?> GetPublicByIdAsync(
             Guid id,
             CancellationToken cancellationToken = default) =>
             Task.FromResult(_events.FirstOrDefault(

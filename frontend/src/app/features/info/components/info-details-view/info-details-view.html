@@ -1,0 +1,48 @@
+@let loaded = article();
+<article class="article">
+  @if (loaded.status === 0) { <app-draft-preview-banner /> }
+
+  <section class="info-hero">
+    <div class="hero-image">
+      @if (loaded.imagePath && !imageBroken()) {
+        <img
+          [src]="loaded.imagePath"
+          [alt]="loaded.title"
+          (error)="imageBroken.set(true)"
+        />
+      } @else {
+        <span class="image-fallback" aria-hidden="true"></span>
+      }
+    </div>
+
+    <div class="hero-copy">
+      <p class="eyebrow">ESN Gdańsk info</p>
+      <h1>{{ loaded.title }}</h1>
+    </div>
+  </section>
+
+  <section class="content-section" aria-labelledby="article-content-title">
+    <div class="section-heading">
+      <h2 id="article-content-title">About</h2>
+    </div>
+    <p>{{ loaded.content }}</p>
+  </section>
+
+  @if (loaded.externalLinks.length > 0) {
+    <div class="link-list">
+      @for (link of loaded.externalLinks; track link) {
+        @if (interactive()) {
+          <a class="read-more-cta" [href]="link" target="_blank" rel="noopener noreferrer">
+            Read more about it
+            <span class="external-arrow" aria-hidden="true"></span>
+          </a>
+        } @else {
+          <span class="read-more-cta">
+            Read more about it
+            <span class="external-arrow" aria-hidden="true"></span>
+          </span>
+        }
+      }
+    </div>
+  }
+</article>

@@ -1,8 +1,8 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { RouterLink } from '@angular/router';
 import { catchError, map, of, startWith } from 'rxjs';
 import { EmptyState, LoadingSpinner } from '../../../../shared';
+import { InfoListItem } from '../../components/info-list-item/info-list-item';
 import { InfoApi, InfoArticleDto } from '../../data-access/info-api';
 
 interface InfoPageState {
@@ -12,13 +12,12 @@ interface InfoPageState {
 
 @Component({
   selector: 'app-info-list',
-  imports: [RouterLink, EmptyState, LoadingSpinner],
+  imports: [EmptyState, InfoListItem, LoadingSpinner],
   templateUrl: './info-list.html',
   styleUrl: './info-list.scss',
 })
 export class InfoList {
   private readonly api = inject(InfoApi);
-  private readonly brokenImageIds = signal<ReadonlySet<string>>(new Set());
 
   protected readonly state = toSignal(
     this.api.getAll().pipe(
@@ -36,12 +35,4 @@ export class InfoList {
     ),
     { requireSync: true },
   );
-
-  protected hasBrokenImage(articleId: string): boolean {
-    return this.brokenImageIds().has(articleId);
-  }
-
-  protected markImageAsBroken(articleId: string): void {
-    this.brokenImageIds.update((current) => new Set(current).add(articleId));
-  }
 }

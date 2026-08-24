@@ -1,0 +1,34 @@
+:host {
+  display: block;
+  min-width: 0;
+}
+
+input {
+  background: #fff;
+  border: 1px solid #d7d8df;
+  border-radius: 0.65rem;
+  box-sizing: border-box;
+  color: #252630;
+  color-scheme: light;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.82rem;
+  min-height: 2.65rem;
+  outline: 0;
+  padding: 0.62rem 0.75rem;
+  width: 100%;
+}
+
+input:focus {
+  border-color: #5358bd;
+  box-shadow: 0 0 0 3px rgb(83 88 189 / 13%);
+}
+
+input:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+:host.ng-invalid.ng-touched input {
+  border-color: #bd4b42;
+}

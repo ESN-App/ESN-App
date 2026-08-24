@@ -14,4 +14,5 @@ public record PartnerDto(
     decimal? Latitude,
     decimal? Longitude,
     PartnerStatus Status,
-    int DisplayOrder);
+    int DisplayOrder,
+    DateTimeOffset CreatedAt);

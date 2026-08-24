@@ -1,0 +1,124 @@
+<section class="auth-page" aria-labelledby="login-title">
+  <div class="background-shape background-shape--cyan" aria-hidden="true"></div>
+  <div class="background-shape background-shape--pink" aria-hidden="true"></div>
+  <div class="background-shape background-shape--orange" aria-hidden="true"></div>
+  <div class="background-line background-line--one" aria-hidden="true"></div>
+  <div class="background-line background-line--two" aria-hidden="true"></div>
+
+  <a class="back-link" routerLink="/">
+    <mat-icon aria-hidden="true">arrow_back</mat-icon>
+    Back to ESN app
+  </a>
+
+  <div class="auth-card">
+    <span class="card-accent card-accent--top" aria-hidden="true"></span>
+    <span class="card-accent card-accent--side" aria-hidden="true"></span>
+
+    <header class="auth-header">
+      <div class="brand-mark" aria-hidden="true">
+        <span class="brand-mark__orbit brand-mark__orbit--cyan"></span>
+        <span class="brand-mark__orbit brand-mark__orbit--pink"></span>
+        <span class="brand-mark__orbit brand-mark__orbit--orange"></span>
+        <span class="brand-mark__center">
+          <img src="/images/esnstar.png" alt="" />
+        </span>
+      </div>
+
+      <p class="eyebrow">Admin access</p>
+      <h1 id="login-title">Welcome back</h1>
+    </header>
+
+    <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+      <div class="field-group">
+        <label for="admin-email">Email address</label>
+        <div
+          class="input-shell"
+          [class.input-shell--invalid]="form.controls.email.touched && form.controls.email.invalid"
+        >
+          <mat-icon aria-hidden="true">mail_outline</mat-icon>
+          <input
+            id="admin-email"
+            type="email"
+            formControlName="email"
+            autocomplete="username"
+            inputmode="email"
+            placeholder="admin@esn.pl"
+            aria-describedby="email-error"
+          />
+        </div>
+        <div class="field-message" id="email-error" aria-live="polite">
+          @if (form.controls.email.touched && form.controls.email.hasError('required')) {
+            Email is required.
+          } @else if (form.controls.email.touched && form.controls.email.hasError('email')) {
+            Enter a valid email address.
+          }
+        </div>
+      </div>
+
+      <div class="field-group">
+        <label for="admin-password">Password</label>
+        <div
+          class="input-shell"
+          [class.input-shell--invalid]="
+            form.controls.password.touched && form.controls.password.invalid
+          "
+        >
+          <mat-icon aria-hidden="true">lock_outline</mat-icon>
+          <input
+            id="admin-password"
+            [type]="passwordVisible() ? 'text' : 'password'"
+            formControlName="password"
+            autocomplete="current-password"
+            placeholder="Enter your password"
+            aria-describedby="password-error"
+          />
+          <button
+            class="password-toggle"
+            type="button"
+            (click)="togglePasswordVisibility()"
+            [attr.aria-label]="passwordVisible() ? 'Hide password' : 'Show password'"
+          >
+            <mat-icon aria-hidden="true">
+              {{ passwordVisible() ? 'visibility_off' : 'visibility' }}
+            </mat-icon>
+          </button>
+        </div>
+        <div class="field-message" id="password-error" aria-live="polite">
+          @if (form.controls.password.touched && form.controls.password.hasError('required')) {
+            Password is required.
+          } @else if (
+            form.controls.password.touched && form.controls.password.hasError('minlength')
+          ) {
+            Password must be at least 8 characters.
+          }
+        </div>
+      </div>
+
+      @if (error(); as message) {
+        <div class="login-error" role="alert">
+          <mat-icon aria-hidden="true">error_outline</mat-icon>
+          <span>{{ message }}</span>
+        </div>
+      }
+
+      <button class="submit-button" type="submit" [disabled]="submitting()">
+        @if (submitting()) {
+          <ng-container>
+            <mat-spinner diameter="20" aria-label="Logging in"></mat-spinner>
+            Logging in…
+          </ng-container>
+        } @else {
+          <ng-container>
+            Log in to admin panel
+            <span class="submit-arrow" aria-hidden="true"></span>
+          </ng-container>
+        }
+      </button>
+    </form>
+
+    <p class="access-note">
+      <mat-icon aria-hidden="true">verified_user</mat-icon>
+      Administrator accounts are created internally by ESN Gdańsk.
+    </p>
+  </div>
+</section>

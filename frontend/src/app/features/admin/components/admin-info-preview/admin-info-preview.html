@@ -1,0 +1,8 @@
+<app-admin-preview-panel
+  heading="How the article will look"
+  primaryTitle="Info list"
+  secondaryTitle="Info details"
+>
+  <app-info-list-item admin-preview-primary [article]="listItem()" [interactive]="false" />
+  <app-info-details-view admin-preview-secondary [article]="details()" [interactive]="false" />
+</app-admin-preview-panel>

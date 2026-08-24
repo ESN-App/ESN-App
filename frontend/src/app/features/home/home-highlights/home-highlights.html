@@ -29,6 +29,7 @@
         @for (item of newsItems(); track item.id; let itemIndex = $index) {
           <a
             class="news-card"
+            [class.news-card--draft]="item.status === 0"
             [routerLink]="['/news', item.id]"
             [class.active]="activeIndex() === itemIndex"
             [attr.aria-label]="'Open ' + item.title"
@@ -39,7 +40,9 @@
               [loading]="itemIndex === 0 ? 'eager' : 'lazy'"
             />
             <span class="news-overlay">
-              <span class="news-badge">New</span>
+              <span class="news-badge" [class.draft-badge]="item.status === 0">
+                {{ item.status === 0 ? 'Draft' : 'New' }}
+              </span>
               <strong>{{ item.title }}</strong>
             </span>
           </a>

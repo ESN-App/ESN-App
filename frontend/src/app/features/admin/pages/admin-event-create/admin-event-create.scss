@@ -1,0 +1,379 @@
+:host {
+  --accent: #7ac143;
+  --accent-dark: #4e8c24;
+  --admin-accent: #5358bd;
+  --admin-accent-dark: #343897;
+  display: block;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+.create-page {
+  margin: 0 auto;
+  max-width: 94rem;
+}
+
+.page-header {
+  margin-bottom: 1.25rem;
+}
+
+.back-link {
+  align-items: center;
+  color: #42469d;
+  display: inline-flex;
+  font-size: 0.78rem;
+  font-weight: 750;
+  gap: 0.45rem;
+  margin-bottom: 1rem;
+  text-decoration: none;
+}
+
+.back-icon {
+  background: var(--admin-accent);
+  height: 2rem;
+  mask: url('/icons/arrow-circle-left.svg') center / contain no-repeat;
+  transition: transform 160ms ease;
+  width: 2rem;
+}
+
+.back-link:hover .back-icon {
+  transform: translateX(-0.18rem);
+}
+
+.eyebrow {
+  color: var(--accent-dark);
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  margin: 0 0 0.4rem;
+  text-transform: uppercase;
+}
+
+.page-header .eyebrow {
+  color: var(--admin-accent-dark);
+}
+
+.page-header h1 {
+  font-size: clamp(2rem, 4vw, 3rem);
+  letter-spacing: -0.045em;
+  line-height: 1;
+  margin: 0;
+}
+
+.page-header > div > p:last-child {
+  color: #666875;
+  margin: 0.6rem 0 0;
+}
+
+.preview-toggle {
+  background: #eceeff;
+  border: 0;
+  border-radius: 0.55rem;
+  color: #3d4297;
+  cursor: pointer;
+  flex: 0 0 auto;
+  font: inherit;
+  font-size: 0.72rem;
+  font-weight: 750;
+  padding: 0.5rem 0.75rem;
+}
+
+.preview-toggle:hover {
+  background: #dfe1ff;
+}
+
+.event-form {
+  // align-self / align-content: start keep the form box at its natural height instead of
+  // being stretched to match the taller preview panel beside it.
+  align-self: start;
+  align-content: start;
+  border: 1px solid #dedfe5;
+  border-radius: 1rem;
+  display: grid;
+  gap: 1rem;
+  padding: 1.25rem;
+}
+
+.form-heading,
+.form-actions {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+}
+
+.save-action {
+  align-items: flex-end;
+  display: grid;
+  gap: 0.35rem;
+  justify-items: end;
+}
+
+.save-action small {
+  color: #777985;
+  font-size: 0.68rem;
+  font-weight: 650;
+}
+
+.form-heading h2 {
+  font-size: 1.15rem;
+  margin: 0;
+}
+
+.form-heading p {
+  color: #777985;
+  font-size: 0.75rem;
+  margin: 0.25rem 0 0;
+}
+
+.field {
+  display: grid;
+  gap: 0.38rem;
+  min-width: 0;
+  position: relative;
+}
+
+.field > span:first-child,
+.field > label:first-child {
+  color: #444653;
+  font-size: 0.76rem;
+  font-weight: 750;
+}
+
+.field input,
+.field textarea {
+  background: #fff;
+  border: 1px solid #d7d8df;
+  border-radius: 0.65rem;
+  color: #252630;
+  font: inherit;
+  font-size: 0.82rem;
+  outline: 0;
+  padding: 0.72rem 0.75rem;
+  resize: vertical;
+  width: 100%;
+}
+
+.field:has(.character-count) input {
+  padding-bottom: 1.4rem;
+  padding-right: 4rem;
+}
+
+.field:has(.character-count) textarea {
+  padding-bottom: 2.3rem;
+}
+
+.field textarea[cdkTextareaAutosize] {
+  box-sizing: content-box;
+  overflow: hidden;
+  resize: none;
+  width: auto;
+}
+
+.field input:focus,
+.field textarea:focus {
+  border-color: #5358bd;
+  box-shadow: 0 0 0 3px rgb(83 88 189 / 13%);
+}
+
+.field input.ng-invalid.ng-touched,
+.field textarea.ng-invalid.ng-touched {
+  border-color: #bd4b42;
+}
+
+.field small,
+.group-error {
+  color: #a23831;
+  font-size: 0.7rem;
+}
+
+.character-count {
+  bottom: 0.45rem;
+  color: #8b8c94 !important;
+  font-size: 0.66rem !important;
+  font-weight: 600 !important;
+  position: absolute;
+  right: 0.55rem;
+}
+
+.field:has(small) .character-count {
+  bottom: 1.55rem;
+}
+
+.field-row,
+.participant-fields,
+.schedule-grid {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.field-row {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.participant-fields {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.schedule-grid {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.date-time-field {
+  min-width: 0;
+}
+
+.field-hint {
+  color: #85868f !important;
+  font-size: 0.68rem !important;
+  font-weight: 600 !important;
+}
+
+.price-control {
+  align-items: center;
+  border: 1px solid #d7d8df;
+  border-radius: 0.65rem;
+  display: flex;
+  max-width: 12rem;
+  overflow: hidden;
+}
+
+.field .price-control input {
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  min-width: 0;
+}
+
+.price-control > span {
+  border-left: 1px solid #e1e2e7;
+  color: #686a75;
+  font-size: 0.72rem;
+  font-weight: 800;
+  padding: 0.75rem;
+}
+
+.price-control:focus-within {
+  border-color: #5358bd;
+  box-shadow: 0 0 0 3px rgb(83 88 189 / 13%);
+}
+
+.upload-control {
+  align-items: center;
+  display: flex;
+  gap: 0.55rem;
+}
+
+.upload-control .file-input {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.upload-control button {
+  background: #fff1ef;
+  border: 0;
+  border-radius: 0.55rem;
+  color: #9a3931;
+  cursor: pointer;
+  flex: 0 0 auto;
+  font: inherit;
+  font-size: 0.72rem;
+  font-weight: 750;
+  min-height: 2.5rem;
+  padding: 0.55rem 0.7rem;
+}
+
+.field input.file-input {
+  color: #666875;
+  padding: 0.42rem;
+}
+
+.file-input::file-selector-button {
+  background: #eceeff;
+  border: 0;
+  border-radius: 0.45rem;
+  color: #3d4297;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.72rem;
+  font-weight: 750;
+  margin-right: 0.6rem;
+  padding: 0.55rem 0.65rem;
+}
+
+.group-error {
+  margin: -0.45rem 0 0;
+}
+
+.participant-section {
+  border: 1px solid #e1e2e7;
+  border-radius: 0.75rem;
+  margin: 0;
+  min-width: 0;
+  padding: 0.9rem;
+}
+
+.participant-section legend {
+  color: #444653;
+  font-size: 0.76rem;
+  font-weight: 800;
+  padding: 0 0.3rem;
+}
+
+.save-error {
+  background: #fff1ef;
+  border-radius: 0.6rem;
+  color: #91362e;
+  font-size: 0.76rem;
+  padding: 0.7rem;
+}
+
+.form-actions {
+  align-items: flex-start;
+  border-top: 1px solid #e6e6ea;
+  margin-top: 0.25rem;
+  padding-top: 1rem;
+}
+
+.form-actions a {
+  align-items: center;
+  color: #666875;
+  display: inline-flex;
+  font-size: 0.78rem;
+  font-weight: 750;
+  min-height: 2.65rem;
+  text-decoration: none;
+}
+
+.form-actions button {
+  background: #5358bd;
+  border: 0;
+  border-radius: 0.65rem;
+  color: #fff;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 800;
+  min-height: 2.65rem;
+  padding: 0.6rem 0.9rem;
+}
+
+.form-actions button:disabled {
+  cursor: not-allowed;
+  opacity: 0.42;
+}
+
+@media (max-width: 520px) {
+  .field-row,
+  .participant-fields,
+  .schedule-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .upload-control {
+    align-items: stretch;
+    flex-direction: column;
+  }
+}
+

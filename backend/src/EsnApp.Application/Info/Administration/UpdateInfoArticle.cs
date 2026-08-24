@@ -10,7 +10,7 @@ public record UpdateInfoArticleCommand(
     string Slug,
     string Content,
     string Category,
-    Uri ImageUrl,
+    string ImagePath,
     IReadOnlyList<string> ExternalLinks) : IRequest<Result<InfoArticleDto>>;
 
 public class UpdateInfoArticleCommandValidator : AbstractValidator<UpdateInfoArticleCommand>
@@ -25,10 +25,7 @@ public class UpdateInfoArticleCommandValidator : AbstractValidator<UpdateInfoArt
             .Matches("^[a-z0-9]+(?:-[a-z0-9]+)*$");
         RuleFor(command => command.Content).NotEmpty().MaximumLength(50_000);
         RuleFor(command => command.Category).NotEmpty().MaximumLength(100);
-        RuleFor(command => command.ImageUrl)
-            .NotNull()
-            .Must(url => url is not null && url.Scheme is "http" or "https")
-            .WithMessage("ImageUrl must use HTTP or HTTPS.");
+        RuleFor(command => command.ImagePath).NotEmpty().MaximumLength(2000);
         RuleFor(command => command.ExternalLinks)
             .NotNull()
             .Must(links => links is not null && links.Count <= 20);
@@ -59,7 +56,7 @@ public class UpdateInfoArticleCommandHandler(IInfoArticleRepository repository)
         article.Slug = request.Slug;
         article.Content = request.Content;
         article.Category = request.Category.Trim();
-        article.ImageUrl = request.ImageUrl;
+        article.ImagePath = request.ImagePath;
         article.ExternalLinks = [.. request.ExternalLinks];
 
         return Result.Success(InfoArticleDto.FromEntity(

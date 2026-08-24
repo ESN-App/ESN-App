@@ -1,14 +1,15 @@
-import { DatePipe } from '@angular/common';
 import { Component, inject } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { catchError, map, of, switchMap } from 'rxjs';
 import { LoadingSpinner } from '../../../../shared';
+import { NewsDetailsView, NewsDetailsViewModel } from '../../components/news-details-view/news-details-view';
 import { NewsApi } from '../../data-access/news-api';
+import { NewsItemDto } from '../../data-access/news.models';
 
 @Component({
   selector: 'app-news-details',
-  imports: [DatePipe, RouterLink, LoadingSpinner],
+  imports: [RouterLink, LoadingSpinner, NewsDetailsView],
   templateUrl: './news-details.html',
   styleUrl: './news-details.scss',
 })
@@ -24,9 +25,14 @@ export class NewsDetails {
     ),
   );
 
-  hideBrokenImage(event: Event): void {
-    const image = event.currentTarget as HTMLImageElement;
-    image.closest('.hero')?.classList.add('no-image');
-    image.closest('.hero-image')?.remove();
+  protected detailsView(item: NewsItemDto): NewsDetailsViewModel {
+    return {
+      id: item.id,
+      title: item.title,
+      description: item.description,
+      imagePath: item.imagePath || null,
+      createdAt: item.createdAt,
+      status: item.status,
+    };
   }
 }

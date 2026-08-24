@@ -97,6 +97,11 @@ public class ManagePartnerCommandHandlerTests
             CancellationToken cancellationToken = default) =>
             Task.FromResult(_partners.FirstOrDefault(partner => partner.Id == id));
 
+        public Task<Partner?> GetAdminBySlugAsync(
+            string slug,
+            CancellationToken cancellationToken = default) =>
+            Task.FromResult<Partner?>(null);
+
         public Task<Partner> AddAsync(
             Partner entity,
             CancellationToken cancellationToken = default)
@@ -114,5 +119,17 @@ public class ManagePartnerCommandHandlerTests
             IReadOnlyCollection<Partner> entities,
             CancellationToken cancellationToken = default) =>
             Task.CompletedTask;
+
+        public Task<bool> DeleteAsync(
+            Guid id,
+            CancellationToken cancellationToken = default)
+        {
+            var partner = _partners.FirstOrDefault(p => p.Id == id);
+            if (partner is null)
+                return Task.FromResult(false);
+
+            _partners.Remove(partner);
+            return Task.FromResult(true);
+        }
     }
 }

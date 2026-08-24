@@ -14,7 +14,7 @@ public class GetAvailableEventMonthsQueryHandler(IEventRepository repository)
     {
         var events = await repository.GetAllAsync(cancellationToken);
         var months = events
-            .Where(entity => entity.Status == EventStatus.Published)
+            .Where(entity => entity.Status is EventStatus.Published or EventStatus.Cancelled)
             .Select(entity => $"{entity.StartsAt.Year:D4}-{entity.StartsAt.Month:D2}")
             .Distinct()
             .Order()

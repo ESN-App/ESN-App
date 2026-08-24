@@ -1,0 +1,225 @@
+:host {
+  --admin-accent: #5358bd;
+  --admin-accent-dark: #343897;
+  display: block;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+.create-page {
+  margin: 0 auto;
+  max-width: 40rem;
+}
+
+.page-header {
+  margin-bottom: 1.25rem;
+}
+
+.back-link {
+  align-items: center;
+  color: #42469d;
+  display: inline-flex;
+  font-size: 0.78rem;
+  font-weight: 750;
+  gap: 0.45rem;
+  margin-bottom: 1rem;
+  text-decoration: none;
+}
+
+.back-icon {
+  background: var(--admin-accent);
+  height: 2rem;
+  mask: url('/icons/arrow-circle-left.svg') center / contain no-repeat;
+  transition: transform 160ms ease;
+  width: 2rem;
+}
+
+.back-link:hover .back-icon {
+  transform: translateX(-0.18rem);
+}
+
+.eyebrow {
+  color: var(--admin-accent-dark);
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  margin: 0 0 0.4rem;
+  text-transform: uppercase;
+}
+
+.page-header h1 {
+  font-size: clamp(2rem, 4vw, 3rem);
+  letter-spacing: -0.045em;
+  line-height: 1;
+  margin: 0;
+}
+
+.page-header > div > p:last-child {
+  color: #666875;
+  margin: 0.6rem 0 0;
+}
+
+.admin-form {
+  border: 1px solid #dedfe5;
+  border-radius: 1rem;
+  display: grid;
+  gap: 1rem;
+  padding: 1.25rem;
+}
+
+.form-heading,
+.form-actions {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+}
+
+.save-action {
+  align-items: flex-end;
+  display: grid;
+  gap: 0.35rem;
+  justify-items: end;
+}
+
+.save-action small {
+  color: #777985;
+  font-size: 0.68rem;
+  font-weight: 650;
+}
+
+.form-heading h2 {
+  font-size: 1.15rem;
+  margin: 0;
+}
+
+.form-heading p {
+  color: #777985;
+  font-size: 0.75rem;
+  margin: 0.25rem 0 0;
+}
+
+.field {
+  display: grid;
+  gap: 0.38rem;
+  min-width: 0;
+  position: relative;
+}
+
+.field > span:first-child {
+  color: #444653;
+  font-size: 0.76rem;
+  font-weight: 750;
+}
+
+.field input {
+  background: #fff;
+  border: 1px solid #d7d8df;
+  border-radius: 0.65rem;
+  color: #252630;
+  font: inherit;
+  font-size: 0.82rem;
+  outline: 0;
+  padding: 0.72rem 0.75rem;
+  width: 100%;
+}
+
+.field input:focus {
+  border-color: #5358bd;
+  box-shadow: 0 0 0 3px rgb(83 88 189 / 13%);
+}
+
+.field input.ng-invalid.ng-touched,
+.field input.mismatch {
+  border-color: #bd4b42;
+}
+
+.password-input {
+  display: block;
+  position: relative;
+}
+
+.password-input input {
+  padding-right: 3.75rem;
+}
+
+.password-toggle {
+  background: transparent;
+  border: 0;
+  border-radius: 0.45rem;
+  color: #5358bd;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.72rem;
+  font-weight: 750;
+  padding: 0.35rem 0.5rem;
+  position: absolute;
+  right: 0.4rem;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.password-toggle:hover {
+  background: #eceeff;
+}
+
+.field small {
+  color: #a23831;
+  font-size: 0.7rem;
+}
+
+.field-hint {
+  color: #85868f;
+  font-size: 0.68rem;
+  font-weight: 600;
+}
+
+.save-error {
+  background: #fff1ef;
+  border-radius: 0.6rem;
+  color: #91362e;
+  font-size: 0.76rem;
+  padding: 0.7rem;
+}
+
+.form-actions {
+  align-items: flex-start;
+  border-top: 1px solid #e6e6ea;
+  margin-top: 0.25rem;
+  padding-top: 1rem;
+}
+
+.form-actions a {
+  align-items: center;
+  color: #666875;
+  display: inline-flex;
+  font-size: 0.78rem;
+  font-weight: 750;
+  min-height: 2.65rem;
+  text-decoration: none;
+}
+
+.form-actions button {
+  background: #5358bd;
+  border: 0;
+  border-radius: 0.65rem;
+  color: #fff;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 800;
+  min-height: 2.65rem;
+  padding: 0.6rem 0.9rem;
+}
+
+.form-actions button:disabled {
+  cursor: not-allowed;
+  opacity: 0.42;
+}
+
+.confirmation-dialog p {
+  color: #666875;
+  font-size: 0.82rem;
+  margin: -0.5rem 0 1.25rem;
+}

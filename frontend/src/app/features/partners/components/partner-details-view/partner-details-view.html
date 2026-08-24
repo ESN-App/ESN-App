@@ -1,0 +1,99 @@
+@let item = partner();
+<article>
+  @if (item.status === 0) { <app-draft-preview-banner /> }
+
+  <section class="partner-hero">
+    <div class="hero-logo">
+      @if (item.logoPath && !logoBroken()) {
+        <img
+          [src]="item.logoPath"
+          [alt]="item.name + ' logo'"
+          (error)="logoBroken.set(true)"
+        />
+      } @else {
+        <span aria-hidden="true">{{ initials(item.name) }}</span>
+      }
+    </div>
+
+    <div class="hero-copy">
+      <div class="eyebrow-row">
+        <p class="eyebrow">ESN GDAŃSK PARTNER</p>
+        @if (item.status === 2) { <app-inactive-badge /> }
+      </div>
+      <h1>{{ item.name }}</h1>
+      <p class="summary">{{ item.shortDescription }}</p>
+
+      @if (item.address) {
+        <div class="hero-location">
+          <span class="location-icon" aria-hidden="true"></span>
+          <div>
+            <strong>{{ item.address }}</strong>
+            @if (mapUrl(item.latitude, item.longitude, item.googleMapsUrl); as mapsUrl) {
+              @if (interactive()) {
+                <a [href]="mapsUrl" target="_blank" rel="noopener noreferrer">Open in maps</a>
+              } @else {
+                <span class="map-label">Open in maps</span>
+              }
+            }
+          </div>
+        </div>
+      }
+    </div>
+  </section>
+
+  @if (item.offers.length > 0) {
+    <section class="offers" aria-labelledby="offers-title">
+      <div class="section-heading">
+        <h2 id="offers-title">Benefits</h2>
+        <span class="offer-count">
+          {{ item.offers.length }}
+          {{ item.offers.length === 1 ? 'offer' : 'offers' }}
+        </span>
+      </div>
+
+      <div class="offer-list">
+        @for (offer of item.offers; track offer.id) {
+          <article class="offer">
+            <div class="offer-title">
+              <span class="offer-icon" aria-hidden="true"></span>
+              <h3>{{ offer.title }}</h3>
+            </div>
+            <p>{{ offer.description }}</p>
+
+            @if (offer.instructions) {
+              <div class="offer-detail">
+                <strong>How to use it</strong>
+                <span>{{ offer.instructions }}</span>
+              </div>
+            }
+            @if (offer.terms) {
+              <div class="offer-detail">
+                <strong>Terms</strong>
+                <span>{{ offer.terms }}</span>
+              </div>
+            }
+          </article>
+        }
+      </div>
+    </section>
+  }
+
+  <section class="about">
+    <p class="eyebrow">About the partner</p>
+    <p>{{ item.description }}</p>
+  </section>
+
+  @if (item.websiteUrl) {
+    @if (interactive()) {
+      <a class="website-cta" [href]="item.websiteUrl" target="_blank" rel="noopener noreferrer">
+        Visit partner website
+        <span class="cta-arrow" aria-hidden="true"></span>
+      </a>
+    } @else {
+      <div class="website-cta">
+        Visit partner website
+        <span class="cta-arrow" aria-hidden="true"></span>
+      </div>
+    }
+  }
+</article>

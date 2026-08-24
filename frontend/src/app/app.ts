@@ -32,6 +32,7 @@ export class App {
           '/events': '#f2f9ec',
           '/partners': '#fde6f4',
           '/info': '#fef2e9',
+          '/auth': '#f5f5fb',
         };
         const path = event.urlAfterRedirects.split('?')[0];
         const themeColor =

@@ -1,0 +1,179 @@
+<main class="create-page">
+  <header class="page-header">
+    <div>
+      <a class="back-link" routerLink="/admin" [queryParams]="{ section: 'events' }">
+        <span class="back-icon" aria-hidden="true"></span>
+        <span>Admin panel</span>
+      </a>
+      <p class="eyebrow">Events administration</p>
+      <h1>Edit event</h1>
+      <p>Update the event information and publishing status.</p>
+    </div>
+  </header>
+
+  @if (loading()) {
+    <app-loading-spinner />
+  } @else if (loadFailed()) {
+    <div class="save-error" role="alert">
+      <p>{{ error() }}</p>
+      <a routerLink="/admin" [queryParams]="{ section: 'events' }">Back to admin panel</a>
+    </div>
+  } @else {
+    <app-admin-editor-layout [previewVisible]="previewVisible()">
+      <form class="event-form" editor-form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+        <div class="form-heading">
+          <div><h2>Event information</h2><p>Fields marked with * are required.</p></div>
+          <button type="button" class="preview-toggle" (click)="togglePreview()">{{ previewVisible() ? 'Hide preview' : 'Show preview' }}</button>
+        </div>
+
+        <fieldset class="status-field">
+          <legend>Event status</legend>
+          <p>Choose who can see this event and how it appears.</p>
+          <div class="status-options">
+            <label class="status-option status-option--draft">
+              <input type="radio" formControlName="status" [value]="0" (change)="updateStatusPreview()" />
+              <span class="status-option__dot" aria-hidden="true"></span>
+              <span class="status-option__copy"><strong>Draft</strong><small>Visible only to logged-in administrators.</small></span>
+              <span class="status-option__choice" aria-hidden="true"></span>
+            </label>
+            <label class="status-option status-option--published">
+              <input type="radio" formControlName="status" [value]="1" (change)="updateStatusPreview()" />
+              <span class="status-option__dot" aria-hidden="true"></span>
+              <span class="status-option__copy"><strong>Published</strong><small>Visible to everyone.</small></span>
+              <span class="status-option__choice" aria-hidden="true"></span>
+            </label>
+            <label class="status-option status-option--cancelled">
+              <input type="radio" formControlName="status" [value]="2" (change)="updateStatusPreview()" />
+              <span class="status-option__dot" aria-hidden="true"></span>
+              <span class="status-option__copy"><strong>Cancelled</strong><small>Visible to everyone and marked as cancelled.</small></span>
+              <span class="status-option__choice" aria-hidden="true"></span>
+            </label>
+          </div>
+        </fieldset>
+
+        <label class="field">
+          <span>Title *</span>
+          <input type="text" formControlName="title" maxlength="200" placeholder="For example: Welcome Party" />
+          <span class="character-count">{{ form.controls.title.value?.length || 0 }}/200</span>
+          @if (showError('title')) { <small>Enter an event title (maximum 200 characters).</small> }
+        </label>
+
+        <label class="field">
+          <span>Short description *</span>
+          <textarea formControlName="shortDescription" maxlength="200" cdkTextareaAutosize cdkAutosizeMinRows="3" placeholder="A short summary shown on the events list"></textarea>
+          <span class="character-count">{{ form.controls.shortDescription.value?.length || 0 }}/200</span>
+          @if (showError('shortDescription')) { <small>Enter a short description (maximum 200 characters).</small> }
+        </label>
+
+        <label class="field">
+          <span>Full description *</span>
+          <textarea formControlName="description" maxlength="5000" cdkTextareaAutosize cdkAutosizeMinRows="6" placeholder="Describe the event, programme, and anything attendees should know"></textarea>
+          <span class="character-count">{{ form.controls.description.value?.length || 0 }}/5000</span>
+          @if (showError('description')) { <small>Enter the full event description (maximum 5,000 characters).</small> }
+        </label>
+
+        <label class="field">
+          <span>Location *</span>
+          <input type="text" formControlName="location" maxlength="500" placeholder="Venue or meeting point" />
+          @if (showError('location')) { <small>Enter the event location.</small> }
+        </label>
+
+        <label class="field">
+          <span>Google Maps URL</span>
+          <input type="url" formControlName="googleMapsUrl" maxlength="2000" placeholder="Paste a Google Maps link" />
+          @if (showError('googleMapsUrl')) { <small>Enter a valid absolute URL.</small> }
+        </label>
+
+        <div class="schedule-grid">
+          <div class="field date-time-field">
+            <label for="event-starts-at">Starts at *</label>
+            <app-admin-date-time-picker
+              inputId="event-starts-at"
+              formControlName="startsAt"
+            />
+            @if (showError('startsAt')) { <small>Choose a start date and time.</small> }
+          </div>
+          <div class="field date-time-field">
+            <label for="event-ends-at">Ends at</label>
+            <app-admin-date-time-picker
+              inputId="event-ends-at"
+              formControlName="endsAt"
+            />
+          </div>
+        </div>
+        @if (form.hasError('endBeforeStart') && form.controls.endsAt.dirty) {
+          <p class="group-error">End time must be later than start time.</p>
+        }
+
+        <label class="field price-field">
+          <span>Price *</span>
+          <span class="price-control">
+            <input type="number" formControlName="price" min="0" step="0.01" />
+            <span>PLN</span>
+          </span>
+          @if (showError('price')) { <small>Price must be zero or more.</small> }
+        </label>
+
+        <div class="field">
+          <span>Event image</span>
+          <div class="upload-control">
+            <input #imageInput class="file-input" type="file" accept="image/jpeg,image/png,image/webp" (change)="chooseImage($event)" />
+            @if (imagePreviewUrl()) { <button type="button" (click)="removeImage(imageInput)">Remove photo</button> }
+          </div>
+          <span class="field-hint">JPEG, PNG, or WebP, up to 8 MB.</span>
+          @if (imageError(); as message) { <small>{{ message }}</small> }
+        </div>
+
+        <label class="field">
+          <span>Registration URL</span>
+          <input type="url" formControlName="registrationUrl" maxlength="2000" placeholder="Paste the registration form link" />
+          @if (showError('registrationUrl')) { <small>Enter a valid absolute URL.</small> }
+        </label>
+
+        <fieldset class="participant-section">
+          <legend>Participant limits</legend>
+          <div class="participant-fields">
+            <label class="field"><span>Minimum participants</span><input type="number" formControlName="minimumParticipants" min="0" /></label>
+            <label class="field"><span>Maximum participants</span><input type="number" formControlName="maximumParticipants" min="0" /></label>
+          </div>
+          @if (form.hasError('maximumBelowMinimum')) { <p class="group-error">Maximum participants cannot be below the minimum.</p> }
+        </fieldset>
+
+        @if (error(); as message) { <div class="save-error" role="alert">{{ message }}</div> }
+
+        <div class="form-actions">
+          <a routerLink="/admin" [queryParams]="{ section: 'events' }">Cancel</a>
+          <div class="save-action">
+            <button type="submit" [disabled]="form.invalid || submitting() || !hasChanges()">{{ submitting() ? 'Saving…' : 'Save changes' }}</button>
+            @if (!hasChanges()) {
+              <small>No changes to save yet.</small>
+            }
+          </div>
+        </div>
+      </form>
+
+      <app-admin-event-preview editor-preview [event]="previewEvent()" />
+    </app-admin-editor-layout>
+  }
+
+  @if (confirmationOpen()) {
+    <div class="confirmation-backdrop">
+      <section
+        class="confirmation-dialog"
+        role="alertdialog"
+        aria-modal="true"
+        aria-labelledby="confirmation-title"
+      >
+        <h2 id="confirmation-title">Save these changes?</h2>
+        <div class="confirmation-actions">
+          <button type="button" class="confirmation-cancel" (click)="cancelConfirmation()">
+            Keep editing
+          </button>
+          <button type="button" class="confirmation-submit" (click)="confirmSubmit()">
+            Yes, save changes
+          </button>
+        </div>
+      </section>
+    </div>
+  }
+</main>

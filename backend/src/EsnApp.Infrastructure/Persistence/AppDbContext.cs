@@ -32,6 +32,10 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
         builder.ApplyConfiguration(new InfoArticleConfiguration());
         builder.ApplyConfiguration(new NewsItemConfiguration());
 
+        builder.Entity<ApplicationUser>()
+            .Property(user => user.CreatedAt)
+            .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
         builder.Entity<Discount>(entity =>
         {
             entity.Property(d => d.Title).HasMaxLength(200);

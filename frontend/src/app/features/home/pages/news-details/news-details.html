@@ -5,25 +5,7 @@
   </a>
 
   @if (newsItem(); as loaded) {
-    <article>
-      <section class="hero" [class.no-image]="!loaded.imagePath">
-        @if (loaded.imagePath) {
-          <div class="hero-image">
-            <img [src]="loaded.imagePath" [alt]="loaded.title" (error)="hideBrokenImage($event)" />
-          </div>
-        }
-
-        <div class="hero-copy">
-          <p class="eyebrow">Fresh from ESN &middot; {{ loaded.createdAt | date: 'd MMMM yyyy' }}</p>
-          <h1>{{ loaded.title }}</h1>
-        </div>
-      </section>
-
-      <section class="about">
-        <p class="eyebrow">Story</p>
-        <p>{{ loaded.description }}</p>
-      </section>
-    </article>
+    <app-news-details-view [newsItem]="detailsView(loaded)" />
   } @else if (newsItem() === null) {
     <section class="not-found">
       <h1>Story not found</h1>

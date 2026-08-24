@@ -1,0 +1,111 @@
+<main class="create-page">
+  <header class="page-header">
+    <div>
+      <a class="back-link" routerLink="/admin" [queryParams]="{ section: 'news' }">
+        <span class="back-icon" aria-hidden="true"></span>
+        <span>Admin panel</span>
+      </a>
+      <p class="eyebrow">News administration</p>
+      <h1>Edit news article</h1>
+      <p>Update the news article information and publishing status.</p>
+    </div>
+  </header>
+
+  @if (loading()) {
+    <app-loading-spinner />
+  } @else if (loadFailed()) {
+    <div class="save-error" role="alert">
+      <p>{{ error() }}</p>
+      <a routerLink="/admin" [queryParams]="{ section: 'news' }">Back to admin panel</a>
+    </div>
+  } @else {
+    <app-admin-editor-layout [previewVisible]="previewVisible()">
+      <form class="info-form" editor-form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+        <div class="form-heading">
+          <div><h2>News article information</h2><p>Fields marked with * are required.</p></div>
+          <button type="button" class="preview-toggle" (click)="togglePreview()">{{ previewVisible() ? 'Hide preview' : 'Show preview' }}</button>
+        </div>
+
+        <fieldset class="status-field">
+          <legend>News article status</legend>
+          <p>Choose who can see this news article.</p>
+          <div class="status-options">
+            <label class="status-option status-option--draft">
+              <input type="radio" formControlName="status" [value]="0" (change)="updateStatusPreview()" />
+              <span class="status-option__dot" aria-hidden="true"></span>
+              <span class="status-option__copy"><strong>Draft</strong><small>Visible only to logged-in administrators.</small></span>
+              <span class="status-option__choice" aria-hidden="true"></span>
+            </label>
+            <label class="status-option status-option--published">
+              <input type="radio" formControlName="status" [value]="1" (change)="updateStatusPreview()" />
+              <span class="status-option__dot" aria-hidden="true"></span>
+              <span class="status-option__copy"><strong>Published</strong><small>Visible to everyone.</small></span>
+              <span class="status-option__choice" aria-hidden="true"></span>
+            </label>
+          </div>
+        </fieldset>
+
+        <label class="field">
+          <span>Title *</span>
+          <input type="text" formControlName="title" maxlength="200" placeholder="For example: Orientation Week is almost here" />
+          <span class="character-count">{{ form.controls.title.value?.length || 0 }}/200</span>
+          @if (showError('title')) { <small>Enter a news article title (maximum 200 characters).</small> }
+        </label>
+
+        <label class="field">
+          <span>Description *</span>
+          <textarea formControlName="description" maxlength="2000" cdkTextareaAutosize cdkAutosizeMinRows="6" placeholder="Write the news article description"></textarea>
+          <span class="character-count">{{ form.controls.description.value?.length || 0 }}/2000</span>
+          @if (showError('description')) { <small>Enter the news article description (maximum 2,000 characters).</small> }
+        </label>
+
+        <div class="field">
+          <span>Image</span>
+          <div class="upload-control">
+            <input #imageInput class="file-input" type="file" accept="image/jpeg,image/png,image/webp" (change)="chooseImage($event)" />
+            @if (imagePreviewUrl()) { <button type="button" (click)="removeImage(imageInput)">Undo replacement</button> }
+          </div>
+          <span class="field-hint">JPEG, PNG, or WebP, up to 8 MB. Leave empty to keep the current image.</span>
+          @if (imageError(); as message) { <small>{{ message }}</small> }
+        </div>
+
+        @if (error(); as message) { <div class="save-error" role="alert">{{ message }}</div> }
+
+        <div class="form-actions">
+          <a routerLink="/admin" [queryParams]="{ section: 'news' }">Cancel</a>
+          <div class="save-action">
+            <button type="submit" [disabled]="form.invalid || submitting() || !hasChanges()">{{ submitting() ? 'Saving…' : 'Save changes' }}</button>
+            @if (form.invalid) {
+              <small>Fill in all required fields to continue.</small>
+            } @else if (!hasChanges()) {
+              <small>Make a change to enable saving.</small>
+            }
+          </div>
+        </div>
+      </form>
+
+      <app-admin-news-preview editor-preview [listItem]="previewListItem()" [details]="previewDetails()" />
+    </app-admin-editor-layout>
+  }
+
+  @if (confirmationOpen()) {
+    <div class="confirmation-backdrop">
+      <section
+        class="confirmation-dialog"
+        role="alertdialog"
+        aria-modal="true"
+        aria-labelledby="confirmation-title"
+      >
+        <h2 id="confirmation-title">Save these changes?</h2>
+        <div class="confirmation-actions">
+          <button type="button" class="confirmation-cancel" (click)="cancelConfirmation()">
+            Keep editing
+          </button>
+          <button type="button" class="confirmation-submit" (click)="confirmSubmit()">
+            Yes, save changes
+          </button>
+        </div>
+      </section>
+    </div>
+  }
+</main>

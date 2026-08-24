@@ -7,16 +7,18 @@ namespace EsnApp.Infrastructure.Persistence.Repositories;
 public class EventRepository(AppDbContext context)
     : RepositoryBase<Event>(context), IEventRepository
 {
-    public async Task<Event?> GetPublishedByIdAsync(
+    public async Task<Event?> GetPublicByIdAsync(
         Guid id,
         CancellationToken cancellationToken = default) =>
         await Context.Events
             .AsNoTracking()
             .FirstOrDefaultAsync(
-                entity => entity.Id == id && entity.Status == EventStatus.Published,
+                entity => entity.Id == id
+                    && (entity.Status == EventStatus.Published
+                        || entity.Status == EventStatus.Cancelled),
                 cancellationToken);
 
-    public async Task<EventPage> GetPublishedPageAsync(
+    public async Task<EventPage> GetPublicPageAsync(
         DateTimeOffset from,
         DateTimeOffset to,
         int page,
@@ -26,7 +28,7 @@ public class EventRepository(AppDbContext context)
         var query = Context.Events
             .AsNoTracking()
             .Where(entity =>
-                entity.Status == EventStatus.Published
+                (entity.Status == EventStatus.Published || entity.Status == EventStatus.Cancelled)
                 && entity.StartsAt >= from
                 && entity.StartsAt < to);
 
@@ -34,7 +36,14 @@ public class EventRepository(AppDbContext context)
     }
 
     public async Task<EventPage> GetAdminPageAsync(
-        EventStatus? status,
+        int page,
+        int pageSize,
+        CancellationToken cancellationToken = default)
+    {
+        return await ToPageAsync(Context.Events.AsNoTracking(), page, pageSize, cancellationToken);
+    }
+
+    public async Task<EventPage> GetAdminPageAsync(
         DateTimeOffset? from,
         DateTimeOffset? to,
         int page,
@@ -42,11 +51,6 @@ public class EventRepository(AppDbContext context)
         CancellationToken cancellationToken = default)
     {
         var query = Context.Events.AsNoTracking();
-
-        if (status.HasValue)
-        {
-            query = query.Where(entity => entity.Status == status.Value);
-        }
 
         if (from.HasValue)
         {

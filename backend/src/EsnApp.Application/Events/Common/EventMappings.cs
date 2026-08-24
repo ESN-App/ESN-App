@@ -11,8 +11,6 @@ public static class EventMappings
         entity.Description,
         entity.Location,
         entity.GoogleMapsUrl?.ToString(),
-        entity.Latitude,
-        entity.Longitude,
         entity.StartsAt,
         entity.EndsAt,
         entity.ImagePath,
@@ -36,5 +34,6 @@ public static class EventMappings
         entity.ImagePath,
         entity.CurrentParticipants,
         entity.MaximumParticipants,
-        entity.Price);
+        entity.Price,
+        entity.Status);
 }

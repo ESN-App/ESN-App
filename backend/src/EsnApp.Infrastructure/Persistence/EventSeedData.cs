@@ -495,8 +495,6 @@ internal static class EventSeedData
             Description = description,
             Location = location,
             GoogleMapsUrl = new Uri(googleMapsUrl),
-            Latitude = latitude,
-            Longitude = longitude,
             StartsAt = startsAt,
             EndsAt = endsAt,
             ImagePath = imagePath,

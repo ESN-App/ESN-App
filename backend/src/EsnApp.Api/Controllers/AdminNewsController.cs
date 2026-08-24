@@ -1,4 +1,5 @@
 using EsnApp.Api.Contracts.News;
+using EsnApp.Api.Services;
 using EsnApp.Application.News.Common;
 using EsnApp.Application.News.CreateNewsItem;
 using EsnApp.Application.News.DeleteNewsItem;
@@ -17,7 +18,9 @@ namespace EsnApp.Api.Controllers;
 [ApiController]
 [Route("api/admin/news")]
 [Authorize(Roles = "Admin")]
-public class AdminNewsController(ISender sender) : ControllerBase
+public class AdminNewsController(
+    ISender sender,
+    NewsImageStorage imageStorage) : ControllerBase
 {
     /// <summary>Lists all news items for administration.</summary>
     [HttpGet]
@@ -42,42 +45,107 @@ public class AdminNewsController(ISender sender) : ControllerBase
         return result.IsSuccess ? Ok(result.Value) : NotFound(new { error = result.Error });
     }
 
-    /// <summary>Creates a draft news item.</summary>
+    /// <summary>Creates a draft news item and stores its uploaded image.</summary>
     [HttpPost]
+    [Consumes("multipart/form-data")]
+    [RequestSizeLimit(NewsImageStorage.MaximumBytes + 1024 * 1024)]
     [ProducesResponseType(typeof(NewsItemDto), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> Create(
-        CreateNewsItemCommand command,
+        [FromForm] CreateNewsItemRequest request,
         CancellationToken cancellationToken)
     {
-        var result = await sender.Send(command, cancellationToken);
+        string? imagePath = null;
 
-        return result.IsSuccess
-            ? CreatedAtAction(
+        try
+        {
+            imagePath = await imageStorage.SaveAsync(request.Image, cancellationToken);
+            var result = await sender.Send(
+                new CreateNewsItemCommand(
+                    request.Title,
+                    request.Description,
+                    imagePath!),
+                cancellationToken);
+
+            if (!result.IsSuccess)
+            {
+                imageStorage.Delete(imagePath);
+                return BadRequest(new { error = result.Error });
+            }
+
+            return CreatedAtAction(
                 nameof(GetById),
                 new { id = result.Value!.Id },
-                result.Value)
-            : BadRequest(new { error = result.Error });
+                result.Value);
+        }
+        catch (InvalidOperationException exception)
+        {
+            imageStorage.Delete(imagePath);
+            return BadRequest(new { error = exception.Message });
+        }
+        catch
+        {
+            imageStorage.Delete(imagePath);
+            throw;
+        }
     }
 
-    /// <summary>Edits a news item.</summary>
+    /// <summary>Edits a news item, replacing its image only when a new one is uploaded.</summary>
     [HttpPut("{id:guid}")]
+    [Consumes("multipart/form-data")]
+    [RequestSizeLimit(NewsImageStorage.MaximumBytes + 1024 * 1024)]
     [ProducesResponseType(typeof(NewsItemDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Update(
         Guid id,
-        UpdateNewsItemRequest request,
+        [FromForm] UpdateNewsItemRequest request,
         CancellationToken cancellationToken)
     {
-        var result = await sender.Send(
-            new UpdateNewsItemCommand(
-                id,
-                request.Title,
-                request.Description,
-                request.ImagePath),
-            cancellationToken);
+        var existingResult = await sender.Send(
+            new GetAdminNewsItemByIdQuery(id), cancellationToken);
+        if (!existingResult.IsSuccess)
+        {
+            return NotFound(new { error = existingResult.Error });
+        }
 
-        return result.IsSuccess ? Ok(result.Value) : NotFound(new { error = result.Error });
+        var existing = existingResult.Value!;
+        string? newImagePath = null;
+
+        try
+        {
+            newImagePath = await imageStorage.SaveAsync(request.Image, cancellationToken);
+            var result = await sender.Send(
+                new UpdateNewsItemCommand(
+                    id,
+                    request.Title,
+                    request.Description,
+                    newImagePath ?? existing.ImagePath),
+                cancellationToken);
+
+            if (!result.IsSuccess)
+            {
+                imageStorage.Delete(newImagePath);
+                return NotFound(new { error = result.Error });
+            }
+
+            if (newImagePath is not null)
+            {
+                imageStorage.Delete(existing.ImagePath);
+            }
+
+            return Ok(result.Value);
+        }
+        catch (InvalidOperationException exception)
+        {
+            imageStorage.Delete(newImagePath);
+            return BadRequest(new { error = exception.Message });
+        }
+        catch
+        {
+            imageStorage.Delete(newImagePath);
+            throw;
+        }
     }
 
     /// <summary>Publishes or hides a news item.</summary>

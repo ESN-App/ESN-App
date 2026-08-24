@@ -24,4 +24,9 @@ npm-debug.log*
 TestResults/
 coverage/
 
+# Admin-uploaded images (runtime data, not repo assets). Seeded artwork under
+# wwwroot/images/{info,partners}/ is committed and stays tracked.
+backend/src/EsnApp.Api/wwwroot/images/uploads/
+
+# Claude AI
 .claude

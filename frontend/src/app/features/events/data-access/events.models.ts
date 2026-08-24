@@ -9,13 +9,12 @@ export interface EventListItemDto {
   currentParticipants: number | null;
   maximumParticipants: number | null;
   price: number;
+  status: number;
 }
 
 export interface EventDetailsDto extends EventListItemDto {
   description: string;
   googleMapsUrl: string | null;
-  latitude: number | null;
-  longitude: number | null;
   registrationUrl: string | null;
   status: number;
   publishedAt: string | null;

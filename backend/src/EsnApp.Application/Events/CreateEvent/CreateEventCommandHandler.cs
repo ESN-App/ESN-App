@@ -20,8 +20,6 @@ public class CreateEventCommandHandler(IEventRepository repository)
             Description = request.Description,
             Location = request.Location,
             GoogleMapsUrl = request.GoogleMapsUrl is null ? null : new Uri(request.GoogleMapsUrl),
-            Latitude = request.Latitude,
-            Longitude = request.Longitude,
             StartsAt = request.StartsAt,
             EndsAt = request.EndsAt,
             ImagePath = request.ImagePath,

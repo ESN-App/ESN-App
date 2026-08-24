@@ -1,9 +1,17 @@
 {
   "$schema": "https://json.schemastore.org/launchsettings.json",
   "profiles": {
+    // hotReloadEnabled is false because admin image uploads are written into
+    // wwwroot while the app runs. Visual Studio's Hot Reload watches wwwroot on
+    // purpose (to live-refresh static assets), so every upload is handed to
+    // Roslyn's hot reload path, which asserts and rude-terminates the process
+    // with exit code 0xFFFFFFFF mid-request - the image is saved but the entity
+    // never is. See dotnet/roslyn#84062. The matching dotnet watch workaround is
+    // the DefaultItemExcludes glob in EsnApp.Api.csproj.
     "http": {
       "commandName": "Project",
       "dotnetRunMessages": true,
+      "hotReloadEnabled": false,
       "launchBrowser": true,
       "launchUrl": "swagger",
       "applicationUrl": "http://localhost:5000",
@@ -14,6 +22,7 @@
     "https": {
       "commandName": "Project",
       "dotnetRunMessages": true,
+      "hotReloadEnabled": false,
       "launchBrowser": true,
       "launchUrl": "swagger",
       "applicationUrl": "https://localhost:5001;http://localhost:5000",

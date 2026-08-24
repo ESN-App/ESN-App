@@ -92,8 +92,20 @@
   .content:has(app-home-page),
   .content:has(app-events-list),
   .content:has(app-partners-list),
-  .content:has(app-info-list) {
+  .content:has(app-info-list),
+  .content:has(app-admin-panel) {
     max-width: 72rem;
+  }
+
+  .content:has(app-admin-event-create),
+  .content:has(app-admin-event-edit),
+  .content:has(app-admin-partner-create),
+  .content:has(app-admin-partner-edit),
+  .content:has(app-admin-info-create),
+  .content:has(app-admin-info-edit),
+  .content:has(app-admin-news-create),
+  .content:has(app-admin-news-edit) {
+    max-width: 96rem;
   }
 
   .toolbar {

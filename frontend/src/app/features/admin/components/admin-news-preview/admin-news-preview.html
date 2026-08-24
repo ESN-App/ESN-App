@@ -1,0 +1,8 @@
+<app-admin-preview-panel
+  heading="How the news article will look"
+  primaryTitle="Home"
+  secondaryTitle="News details"
+>
+  <app-news-list-item admin-preview-primary [newsItem]="listItem()" />
+  <app-news-details-view admin-preview-secondary [newsItem]="details()" [interactive]="false" />
+</app-admin-preview-panel>

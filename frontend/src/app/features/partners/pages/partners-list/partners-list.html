@@ -89,65 +89,15 @@
               } @else {
                 <div class="partner-grid">
                   @for (partner of filteredPartners(); track partner.id) {
-                    <article
+                    <app-partner-list-item
                       #partnerCard
-                      class="partner-card"
-                      [class.partner-card--selected]="selectedPartnerId() === partner.id"
                       [id]="'partner-' + partner.id"
                       [attr.data-partner-id]="partner.id"
-                    >
-                      <button
-                        class="partner-select-button"
-                        type="button"
-                        [attr.aria-label]="'Select ' + partner.name + ' on the map'"
-                        [attr.aria-pressed]="selectedPartnerId() === partner.id"
-                        (click)="selectPartner(partner.id)"
-                      ></button>
-
-                      <a
-                        class="mobile-card-link"
-                        [routerLink]="['/partners', partnerSlug(partner)]"
-                        [attr.aria-label]="'Open details for ' + partner.name"
-                      ></a>
-
-                      <div class="partner-logo">
-                        <span aria-hidden="true">{{ initials(partner.name) }}</span>
-                        @if (partner.logoPath && !hasBrokenLogo(partner.id)) {
-                          <img
-                            [src]="partner.logoPath"
-                            [alt]="partner.name + ' logo'"
-                            loading="lazy"
-                            (error)="markLogoAsBroken(partner.id)"
-                          />
-                        }
-                      </div>
-
-                      <div class="partner-identity">
-                        <div class="partner-title-row">
-                          <h2>{{ partner.name }}</h2>
-                          @if (selectedPartnerId() === partner.id) {
-                            <span class="selection-status">Selected</span>
-                          }
-                        </div>
-                        <p class="partner-description">{{ partner.shortDescription }}</p>
-                      </div>
-
-                      <div class="partner-meta">
-                        <span class="discount-count">
-                          <span class="discount-icon" aria-hidden="true"></span>
-                          {{ partner.offers.length }}
-                          {{ partner.offers.length === 1 ? 'discount' : 'discounts' }}
-                        </span>
-                        <a
-                          class="details-link"
-                          [routerLink]="['/partners', partnerSlug(partner)]"
-                          [attr.aria-label]="'Open details for ' + partner.name"
-                        >
-                          <span class="details-label">Read more</span>
-                          <span class="arrow-icon" aria-hidden="true"></span>
-                        </a>
-                      </div>
-                    </article>
+                      [partner]="partnerListItemView(partner)"
+                      [selected]="selectedPartnerId() === partner.id"
+                      [selectable]="true"
+                      (selectPartner)="selectPartner($event)"
+                    />
                   }
                 </div>
               }
@@ -210,9 +160,6 @@
                   </div>
 
                   <div class="map-partner-card__content">
-                    @if (partner.category) {
-                      <span class="map-partner-card__category">{{ partner.category }}</span>
-                    }
                     <h2>{{ partner.name }}</h2>
                     <p>{{ partner.shortDescription }}</p>
                     <a

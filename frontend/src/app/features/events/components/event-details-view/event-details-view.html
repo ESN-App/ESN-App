@@ -1,0 +1,76 @@
+@let item = event();
+<article>
+  @if (item.status === 0) { <app-draft-preview-banner /> }
+
+  <section class="hero" [class.no-image]="!item.imagePath || imageBroken()">
+    @if (item.imagePath && !imageBroken()) {
+      <div class="hero-image">
+        <img [src]="item.imagePath" [alt]="item.title" (error)="imageBroken.set(true)" />
+      </div>
+    }
+
+    <div class="hero-copy">
+      <div class="eyebrow-row">
+        <p class="eyebrow">ESN Gdańsk event</p>
+        @if (item.status === 2) { <app-cancelled-badge /> }
+      </div>
+      <h1>{{ item.title }}</h1>
+      <p class="summary">{{ item.shortDescription }}</p>
+    </div>
+  </section>
+
+  <section class="facts" [class.has-participants]="showParticipants() && item.currentParticipants !== null" aria-label="Event information">
+    <div class="fact">
+      <span class="fact-icon calendar" aria-hidden="true"></span>
+      <div>
+        <small>Date & time</small>
+        @if (item.startsAt) {
+          <strong>{{ item.startsAt | date: 'EEEE, d MMMM yyyy' }}</strong>
+          <span>{{ item.startsAt | date: 'HH:mm' }}@if (item.endsAt && !isSameDay(item.startsAt, item.endsAt)) { – {{ item.endsAt | date: 'd MMM yyyy, HH:mm' }} }</span>
+        } @else {
+          <strong>Choose a date</strong>
+        }
+      </div>
+    </div>
+
+    <div class="fact">
+      <span class="fact-icon marker" aria-hidden="true"></span>
+      <div>
+        <small>Location</small>
+        <div class="location-value">
+          <strong>{{ item.location }}</strong>
+          @if (mapUrl(item.googleMapsUrl); as mapsUrl) {
+            @if (interactive()) { <a [href]="mapsUrl" target="_blank" rel="noopener noreferrer">Open in maps</a> }
+            @else { <span class="map-label">Open in maps</span> }
+          }
+        </div>
+      </div>
+    </div>
+
+    <div class="fact">
+      <span class="fact-icon wallet" aria-hidden="true"></span>
+      <div><small>Price</small><strong>{{ item.price === 0 ? 'Free' : (item.price | currency: 'PLN') }}</strong></div>
+    </div>
+
+    @if (showParticipants() && item.currentParticipants !== null) {
+      <div class="fact participants-fact">
+        <span class="fact-icon users" aria-hidden="true"></span>
+        <div>
+          <small>Participants</small>
+          <strong>{{ item.currentParticipants }}@if (item.maximumParticipants !== null) { / {{ item.maximumParticipants }} } going</strong>
+          @if (item.minimumParticipants !== null) { <span>Minimum {{ item.minimumParticipants }}</span> }
+        </div>
+      </div>
+    }
+  </section>
+
+  <section class="about"><p class="eyebrow">About the event</p><p>{{ item.description }}</p></section>
+
+  @if (item.registrationUrl) {
+    @if (interactive()) {
+      <a class="register" [href]="item.registrationUrl" target="_blank" rel="noopener noreferrer">Register for this event<span class="register-arrow" aria-hidden="true"></span></a>
+    } @else {
+      <div class="register">Register for this event<span class="register-arrow" aria-hidden="true"></span></div>
+    }
+  }
+</article>

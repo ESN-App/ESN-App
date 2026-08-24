@@ -62,7 +62,7 @@ public class GetEventsListQueryHandlerTests
         public Task<IReadOnlyList<Event>> GetAllAsync(CancellationToken cancellationToken = default) =>
             Task.FromResult(events);
 
-        public Task<EventPage> GetPublishedPageAsync(
+        public Task<EventPage> GetPublicPageAsync(
             DateTimeOffset from,
             DateTimeOffset to,
             int page,
@@ -83,18 +83,33 @@ public class GetEventsListQueryHandlerTests
         }
 
         public Task<EventPage> GetAdminPageAsync(
-            EventStatus? status,
-            DateTimeOffset? from,
-            DateTimeOffset? to,
             int page,
             int pageSize,
             CancellationToken cancellationToken = default) =>
             Task.FromResult(new EventPage(events, events.Count));
 
+        public Task<EventPage> GetAdminPageAsync(
+            DateTimeOffset? from,
+            DateTimeOffset? to,
+            int page,
+            int pageSize,
+            CancellationToken cancellationToken = default)
+        {
+            var filtered = events.AsEnumerable();
+            if (from.HasValue) filtered = filtered.Where(e => e.StartsAt >= from.Value);
+            if (to.HasValue) filtered = filtered.Where(e => e.StartsAt < to.Value);
+            var list = filtered.OrderBy(e => e.StartsAt)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
+            var totalCount = filtered.Count();
+            return Task.FromResult(new EventPage(list, totalCount));
+        }
+
         public Task<Event?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default) =>
             Task.FromResult(events.FirstOrDefault(entity => entity.Id == id));
 
-        public Task<Event?> GetPublishedByIdAsync(
+        public Task<Event?> GetPublicByIdAsync(
             Guid id,
             CancellationToken cancellationToken = default) =>
             Task.FromResult(events.FirstOrDefault(

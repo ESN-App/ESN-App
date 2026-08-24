@@ -14,10 +14,6 @@ public class Event : BaseEntity
 
     public Uri? GoogleMapsUrl { get; set; }
 
-    public decimal? Latitude { get; set; }
-
-    public decimal? Longitude { get; set; }
-
     public required DateTimeOffset StartsAt { get; set; }
 
     public DateTimeOffset? EndsAt { get; set; }

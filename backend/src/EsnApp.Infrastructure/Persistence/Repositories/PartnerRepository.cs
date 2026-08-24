@@ -1,3 +1,5 @@
+using System.Globalization;
+using System.Text;
 using EsnApp.Application.Discounts.Abstractions;
 using EsnApp.Domain.Discounts;
 using Microsoft.EntityFrameworkCore;
@@ -50,11 +52,58 @@ public class PartnerRepository(AppDbContext context)
             partner => partner.Id == id,
             cancellationToken);
 
+    public async Task<Partner?> GetAdminBySlugAsync(
+        string slug,
+        CancellationToken cancellationToken = default)
+    {
+        var partners = await Context.Partners
+            .AsNoTracking()
+            .ToListAsync(cancellationToken);
+
+        return partners.FirstOrDefault(p => GenerateSlug(p.Name) == slug);
+    }
+
     public async Task UpdateRangeAsync(
         IReadOnlyCollection<Partner> partners,
         CancellationToken cancellationToken = default)
     {
         Context.Partners.UpdateRange(partners);
         await Context.SaveChangesAsync(cancellationToken);
+    }
+
+    private static string GenerateSlug(string name)
+    {
+        if (string.IsNullOrWhiteSpace(name))
+            return "partner";
+
+        var normalized = name
+            .Replace('ł', 'l')
+            .Replace('Ł', 'L')
+            .Normalize(NormalizationForm.FormD);
+
+        var sb = new StringBuilder();
+        foreach (var c in normalized)
+        {
+            var category = CharUnicodeInfo.GetUnicodeCategory(c);
+            if (category != UnicodeCategory.NonSpacingMark)
+            {
+                sb.Append(c);
+            }
+        }
+
+        var result = sb.ToString()
+            .ToLowerInvariant()
+            .RegexReplace("[^a-z0-9]+", "-")
+            .RegexReplace("^-+|-+$", "");
+
+        return string.IsNullOrEmpty(result) ? "partner" : result;
+    }
+}
+
+internal static class RegexExtensions
+{
+    public static string RegexReplace(this string input, string pattern, string replacement)
+    {
+        return System.Text.RegularExpressions.Regex.Replace(input, pattern, replacement);
     }
 }
