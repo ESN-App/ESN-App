@@ -29,4 +29,5 @@ coverage/
 backend/src/EsnApp.Api/wwwroot/images/uploads/
 
 # Claude AI
-.claude
+.claude/*
+!.claude/agents/
