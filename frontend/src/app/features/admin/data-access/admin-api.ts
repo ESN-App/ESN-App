@@ -202,6 +202,10 @@ export class AdminApi {
     return formData;
   }
 
+  reorderNews(newsItemIds: string[]): Observable<NewsItemDto[]> {
+    return this.http.put<NewsItemDto[]>(`${this.baseUrl}/news/order`, { newsItemIds });
+  }
+
   updateNewsStatus(id: string, status: number): Observable<NewsItemDto> {
     return this.http.patch<NewsItemDto>(`${this.baseUrl}/news/${id}/status`, { status });
   }

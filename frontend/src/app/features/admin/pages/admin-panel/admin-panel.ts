@@ -111,6 +111,9 @@ export class AdminPanel {
   readonly infoOrderModalOpen = signal(false);
   readonly savingInfoOrder = signal(false);
   readonly infoOrderError = signal<string | null>(null);
+  readonly newsOrderModalOpen = signal(false);
+  readonly savingNewsOrder = signal(false);
+  readonly newsOrderError = signal<string | null>(null);
   readonly tableScrollPosition = signal(0);
   readonly tableScrollMaximum = signal(0);
   @ViewChild('tableScroll') private tableScroll?: ElementRef<HTMLElement>;
@@ -324,6 +327,11 @@ export class AdminPanel {
   );
   readonly publishedInfoForReorder = computed(() =>
     this.info()
+      .filter((item) => item.status === 1)
+      .sort((a, b) => (a.displayOrder ?? 0) - (b.displayOrder ?? 0)),
+  );
+  readonly publishedNewsForReorder = computed(() =>
+    this.news()
       .filter((item) => item.status === 1)
       .sort((a, b) => (a.displayOrder ?? 0) - (b.displayOrder ?? 0)),
   );
@@ -1186,6 +1194,7 @@ export class AdminPanel {
 
   readonly partnerLabel = (partner: PartnerDto): string => partner.name;
   readonly infoLabel = (article: InfoArticleDto): string => article.title;
+  readonly newsLabel = (item: NewsItemDto): string => item.title;
 
   openDisplayOrderModal(): void {
     this.displayOrderModalOpen.set(true);
@@ -1243,6 +1252,34 @@ export class AdminPanel {
       error: () => {
         this.infoOrderError.set('Failed to save display order. Please try again.');
         this.savingInfoOrder.set(false);
+      },
+    });
+  }
+
+  openNewsOrderModal(): void {
+    this.newsOrderModalOpen.set(true);
+    this.newsOrderError.set(null);
+  }
+
+  closeNewsOrderModal(): void {
+    this.newsOrderModalOpen.set(false);
+    this.newsOrderError.set(null);
+  }
+
+  saveNewsOrder(reorderedIds: string[]): void {
+    this.savingNewsOrder.set(true);
+    this.newsOrderError.set(null);
+
+    this.api.reorderNews(reorderedIds).subscribe({
+      next: (updatedNews) => {
+        const updatedById = new Map(updatedNews.map((item) => [item.id, item]));
+        this.news.update((items) => items.map((item) => updatedById.get(item.id) ?? item));
+        this.savingNewsOrder.set(false);
+        this.closeNewsOrderModal();
+      },
+      error: () => {
+        this.newsOrderError.set('Failed to save display order. Please try again.');
+        this.savingNewsOrder.set(false);
       },
     });
   }

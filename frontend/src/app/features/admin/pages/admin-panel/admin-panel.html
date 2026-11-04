@@ -37,7 +37,10 @@
           </div>
         }
         @if (activeSection() === 'events') { <a class="create-button" routerLink="/admin/events/new">Create new event</a> }
-        @if (activeSection() === 'news') { <a class="create-button" routerLink="/admin/news/new">Create new news article</a> }
+        @if (activeSection() === 'news') {
+          <button type="button" class="create-button" (click)="openNewsOrderModal()">Set display order</button>
+          <a class="create-button" routerLink="/admin/news/new">Create new news article</a>
+        }
         @if (activeSection() === 'partners') {
           <button type="button" class="create-button" (click)="openDisplayOrderModal()">Set display order</button>
           <a class="create-button" routerLink="/admin/partners/new">Create new partner</a>
@@ -390,4 +393,15 @@
   [error]="infoOrderError()"
   (closeModal)="closeInfoOrderModal()"
   (save)="saveInfoOrder($event)"
+/>
+
+<app-admin-display-order-modal
+  [open]="newsOrderModalOpen()"
+  [items]="publishedNewsForReorder()"
+  [itemLabel]="newsLabel"
+  emptyMessage="No published news articles yet. Publish one to set display order."
+  [saving]="savingNewsOrder()"
+  [error]="newsOrderError()"
+  (closeModal)="closeNewsOrderModal()"
+  (save)="saveNewsOrder($event)"
 />
