@@ -1,6 +1,7 @@
 import { DatePipe, DecimalPipe } from '@angular/common';
 import { Component, input, signal } from '@angular/core';
-import { CancelledBadge, DraftPreviewBanner } from '../../../../shared';
+import { MatIconModule } from '@angular/material/icon';
+import { DraftPreviewBanner } from '../../../../shared';
 import { isSameCalendarDay } from '../../utils/event-date';
 import { eventMapUrl } from '../../utils/event-map';
 import type { EventListItemView } from '../event-list-item/event-list-item';
@@ -14,7 +15,7 @@ export interface EventDetailsViewModel extends EventListItemView {
 
 @Component({
   selector: 'app-event-details-view',
-  imports: [CancelledBadge, DatePipe, DecimalPipe, DraftPreviewBanner],
+  imports: [DatePipe, DecimalPipe, DraftPreviewBanner, MatIconModule],
   templateUrl: './event-details-view.html',
   styleUrl: './event-details-view.scss',
 })
@@ -25,5 +26,14 @@ export class EventDetailsView {
   readonly imageBroken = signal(false);
 
   protected readonly isSameDay = isSameCalendarDay;
+
+  /** Share of spots taken, 0–100, for the progress bar. */
+  protected filledPercent(item: EventDetailsViewModel): number {
+    if (!item.maximumParticipants || item.currentParticipants === null) {
+      return 0;
+    }
+
+    return Math.min(100, (item.currentParticipants / item.maximumParticipants) * 100);
+  }
   protected readonly mapUrl = eventMapUrl;
 }

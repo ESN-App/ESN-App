@@ -1,5 +1,6 @@
 import { Component, inject } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
+import { MatIconModule } from '@angular/material/icon';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { catchError, map, of, switchMap } from 'rxjs';
 import { LoadingSpinner } from '../../../../shared';
@@ -9,7 +10,7 @@ import { extractEventId } from '../../utils/event-url';
 
 @Component({
   selector: 'app-event-details',
-  imports: [EventDetailsView, LoadingSpinner, RouterLink],
+  imports: [EventDetailsView, LoadingSpinner, MatIconModule, RouterLink],
   templateUrl: './event-details.html',
   styleUrl: './event-details.scss',
 })

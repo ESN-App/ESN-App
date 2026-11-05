@@ -1,131 +1,236 @@
 :host {
-  --events-accent: #7ac143;
-  container-type: inline-size;
   display: block;
 }
 
-article { display: grid; gap: 1rem; }
-
-.hero {
-  border: 1px solid var(--app-border);
-  border-radius: var(--app-radius);
-  display: grid;
-  gap: 1.5rem;
-  grid-template-columns: 1fr;
-  overflow: hidden;
-  padding: 0.75rem;
-}
-
-.hero-image {
-  align-items: center;
-  background: var(--app-card);
-  border-radius: 1.35rem;
-  display: flex;
-  justify-content: center;
-  min-height: 14rem;
-  overflow: hidden;
+.event-details {
   position: relative;
 }
 
-.hero-image img { height: 100%; inset: 0; object-fit: cover; position: absolute; width: 100%; }
-.hero-copy { align-self: end; min-width: 0; padding: 0.5rem 0.75rem 1rem; }
-.hero.no-image .hero-copy { padding: 1rem 0.75rem; }
+.hero-image {
+  height: 100%;
+  inset: 0;
+  object-fit: cover;
+  position: absolute;
+  width: 100%;
+  z-index: -2;
+}
 
-.eyebrow-row {
+// Mobile: the title block is the top of the sheet that overlaps the hero.
+.title-block {
   align-items: center;
+  background: var(--app-bg);
+  border-radius: 32px 32px 0 0;
   display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  margin-bottom: 0.5rem;
+  gap: 20px;
+  margin: -50px calc(-1 * var(--bleed, 0px)) 0;
+  padding: 28px var(--bleed, 0px) 20px;
+  position: relative;
+
+  h1 {
+    font-size: 28px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    line-height: 1.12;
+    margin: 0;
+  }
 }
 
-.eyebrow-row .eyebrow { margin: 0; }
-.eyebrow-row app-draft-badge,
-.eyebrow-row app-cancelled-badge { --status-badge-font-size: 0.62rem; --status-badge-line-height: 1.15; --status-badge-padding: 0.16rem 0.38rem; }
-
-.eyebrow {
-  color: var(--app-ink);
-  font-size: 0.7rem;
-  font-weight: 800;
-  margin: 0 0 0.5rem;
-}
-
-h1 {
-  font-size: 28px;
-  font-weight: 800;
-  letter-spacing: -0.01em;
-  line-height: 1.1;
-  margin: 0;
-  overflow-wrap: anywhere;
-}
-
-.summary { color: var(--app-muted); line-height: 1.45; margin: 1rem 0 0; }
-
-.facts {
-  border: 1px solid var(--app-border);
-  border-radius: var(--app-radius);
+.title-main {
   display: grid;
-  grid-template-columns: 1fr;
-  overflow: hidden;
+  gap: 8px;
+  justify-items: start;
+  min-width: 0;
 }
 
-.fact { align-items: center; display: flex; gap: 0.8rem; min-height: 4.5rem; padding: 0.8rem 1rem; }
-.fact + .fact { border-top: 1px solid var(--app-border); }
-.fact div { display: grid; gap: 0.1rem; min-width: 0; }
-.fact small,
-.fact span { color: var(--app-muted); font-size: 0.7rem; }
-.fact strong { font-size: 0.85rem; overflow-wrap: anywhere; }
+// The page projects its back button; on mobile it sits on the hero at 16,16. The title
+// block starts 170px below the hero top (220 hero - 50 overlap) at the screen edge.
+.title-main ::ng-deep [detailBack] {
+  left: 16px;
+  position: absolute;
+  top: -154px;
+}
 
-.location-value strong,
-.location-value a { font-size: 0.78rem; }
-.location-value a,
-.map-label { color: var(--app-ink) !important; font-weight: 800; text-decoration: none; }
-.location-value a:hover { text-decoration: underline; }
+.free-sticker {
+  position: absolute;
+  right: 14px;
+  top: -10px;
+}
 
-.fact-icon { background: var(--events-accent); flex: 0 0 1.35rem; height: 1.35rem; }
-.calendar { mask: url('/icons/calendar.svg') center / contain no-repeat; }
-.marker { mask: url('/icons/marker.svg') center / contain no-repeat; }
-.wallet { mask: url('/icons/wallet.svg') center / contain no-repeat; }
-.users { mask: url('/icons/users.svg') center / contain no-repeat; }
+.event-body {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
 
-.about { border: 1px solid var(--app-border); border-radius: var(--app-radius); padding: 1.5rem; }
-.about > p:last-child { line-height: 1.6; margin: 0; overflow-wrap: anywhere; white-space: pre-line; }
+.side {
+  display: contents;
+}
+
+.info-card {
+  background: var(--app-card);
+  border-radius: 24px;
+  display: grid;
+  gap: 14px;
+  order: 1;
+  padding: 18px;
+}
+
+.about {
+  order: 2;
+
+  p {
+    font-size: 15px;
+    line-height: 1.55;
+    margin: 12px 0 0;
+    white-space: pre-line;
+  }
+}
 
 .register {
+  order: 3;
+  min-height: 56px;
+}
+
+.info-row {
   align-items: center;
-  background: var(--app-primary);
-  border-radius: 100px;
-  color: var(--app-on-primary);
   display: flex;
-  font-weight: 800;
-  justify-content: space-between;
-  padding: 1rem 1.25rem;
+  gap: 14px;
+
+  > div {
+    display: grid;
+    flex: 1;
+    min-width: 0;
+  }
+
+  strong {
+    font-size: 15px;
+    font-weight: 700;
+  }
+
+  span:not(.icon-square):not(.visually-hidden) {
+    color: var(--app-muted);
+    font-size: 13px;
+    font-weight: 500;
+  }
+}
+
+.row-link {
+  align-items: center;
+  border-radius: 8px;
+  color: var(--app-ink);
+  display: inline-flex;
+  font-size: 14px;
+  font-weight: 700;
+  min-height: 44px;
+  padding: 0 4px;
   text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--app-ink);
+    outline-offset: 2px;
+  }
 }
 
-.register-arrow { background: var(--app-card); height: 1.7rem; mask: url('/icons/arrow-circle-right.svg') center / contain no-repeat; transition: transform 140ms ease; width: 1.7rem; }
-.register:hover .register-arrow { transform: translateX(2px); }
+.progress {
+  background: var(--app-bg);
+  border-radius: 999px;
+  height: 10px;
+  overflow: hidden;
 
-@container (min-width: 36rem) {
-  .hero { grid-template-columns: minmax(13rem, 42%) 1fr; }
-  .hero-copy { padding: 1.25rem 1.25rem 1.25rem 0; }
-  .hero.no-image { grid-template-columns: 1fr; }
-  .hero.no-image .hero-copy { padding: 2rem; }
-  .hero-image { min-height: 18rem; }
-  .facts { grid-template-columns: repeat(3, 1fr); }
-  .facts.has-participants { grid-template-columns: repeat(2, 1fr); }
-  .fact { border-right: 1px solid var(--app-border); }
-  .fact + .fact { border-top: 0; }
-  .fact:last-child,
-  .facts.has-participants .fact:nth-child(2) { border-right: 0; }
-  .facts.has-participants .fact:nth-child(n + 3) { border-top: 1px solid var(--app-border); }
+  span {
+    background: var(--c-green);
+    border-radius: 999px;
+    display: block;
+    height: 100%;
+  }
 }
 
-// Cap the space between the draft banner and the hero copy at 1rem so every section
-// matches. Scoped to the banner via the adjacent sibling combinator, so published pages
-// keep their normal hero padding. The .no-image / container-query variants are listed
-// explicitly because they are more specific than the base .hero-copy rule.
-app-draft-preview-banner + .hero .hero-copy,
-app-draft-preview-banner + .hero.no-image .hero-copy {
-  padding-top: 0.25rem;
+@media (min-width: 701px) {
+  // Desktop: date tile, back button, title and sticker all sit inside the hero.
+  .event-details {
+    display: grid;
+  }
+
+  .detail-hero,
+  .title-block {
+    grid-area: 1 / 1;
+  }
+
+  .detail-hero {
+    min-height: 0;
+  }
+
+  .title-block {
+    align-self: end;
+    background: none;
+    border-radius: 0;
+    color: var(--ink-fixed);
+    gap: 32px;
+    margin: 0;
+    padding: 40px 0 48px;
+
+    h1 {
+      font-size: 64px;
+      letter-spacing: -0.03em;
+      line-height: 1.02;
+    }
+
+    .date-tile {
+      background: #fff;
+      flex-basis: 120px;
+      height: 130px;
+      transform: none;
+      width: 120px;
+
+      span {
+        font-size: 15px;
+        font-weight: 500;
+      }
+
+      strong {
+        font-size: 44px;
+      }
+    }
+  }
+
+  .title-main ::ng-deep [detailBack] {
+    position: static;
+  }
+
+  .free-sticker {
+    position: static;
+  }
+
+  .event-body {
+    align-items: start;
+    display: grid;
+    gap: 64px;
+    grid-template-columns: minmax(0, 640px) 432px;
+    justify-content: space-between;
+    padding-top: 48px;
+  }
+
+  .side {
+    background: var(--app-card);
+    border-radius: 24px;
+    display: grid;
+    gap: 24px;
+    grid-column: 2;
+    grid-row: 1;
+    padding: 28px;
+  }
+
+  .info-card {
+    background: none;
+    padding: 0;
+  }
+
+  .about {
+    grid-column: 1;
+    grid-row: 1;
+  }
 }

@@ -1,49 +1,19 @@
 :host {
-  --accent: #7ac143;
   display: block;
 }
 
-.details-page {
-  margin: 0 auto;
-  max-width: 48rem;
-}
-
-.back {
-  align-items: center;
-  color: var(--app-ink);
-  display: inline-flex;
-  font-size: 0.8rem;
-  font-weight: 700;
-  gap: 0.4rem;
-  margin-bottom: 1rem;
-  text-decoration: none;
-}
-
-.back-icon {
-  background: var(--accent);
-  height: 2rem;
-  mask: url('/icons/arrow-circle-left.svg') center / contain no-repeat;
-  width: 2rem;
-}
-
 .not-found {
-  border: 1px solid var(--app-border);
-  border-radius: var(--app-radius);
-  padding: 2rem;
-}
+  margin-top: 24px;
+  padding: 24px;
 
-.not-found h1 { font-size: 2rem; }
-
-@media (max-width: 700px) {
-  .back {
-    background: var(--app-card);
-    border-radius: 50%;
-    box-shadow: 0 3px 10px rgb(17 17 17 / 10%);
-    height: 2.5rem;
-    margin: 1rem 0 0.75rem;
-    width: 2.5rem;
+  h1 {
+    font-size: 28px;
+    font-weight: 800;
+    margin: 0 0 8px;
   }
 
-  .back-icon { height: 2.5rem; width: 2.5rem; }
-  .back-label { display: none; }
+  p {
+    color: var(--app-muted);
+    margin: 0 0 16px;
+  }
 }
