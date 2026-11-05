@@ -4,11 +4,7 @@
     <app-draft-preview-banner />
   }
 
-  <div class="detail-hero detail-hero--events">
-    @if (item.imagePath && !imageBroken()) {
-      <img class="hero-image" [src]="item.imagePath" alt="" (error)="imageBroken.set(true)" />
-    }
-  </div>
+  <div class="detail-hero detail-hero--events"></div>
 
   <header class="title-block">
     @if (item.startsAt) {
@@ -145,6 +141,9 @@
     </div>
 
     <section class="about" aria-labelledby="about-title">
+      @if (item.imagePath && !imageBroken()) {
+        <img class="article-image" [src]="item.imagePath" alt="" (error)="imageBroken.set(true)" />
+      }
       <h2 id="about-title" class="section-title">About</h2>
       <p>{{ item.description }}</p>
     </section>

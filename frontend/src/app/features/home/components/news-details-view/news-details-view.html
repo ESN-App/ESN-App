@@ -1,32 +1,36 @@
 @let item = newsItem();
-<article>
-  @if (item.status === 0) { <app-draft-preview-banner /> }
+<article class="article-page">
+  @if (item.status === 0) {
+    <app-draft-preview-banner />
+  }
 
-  <section class="hero" [class.no-image]="!item.imagePath || imageBroken()">
-    @if (item.imagePath && !imageBroken()) {
-      <div class="hero-image">
-        <img
-          [src]="item.imagePath"
-          [alt]="item.title"
-          [attr.loading]="interactive() ? 'lazy' : null"
-          (error)="imageBroken.set(true)"
-        />
-      </div>
-    }
+  <div class="detail-hero">
+    <ng-content select="[detailBack]" />
+  </div>
 
-    <div class="hero-copy">
-      <p class="eyebrow">
-        Fresh from ESN
-        @if (item.createdAt) {
-          &middot; {{ item.createdAt | date: 'd MMMM yyyy' }}
-        }
+  <header class="article-head">
+    @if (item.createdAt) {
+      <p class="article-meta">
+        <time [attr.datetime]="item.createdAt">{{ item.createdAt | date: 'd MMMM yyyy' }}</time>
       </p>
-      <h1>{{ item.title }}</h1>
-    </div>
-  </section>
+    }
+    <h1>{{ item.title }}</h1>
+    @if (item.status !== 0 && isNew()) {
+      <span class="sticker">New</span>
+    }
+  </header>
 
-  <section class="about">
-    <p class="eyebrow">Story</p>
-    <p>{{ item.description }}</p>
-  </section>
+  <div class="article-body">
+    @if (item.imagePath && !imageBroken()) {
+      <img class="article-image" [src]="item.imagePath" alt="" (error)="imageBroken.set(true)" />
+    }
+    <p class="article-text">{{ item.description }}</p>
+
+    @if (interactive()) {
+      <a class="events-cta" routerLink="/events">
+        <mat-icon aria-hidden="true">calendar_today</mat-icon>
+        See this week’s events
+      </a>
+    }
+  </div>
 </article>

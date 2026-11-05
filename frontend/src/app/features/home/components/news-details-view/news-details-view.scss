@@ -1,99 +1,42 @@
 :host {
-  --accent: #00aeef;
-  // container-type + cqw so the admin live preview reacts to the 26rem mobile stage
-  // rather than the viewport, matching the events/partners/info preview components.
-  container-type: inline-size;
   display: block;
 }
 
-article {
-  display: grid;
-  gap: 1rem;
-}
-
-.hero {
-  border: 1px solid var(--app-border);
-  border-radius: var(--app-radius);
-  display: grid;
-  gap: 1.5rem;
-  overflow: hidden;
-  padding: 0.75rem;
-}
-
-.hero-image {
+// Green call to action with ink text (ink on #7AC143 passes AA).
+.events-cta {
   align-items: center;
-  background: var(--app-card);
-  border-radius: 1.35rem;
+  background: var(--c-green);
+  border-radius: 999px;
+  color: var(--ink-fixed);
   display: flex;
+  font-size: 15px;
+  font-weight: 700;
+  gap: 8px;
   justify-content: center;
-  min-height: 18rem;
-  overflow: hidden;
-  position: relative;
-}
+  margin-top: 8px;
+  min-height: 52px;
+  padding: 0 24px;
+  text-decoration: none;
 
-.hero-image img {
-  height: 100%;
-  inset: 0;
-  object-fit: cover;
-  position: absolute;
-  width: 100%;
-}
-
-.hero-copy {
-  padding: 0 1.25rem 1.25rem;
-}
-
-.hero.no-image .hero-copy {
-  padding: 2rem;
-}
-
-.eyebrow {
-  color: var(--app-ink);
-  font-size: 0.7rem;
-  font-weight: 800;
-  margin: 0 0 0.5rem;
-}
-
-h1 {
-  font-size: 28px;
-  font-weight: 800;
-  letter-spacing: -0.01em;
-  line-height: 1.1;
-  margin: 0;
-}
-
-.about {
-  border: 1px solid var(--app-border);
-  border-radius: var(--app-radius);
-  padding: 1.5rem;
-}
-
-.about > p:last-child {
-  line-height: 1.6;
-  margin: 0;
-  white-space: pre-line;
-}
-
-@container (max-width: 700px) {
-
-  .hero-image {
-    min-height: 14rem;
+  mat-icon {
+    font-size: 20px;
+    height: 20px;
+    width: 20px;
   }
 
-  .hero-copy {
-    padding: 0.5rem 0.75rem 1rem;
+  &:hover {
+    filter: brightness(1.05);
   }
 
-  .hero.no-image .hero-copy {
-    padding: 1rem 0.75rem;
+  &:focus-visible {
+    outline: 2px solid var(--app-ink);
+    outline-offset: 2px;
   }
 }
 
-// Cap the space between the draft banner and the hero copy at 1rem so every section
-// matches. Scoped to the banner via the adjacent sibling combinator, so published pages
-// keep their normal hero padding. The .no-image / container-query variants are listed
-// explicitly because they are more specific than the base .hero-copy rule.
-app-draft-preview-banner + .hero .hero-copy,
-app-draft-preview-banner + .hero.no-image .hero-copy {
-  padding-top: 0.25rem;
+@media (min-width: 701px) {
+  .events-cta {
+    justify-self: start;
+    min-height: 48px;
+  }
 }

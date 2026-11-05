@@ -1,5 +1,6 @@
 import { Component, inject } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
+import { MatIconModule } from '@angular/material/icon';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { catchError, map, of, switchMap } from 'rxjs';
 import { LoadingSpinner } from '../../../../shared';
@@ -9,7 +10,7 @@ import { NewsItemDto } from '../../data-access/news.models';
 
 @Component({
   selector: 'app-news-details',
-  imports: [RouterLink, LoadingSpinner, NewsDetailsView],
+  imports: [RouterLink, LoadingSpinner, MatIconModule, NewsDetailsView],
   templateUrl: './news-details.html',
   styleUrl: './news-details.scss',
 })

@@ -551,13 +551,13 @@ app-root {
 }
 
 // Long-form detail pages (Info article, News): title sheet over the hero, then text.
-.hero-image {
-  height: 100%;
-  inset: 0;
+// Article / event photo at the top of the body (titles never sit on photos).
+.article-image {
+  aspect-ratio: 16 / 9;
+  border-radius: 24px;
+  display: block;
   object-fit: cover;
-  position: absolute;
   width: 100%;
-  z-index: -2;
 }
 
 .article-head {

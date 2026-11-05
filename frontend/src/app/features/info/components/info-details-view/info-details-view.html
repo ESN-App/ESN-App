@@ -6,9 +6,6 @@
 
   <div class="detail-hero detail-hero--info">
     <ng-content select="[detailBack]" />
-    @if (loaded.imagePath && !imageBroken()) {
-      <img class="hero-image" [src]="loaded.imagePath" alt="" (error)="imageBroken.set(true)" />
-    }
   </div>
 
   <header class="article-head">
@@ -17,6 +14,9 @@
   </header>
 
   <div class="article-body">
+    @if (loaded.imagePath && !imageBroken()) {
+      <img class="article-image" [src]="loaded.imagePath" alt="" (error)="imageBroken.set(true)" />
+    }
     <p class="article-text">{{ loaded.content }}</p>
 
     @if (loaded.externalLinks.length > 0) {
