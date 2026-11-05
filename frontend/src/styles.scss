@@ -543,12 +543,15 @@ app-root {
   padding: 1.75rem var(--page-pad-x, 1rem) 2rem;
   position: relative;
 
+  // The star is a white shape cut out with a mask at 30% alpha. Using filter() on the
+  // multicolour PNG made some browsers composite the whole header through the filter
+  // layer, which washed out the section colour; a mask only ever paints the star.
   &::after {
-    background: url('/images/esnstar.png') center / contain no-repeat;
+    -webkit-mask: url('/images/esnstar.png') center / contain no-repeat;
+    background: rgb(255 255 255 / 30%);
     content: '';
-    filter: brightness(0) invert(1);
     height: 13rem;
-    opacity: 0.3;
+    mask: url('/images/esnstar.png') center / contain no-repeat;
     pointer-events: none;
     position: absolute;
     right: -3rem;

@@ -22,10 +22,12 @@
     <app-theme-toggle class="theme-toggle--mobile" />
     <app-theme-toggle class="theme-toggle--desktop" variant="segmented" />
     @if (auth.isLoggedIn()) {
-      @if (auth.isAdmin()) {
-        <a class="pill-button pill-button--primary" routerLink="/admin">Admin panel</a>
-      }
-      <button class="pill-button" type="button" (click)="logout()">Log out</button>
+      <div class="text-actions">
+        @if (auth.isAdmin()) {
+          <a class="text-action" routerLink="/admin">Admin panel</a>
+        }
+        <button class="text-action" type="button" (click)="logout()">Log out</button>
+      </div>
     } @else {
       <a class="pill-button" routerLink="/auth">Log in</a>
     }

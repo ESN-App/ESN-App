@@ -18,9 +18,16 @@ a {
   text-decoration: none;
 }
 
-a:focus-visible {
-  outline: 2px solid var(--app-ink);
-  outline-offset: 2px;
+a:focus {
+  outline: none;
+}
+
+// Only keyboard focus shows, as a subtle ring around the indicator pill (never a box
+// around the whole item).
+a:focus-visible .pill {
+  box-shadow:
+    0 0 0 2px var(--app-card),
+    0 0 0 4px var(--app-ink);
 }
 
 .pill {
@@ -66,6 +73,10 @@ a.active .label {
     flex-direction: row;
     gap: 8px;
     padding: 4px 12px 4px 4px;
+  }
+
+  .pill {
+    width: 48px;
   }
 
   .label {

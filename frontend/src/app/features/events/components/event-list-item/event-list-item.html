@@ -35,7 +35,7 @@
       </p>
       <strong class="price">
         <span class="event-icon wallet-icon" aria-hidden="true"></span>
-        <span>{{ item.price === 0 ? 'Free' : (item.price | currency: 'PLN') }}</span>
+        <span>{{ item.price === 0 ? 'Free' : (item.price | number: '1.0-2') + ' zł' }}</span>
       </strong>
       @if (item.currentParticipants !== null) {
         <span class="participants">

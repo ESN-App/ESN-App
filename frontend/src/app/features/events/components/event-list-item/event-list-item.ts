@@ -1,4 +1,4 @@
-import { CurrencyPipe, DatePipe } from '@angular/common';
+import { DatePipe, DecimalPipe } from '@angular/common';
 import { Component, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { EventStatusTitle } from '../../../../shared';
@@ -21,7 +21,7 @@ export interface EventListItemView {
 
 @Component({
   selector: 'app-event-list-item',
-  imports: [CurrencyPipe, DatePipe, EventStatusTitle, RouterLink],
+  imports: [DatePipe, DecimalPipe, EventStatusTitle, RouterLink],
   templateUrl: './event-list-item.html',
   styleUrl: './event-list-item.scss',
   host: {

@@ -1,4 +1,4 @@
-import { CurrencyPipe, DatePipe } from '@angular/common';
+import { DatePipe, DecimalPipe } from '@angular/common';
 import { Component, input, signal } from '@angular/core';
 import { CancelledBadge, DraftPreviewBanner } from '../../../../shared';
 import { isSameCalendarDay } from '../../utils/event-date';
@@ -14,7 +14,7 @@ export interface EventDetailsViewModel extends EventListItemView {
 
 @Component({
   selector: 'app-event-details-view',
-  imports: [CancelledBadge, CurrencyPipe, DatePipe, DraftPreviewBanner],
+  imports: [CancelledBadge, DatePipe, DecimalPipe, DraftPreviewBanner],
   templateUrl: './event-details-view.html',
   styleUrl: './event-details-view.scss',
 })

@@ -11,7 +11,6 @@
 
     <div class="hero-copy">
       <div class="eyebrow-row">
-        <p class="eyebrow">ESN Gdańsk event</p>
         @if (item.status === 2) { <app-cancelled-badge /> }
       </div>
       <h1>{{ item.title }}</h1>
@@ -49,7 +48,7 @@
 
     <div class="fact">
       <span class="fact-icon wallet" aria-hidden="true"></span>
-      <div><small>Price</small><strong>{{ item.price === 0 ? 'Free' : (item.price | currency: 'PLN') }}</strong></div>
+      <div><small>Price</small><strong>{{ item.price === 0 ? 'Free' : (item.price | number: '1.0-2') + ' zł' }}</strong></div>
     </div>
 
     @if (showParticipants() && item.currentParticipants !== null) {
