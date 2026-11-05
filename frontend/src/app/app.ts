@@ -5,7 +5,7 @@ import { MatToolbarModule } from '@angular/material/toolbar';
 import { Meta } from '@angular/platform-browser';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { filter } from 'rxjs';
-import { AuthService } from './core';
+import { AuthService, ThemeService } from './core';
 
 @Component({
   selector: 'app-root',
@@ -18,6 +18,8 @@ export class App {
   private readonly router = inject(Router);
 
   protected readonly auth = inject(AuthService);
+  // Instantiated here so the stored theme is applied on every route.
+  private readonly theme = inject(ThemeService);
   protected readonly hideMobileNavigation = signal(false);
 
   constructor() {

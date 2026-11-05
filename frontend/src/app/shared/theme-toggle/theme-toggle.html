@@ -1,0 +1,24 @@
+@if (variant() === 'segmented') {
+  <div class="segments" role="group" aria-label="Colour theme">
+    @for (option of options; track option) {
+      <button
+        type="button"
+        class="segment"
+        [attr.aria-label]="'Theme: ' + option"
+        [attr.aria-pressed]="theme.preference() === option"
+        (click)="theme.set(option)"
+      >
+        <mat-icon aria-hidden="true">{{ icons[option] }}</mat-icon>
+      </button>
+    }
+  </div>
+} @else {
+  <button
+    type="button"
+    class="round"
+    [attr.aria-label]="'Theme: ' + theme.preference() + '. Switch to ' + next()"
+    (click)="theme.set(next())"
+  >
+    <mat-icon aria-hidden="true">{{ icons[theme.preference()] }}</mat-icon>
+  </button>
+}
