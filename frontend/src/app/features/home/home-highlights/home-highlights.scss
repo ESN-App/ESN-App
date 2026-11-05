@@ -32,7 +32,7 @@
 }
 
 .news-header > span {
-  color: #737373;
+  color: var(--app-muted);
   font-size: 0.72rem;
   font-weight: 700;
 }
@@ -64,8 +64,8 @@
 
 .news-card {
   -webkit-tap-highlight-color: transparent;
-  background: #fff;
-  color: #111;
+  background: var(--app-card);
+  color: var(--app-ink);
   display: block;
   height: 20rem;
   opacity: 0.65;
@@ -79,13 +79,13 @@
 }
 
 .news-card--draft {
-  background: #ececed;
+  background: var(--app-raised);
   filter: saturate(0.55);
 }
 
 .news-badge.draft-badge {
-  background: #dedfe2;
-  color: #45474d;
+  background: var(--app-border);
+  color: var(--app-muted);
 }
 
 .news-card.active {
@@ -221,7 +221,7 @@
 }
 
 .news-progress span {
-  background: #cbd0d5;
+  background: var(--app-border);
   border-radius: 100px;
   height: 0.4rem;
   overflow: hidden;
@@ -239,7 +239,7 @@
 
 .news-progress span.active::after {
   animation: news-countdown 5s linear forwards;
-  background: #cbd0d5;
+  background: var(--app-border);
   content: '';
   inset: 0;
   position: absolute;
@@ -255,7 +255,7 @@
 
 @media (min-width: 701px) and (hover: hover) {
   .news-card:hover img {
-    border-color: color-mix(in srgb, var(--accent) 78%, #111);
+    border-color: color-mix(in srgb, var(--accent) 78%, var(--app-ink));
     filter: saturate(1.1) brightness(1.04);
   }
 

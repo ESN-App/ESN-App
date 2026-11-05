@@ -30,7 +30,7 @@ h1 {
 }
 
 .intro {
-  color: #575757;
+  color: var(--app-muted);
   font-size: clamp(0.95rem, 2vw, 1.1rem);
   line-height: 1.5;
   margin: 1rem 0 0;
@@ -47,8 +47,8 @@ h1 {
 
 .search {
   align-items: center;
-  background: #fff;
-  border: 1px solid #d8d8d8;
+  background: var(--app-card);
+  border: 1px solid var(--app-border);
   border-radius: 100px;
   display: flex;
   flex: 1 1 24rem;
@@ -74,7 +74,7 @@ h1 {
 .search input {
   background: transparent;
   border: 0;
-  color: #111;
+  color: var(--app-ink);
   font: inherit;
   min-width: 0;
   outline: 0;
@@ -82,7 +82,7 @@ h1 {
 }
 
 .result-count {
-  color: #737373;
+  color: var(--app-muted);
   font-size: 0.75rem;
   font-weight: 700;
   white-space: nowrap;
@@ -103,8 +103,8 @@ h1 {
 }
 
 .mobile-view-switch {
-  background: #f2f2f2;
-  border: 1px solid #dedede;
+  background: var(--app-raised);
+  border: 1px solid var(--app-border);
   border-radius: 0.9rem;
   display: grid;
   gap: 0.2rem;
@@ -117,7 +117,7 @@ h1 {
   background: transparent;
   border: 0;
   border-radius: 0.7rem;
-  color: #676767;
+  color: var(--app-muted);
   cursor: pointer;
   font: inherit;
   font-size: 0.85rem;
@@ -126,12 +126,12 @@ h1 {
 }
 
 .mobile-view-switch button:focus-visible {
-  outline: 3px solid #4347a7;
+  outline: 3px solid var(--app-ink);
   outline-offset: 2px;
 }
 
 .mobile-view-switch .mobile-view-switch__option--active {
-  background: #fff;
+  background: var(--app-card);
   box-shadow: 0 2px 8px rgba(35, 24, 31, 0.1);
   color: var(--partners-accent);
 }
@@ -146,9 +146,9 @@ h1 {
 
 .error-state > span {
   align-items: center;
-  background: var(--partners-accent);
+  background: var(--tint-magenta);
   border-radius: 50%;
-  color: #fff;
+  color: var(--app-ink);
   display: inline-flex;
   font-size: 1.1rem;
   font-weight: 900;
@@ -162,7 +162,7 @@ h1 {
 }
 
 .error-state p {
-  color: #666;
+  color: var(--app-muted);
   margin: 0;
 }
 
@@ -264,7 +264,7 @@ h1 {
   }
 
   .partner-scrollbar:focus-visible {
-    filter: drop-shadow(0 0 2px #4347a7);
+    filter: drop-shadow(0 0 2px var(--app-ink));
   }
 
   .partner-scrollbar::-webkit-slider-runnable-track {
@@ -275,7 +275,7 @@ h1 {
 
   .partner-scrollbar::-webkit-slider-thumb {
     appearance: none;
-    background: color-mix(in srgb, var(--partners-accent) 45%, #bbb);
+    background: color-mix(in srgb, var(--partners-accent) 45%, var(--app-border));
     border: 0;
     border-radius: 100px;
     height: 0.35rem;
@@ -289,7 +289,7 @@ h1 {
   }
 
   .partner-scrollbar::-moz-range-thumb {
-    background: color-mix(in srgb, var(--partners-accent) 45%, #bbb);
+    background: color-mix(in srgb, var(--partners-accent) 45%, var(--app-border));
     border: 0;
     border-radius: 100px;
     height: 0.35rem;

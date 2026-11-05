@@ -9,18 +9,18 @@
 }
 
 .news-card {
-  background: #fff;
+  background: var(--app-card);
   // The card paints its own background behind the rounded image, so it needs the same
   // radius or the draft grey shows as square corners around the rounded photo.
   border-radius: 1.75rem;
-  color: #111;
+  color: var(--app-ink);
   display: block;
   height: 20rem;
   position: relative;
 }
 
 .news-card--draft {
-  background: #f1f1f2;
+  background: var(--app-raised);
   filter: saturate(0.55);
 }
 
@@ -36,21 +36,21 @@
 }
 
 .image-fallback {
-  background: #f1f1f2;
+  background: var(--app-raised);
 }
 
 .news-card--draft .image-fallback,
 .news-card--draft img {
   // #f1f1f2 / #cfd1d4 are the shared draft colours used by the event, partner and info
   // list items, so a draft news card reads the same grey as every other section.
-  background: #f1f1f2;
-  border-color: #cfd1d4;
+  background: var(--app-raised);
+  border-color: var(--app-border);
 }
 
 // With no image chosen there is no photo to keep a white title legible, so the
 // placeholder uses dark text on the flat grey instead.
 .news-card:has(.image-fallback) .news-overlay strong {
-  color: #4f515a;
+  color: var(--app-muted);
 }
 
 .news-overlay {
@@ -76,8 +76,8 @@
 }
 
 .news-badge.draft-badge {
-  background: #dedfe2;
-  color: #45474d;
+  background: var(--app-border);
+  color: var(--app-muted);
 }
 
 .news-overlay strong {

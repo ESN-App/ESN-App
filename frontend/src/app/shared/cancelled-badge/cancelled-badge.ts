@@ -12,9 +12,9 @@ import { Component } from '@angular/core';
     }
 
     span {
-      background: #fde4e2;
+      background: var(--tint-red);
       border-radius: 999px;
-      color: #a12d27;
+      color: var(--app-danger);
       display: inline-block;
       font-size: var(--status-badge-font-size, 0.75rem);
       font-weight: 750;

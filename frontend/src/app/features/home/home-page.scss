@@ -58,7 +58,7 @@ h1 {
 
 .welcome-copy > p:last-child,
 .install-heading > p:last-child {
-  color: #575757;
+  color: var(--app-muted);
   font-size: clamp(0.95rem, 2vw, 1.08rem);
   line-height: 1.55;
   margin: 1rem 0 0;
@@ -74,10 +74,10 @@ h1 {
 
 .section-tile {
   --tile-accent: var(--home-accent);
-  background: color-mix(in srgb, var(--tile-accent) 14%, #fff);
+  background: color-mix(in srgb, var(--tile-accent) 14%, var(--app-card));
   border: 2px solid var(--tile-accent);
   border-radius: 1.4rem;
-  color: #111;
+  color: var(--app-ink);
   display: flex;
   flex-direction: column;
   min-height: 12.5rem;
@@ -158,7 +158,7 @@ h1 {
 }
 
 .tile-description {
-  color: #666;
+  color: var(--app-muted);
   font-size: 0.86rem;
   line-height: 1.45;
   margin-top: 0.75rem;
@@ -225,7 +225,7 @@ h1 {
 }
 
 .about-intro {
-  color: #222;
+  color: var(--app-ink);
   font-size: clamp(1rem, 2vw, 1.15rem);
   font-weight: 700;
   line-height: 1.5;
@@ -234,7 +234,7 @@ h1 {
 }
 
 .about-copy {
-  color: #575757;
+  color: var(--app-muted);
   line-height: 1.6;
   margin: 0.85rem 0 0;
   max-width: 31rem;
@@ -277,7 +277,7 @@ h1 {
 }
 
 .office-card {
-  background: #fff;
+  background: var(--app-card);
 }
 
 .office-photo {
@@ -343,14 +343,14 @@ h1 {
 }
 
 .office-detail p {
-  color: #575757;
+  color: var(--app-muted);
   font-size: 0.84rem;
   line-height: 1.5;
   margin: 0.25rem 0 0;
 }
 
 .office-detail small {
-  color: #7a7a7a;
+  color: var(--app-muted);
   display: block;
   font-size: 0.7rem;
   line-height: 1.45;
@@ -391,7 +391,7 @@ h1 {
 
 .platform-mark {
   align-items: center;
-  background: #f1f1f1;
+  background: var(--app-raised);
   border-radius: 0.65rem;
   display: inline-flex;
   flex: 0 0 2.5rem;
@@ -401,7 +401,7 @@ h1 {
 }
 
 .android-mark {
-  background: color-mix(in srgb, var(--events-accent) 18%, #fff);
+  background: color-mix(in srgb, var(--events-accent) 18%, var(--app-card));
 }
 
 .platform-mark img {
@@ -411,7 +411,7 @@ h1 {
 }
 
 .platform-card ol {
-  color: #575757;
+  color: var(--app-muted);
   line-height: 1.55;
   margin: 1rem 0 0;
   padding-left: 1.25rem;
@@ -422,7 +422,7 @@ h1 {
 }
 
 .platform-card strong {
-  color: #222;
+  color: var(--app-ink);
 }
 
 @media (max-width: 700px) {
@@ -470,7 +470,7 @@ h1 {
 
   .section-tile {
     -webkit-tap-highlight-color: transparent;
-    background: color-mix(in srgb, var(--tile-accent) 20%, #fff);
+    background: color-mix(in srgb, var(--tile-accent) 20%, var(--app-card));
     cursor: pointer;
     min-height: 13rem;
     opacity: 0.7;
@@ -483,12 +483,12 @@ h1 {
   }
 
   .section-tile:active {
-    background: color-mix(in srgb, var(--tile-accent) 30%, #fff);
+    background: color-mix(in srgb, var(--tile-accent) 30%, var(--app-card));
     transform: scale(0.99);
   }
 
   .section-tile.active {
-    background: color-mix(in srgb, var(--tile-accent) 30%, #fff);
+    background: color-mix(in srgb, var(--tile-accent) 30%, var(--app-card));
     opacity: 1;
     transform: scale(1);
   }
@@ -529,7 +529,7 @@ h1 {
   }
 
   .carousel-progress span {
-    background: #cbd0d5;
+    background: var(--app-border);
     border-radius: 100px;
     height: 0.4rem;
     transition:

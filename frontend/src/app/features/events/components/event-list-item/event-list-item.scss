@@ -1,12 +1,12 @@
 :host {
   --events-accent: #7ac143;
-  --events-accent-dark: #4e8c24;
+  --events-accent-dark: var(--app-primary);
   container-type: inline-size;
   display: block;
 }
 
 .event-item {
-  background: #fff;
+  background: var(--app-card);
   border: 1px solid var(--events-accent);
   border-radius: 1.75rem;
   box-sizing: border-box;
@@ -20,8 +20,8 @@
 }
 
 .event-item--draft {
-  background: #f1f1f2;
-  border-color: #cfd1d4;
+  background: var(--app-raised);
+  border-color: var(--app-border);
 }
 
 .mobile-card-link {
@@ -41,7 +41,7 @@
   align-items: center;
   align-self: start;
   aspect-ratio: 4 / 5;
-  background: #f6f8f4;
+  background: var(--app-card);
   border-radius: 1.15rem;
   display: flex;
   justify-content: center;
@@ -59,7 +59,7 @@
 }
 
 .event-image > span {
-  color: #111;
+  color: var(--app-ink);
   font-size: 2.5rem;
   font-weight: 900;
 }
@@ -89,7 +89,7 @@ app-event-status-title {
 }
 
 .description {
-  color: #505050;
+  color: var(--app-muted);
   display: -webkit-box;
   font-size: 0.78rem;
   line-height: 1.35;
@@ -135,7 +135,7 @@ app-event-status-title {
 }
 
 .event-date {
-  color: #5f625d;
+  color: var(--app-muted);
   font-size: 0.65rem;
   font-weight: 700;
   line-height: 1.2;
@@ -212,7 +212,7 @@ app-event-status-title {
   .desktop-location,
   .price,
   .participants {
-    color: #5d6259;
+    color: var(--app-muted);
     font-size: 0.76rem;
     font-weight: 700;
     line-height: 1.25;

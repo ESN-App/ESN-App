@@ -5,7 +5,7 @@
 
 .info-card {
   align-items: center;
-  background: #fff;
+  background: var(--app-card);
   border: 1px solid var(--info-accent);
   border-radius: 1.4rem;
   display: grid;
@@ -20,14 +20,14 @@
 }
 
 .info-card--draft {
-  background: #f1f1f2;
-  border-color: #cfd1d4;
+  background: var(--app-raised);
+  border-color: var(--app-border);
 }
 
 .draft-badge {
-  background: #dfe1e4;
+  background: var(--app-raised);
   border-radius: 999px;
-  color: #4e5157;
+  color: var(--app-muted);
   display: inline-block;
   font-size: 0.65rem;
   font-weight: 850;
@@ -43,7 +43,7 @@
 
 .article-image {
   align-items: center;
-  background: #fff;
+  background: var(--app-card);
   border-radius: 0.9rem;
   display: flex;
   grid-row: 1 / span 2;
@@ -81,7 +81,7 @@
 }
 
 .article-description {
-  color: #555;
+  color: var(--app-muted);
   display: -webkit-box;
   font-size: 0.86rem;
   -webkit-box-orient: vertical;
@@ -162,7 +162,7 @@
 
 @media (max-width: 700px) {
   .info-card {
-    background: #fff;
+    background: var(--app-card);
     gap: 0.65rem 0.85rem;
     grid-template-columns: 6.5rem minmax(0, 1fr);
     min-height: 6.5rem;

@@ -1,6 +1,6 @@
 :host {
-  --admin-accent: #5358bd;
-  --admin-accent-dark: #343897;
+  --admin-accent: var(--app-primary);
+  --admin-accent-dark: var(--app-primary);
   display: block;
 }
 
@@ -19,7 +19,7 @@
 
 .back-link {
   align-items: center;
-  color: #42469d;
+  color: var(--app-ink);
   display: inline-flex;
   font-size: 0.78rem;
   font-weight: 750;
@@ -57,12 +57,12 @@
 }
 
 .page-header > div > p:last-child {
-  color: #666875;
+  color: var(--app-muted);
   margin: 0.6rem 0 0;
 }
 
 .admin-form {
-  border: 1px solid #dedfe5;
+  border: 1px solid var(--app-border);
   border-radius: 1rem;
   display: grid;
   gap: 1rem;
@@ -84,7 +84,7 @@
 }
 
 .save-action small {
-  color: #777985;
+  color: var(--app-muted);
   font-size: 0.68rem;
   font-weight: 650;
 }
@@ -95,7 +95,7 @@
 }
 
 .form-heading p {
-  color: #777985;
+  color: var(--app-muted);
   font-size: 0.75rem;
   margin: 0.25rem 0 0;
 }
@@ -108,16 +108,16 @@
 }
 
 .field > span:first-child {
-  color: #444653;
+  color: var(--app-muted);
   font-size: 0.76rem;
   font-weight: 750;
 }
 
 .field input {
-  background: #fff;
-  border: 1px solid #d7d8df;
+  background: var(--app-card);
+  border: 1px solid var(--app-border);
   border-radius: 0.65rem;
-  color: #252630;
+  color: var(--app-ink);
   font: inherit;
   font-size: 0.82rem;
   outline: 0;
@@ -126,13 +126,13 @@
 }
 
 .field input:focus {
-  border-color: #5358bd;
+  border-color: var(--app-ink);
   box-shadow: 0 0 0 3px rgb(83 88 189 / 13%);
 }
 
 .field input.ng-invalid.ng-touched,
 .field input.mismatch {
-  border-color: #bd4b42;
+  border-color: var(--app-danger);
 }
 
 .password-input {
@@ -148,7 +148,7 @@
   background: transparent;
   border: 0;
   border-radius: 0.45rem;
-  color: #5358bd;
+  color: var(--app-ink);
   cursor: pointer;
   font: inherit;
   font-size: 0.72rem;
@@ -161,38 +161,38 @@
 }
 
 .password-toggle:hover {
-  background: #eceeff;
+  background: var(--tint-neutral);
 }
 
 .field small {
-  color: #a23831;
+  color: var(--app-danger);
   font-size: 0.7rem;
 }
 
 .field-hint {
-  color: #85868f;
+  color: var(--app-muted);
   font-size: 0.68rem;
   font-weight: 600;
 }
 
 .save-error {
-  background: #fff1ef;
+  background: var(--tint-red);
   border-radius: 0.6rem;
-  color: #91362e;
+  color: var(--app-danger);
   font-size: 0.76rem;
   padding: 0.7rem;
 }
 
 .form-actions {
   align-items: flex-start;
-  border-top: 1px solid #e6e6ea;
+  border-top: 1px solid var(--app-border);
   margin-top: 0.25rem;
   padding-top: 1rem;
 }
 
 .form-actions a {
   align-items: center;
-  color: #666875;
+  color: var(--app-muted);
   display: inline-flex;
   font-size: 0.78rem;
   font-weight: 750;
@@ -201,10 +201,10 @@
 }
 
 .form-actions button {
-  background: #5358bd;
+  background: var(--app-primary);
   border: 0;
   border-radius: 0.65rem;
-  color: #fff;
+  color: var(--app-on-primary);
   cursor: pointer;
   font: inherit;
   font-size: 0.78rem;
@@ -219,7 +219,7 @@
 }
 
 .confirmation-dialog p {
-  color: #666875;
+  color: var(--app-muted);
   font-size: 0.82rem;
   margin: -0.5rem 0 1.25rem;
 }

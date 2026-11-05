@@ -14,7 +14,7 @@
 }
 
 .confirmation-dialog {
-  background: #fff;
+  background: var(--app-card);
   border-radius: 0.85rem;
   box-shadow: 0 8px 24px rgb(24 25 38 / 16%);
   display: flex;
@@ -28,7 +28,7 @@
 
 .modal-header {
   align-items: center;
-  border-bottom: 1px solid #e5e6ea;
+  border-bottom: 1px solid var(--app-border);
   display: flex;
   flex: 0 0 auto;
   justify-content: space-between;
@@ -54,8 +54,8 @@
 }
 
 .modal-close:hover {
-  background: #f1f2fb;
-  color: #343897;
+  background: var(--tint-neutral);
+  color: var(--app-ink);
 }
 
 .modal-content {
@@ -67,17 +67,17 @@
 }
 
 .modal-message {
-  color: #6f707b;
+  color: var(--app-muted);
   flex: 0 0 auto;
   font-size: 0.9rem;
   text-align: center;
 }
 
 .modal-error {
-  background: #fff2f0;
-  border: 1px solid #ead6cf;
+  background: var(--tint-red);
+  border: 1px solid var(--app-border);
   border-radius: 0.55rem;
-  color: #8c2f27;
+  color: var(--app-danger);
   flex: 0 0 auto;
   font-size: 0.85rem;
   margin: 0.75rem 0 0;
@@ -86,7 +86,7 @@
 
 .modal-actions {
   align-items: flex-start;
-  border-top: 1px solid #e5e6ea;
+  border-top: 1px solid var(--app-border);
   display: flex;
   flex: 0 0 auto;
   gap: 0.6rem;
@@ -102,7 +102,7 @@
 }
 
 .modal-save-action small {
-  color: #777985;
+  color: var(--app-muted);
   font-size: 0.68rem;
   font-weight: 650;
 }
@@ -120,21 +120,21 @@
 }
 
 .confirmation-cancel {
-  background: #eff0f6;
-  color: #343897;
+  background: var(--tint-neutral);
+  color: var(--app-ink);
 }
 
 .confirmation-cancel:hover:not(:disabled) {
-  background: #e2e3ee;
+  background: var(--tint-neutral);
 }
 
 .confirmation-submit {
-  background: #5358bd;
-  color: #fff;
+  background: var(--app-primary);
+  color: var(--app-on-primary);
 }
 
 .confirmation-submit:hover:not(:disabled) {
-  background: #42479e;
+  background: var(--app-primary);
 }
 
 .confirmation-cancel:disabled,
@@ -144,7 +144,7 @@
 }
 
 .drag-list-help {
-  color: #787a84;
+  color: var(--app-muted);
   flex: 0 0 auto;
   font-size: 0.78rem;
   margin: 0 0 0.6rem;
@@ -199,7 +199,7 @@
 }
 
 .drag-list-scrollbar:focus-visible {
-  filter: drop-shadow(0 0 2px #4347a7);
+  filter: drop-shadow(0 0 2px var(--app-ink));
 }
 
 .drag-list-scrollbar::-webkit-slider-runnable-track {
@@ -210,7 +210,7 @@
 
 .drag-list-scrollbar::-webkit-slider-thumb {
   appearance: none;
-  background: #9a9a9a;
+  background: var(--app-muted);
   border: 0;
   border-radius: 100px;
   height: 0.35rem;
@@ -224,7 +224,7 @@
 }
 
 .drag-list-scrollbar::-moz-range-thumb {
-  background: #9a9a9a;
+  background: var(--app-muted);
   border: 0;
   border-radius: 100px;
   height: 0.35rem;
@@ -233,8 +233,8 @@
 
 .drag-item {
   align-items: center;
-  background: #fafafd;
-  border: 1px solid #dedfe5;
+  background: var(--app-card);
+  border: 1px solid var(--app-border);
   border-radius: 0.6rem;
   cursor: move;
   display: flex;
@@ -245,26 +245,26 @@
 }
 
 .drag-item:hover {
-  background: #f4f5f9;
-  border-color: #cfd1dc;
+  background: var(--app-raised);
+  border-color: var(--app-border);
 }
 
 .drag-item.dragging {
-  background: #eceeff;
-  border-color: #5358bd;
+  background: var(--tint-neutral);
+  border-color: var(--app-ink);
   opacity: 0.6;
   transform: scale(0.98);
 }
 
 .drag-handle {
-  color: #94959e;
+  color: var(--app-muted);
   flex: 0 0 auto;
   font-size: 0.9rem;
   user-select: none;
 }
 
 .drag-item-label {
-  color: #252630;
+  color: var(--app-ink);
   flex: 1 1 auto;
   font-size: 0.9rem;
   font-weight: 500;

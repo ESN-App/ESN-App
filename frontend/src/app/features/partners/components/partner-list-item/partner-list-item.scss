@@ -11,7 +11,7 @@ app-partner-status-title {
 
 .partner-card {
   align-items: center;
-  background: #fff;
+  background: var(--app-card);
   border: 1px solid var(--partners-accent);
   border-radius: 1.4rem;
   display: grid;
@@ -26,8 +26,8 @@ app-partner-status-title {
 }
 
 .partner-card--draft {
-  background: #f1f1f2;
-  border-color: #cfd1d4;
+  background: var(--app-raised);
+  border-color: var(--app-border);
 }
 
 .partner-select-button {
@@ -62,7 +62,7 @@ app-partner-status-title {
 
 .partner-logo {
   align-items: center;
-  background: #fff;
+  background: var(--app-card);
   border-radius: 0.9rem;
   display: flex;
   grid-row: 1 / span 2;
@@ -74,14 +74,14 @@ app-partner-status-title {
 }
 
 .partner-logo > span {
-  color: #111;
+  color: var(--app-ink);
   font-size: 1.2rem;
   font-weight: 900;
   letter-spacing: -0.05em;
 }
 
 .partner-logo img {
-  background: #fff;
+  background: var(--app-card);
   height: 100%;
   inset: 0;
   object-fit: contain;
@@ -104,7 +104,7 @@ app-partner-status-title {
 }
 
 .partner-description {
-  color: #555;
+  color: var(--app-muted);
   display: -webkit-box;
   font-size: 0.86rem;
   -webkit-box-orient: vertical;
@@ -116,7 +116,7 @@ app-partner-status-title {
 
 .partner-meta {
   align-items: center;
-  border-top: 1px solid color-mix(in srgb, var(--partners-accent) 12%, #e5e5e5);
+  border-top: 1px solid color-mix(in srgb, var(--partners-accent) 12%, var(--app-border));
   display: flex;
   gap: 1rem;
   justify-content: space-between;
@@ -126,7 +126,7 @@ app-partner-status-title {
 
 .discount-count {
   align-items: center;
-  color: #666;
+  color: var(--app-muted);
   display: inline-flex;
   font-size: 0.76rem;
   font-weight: 700;
@@ -219,13 +219,13 @@ app-partner-status-title {
   }
 
   .partner-card:hover {
-    background: #fff;
+    background: var(--app-card);
     box-shadow: none;
     transform: translateY(-2px);
   }
 
   .partner-card--selected {
-    background: #fff;
+    background: var(--app-card);
     border-width: 3px;
     box-shadow: none;
     scroll-margin-block: 0.7rem;
@@ -237,7 +237,7 @@ app-partner-status-title {
   }
 
   .partner-card:has(.partner-select-button:focus-visible) {
-    outline: 3px solid #4347a7;
+    outline: 3px solid var(--app-ink);
     outline-offset: 2px;
   }
 
@@ -281,7 +281,7 @@ app-partner-status-title {
 
   .partner-meta {
     align-self: start;
-    border-top-color: #ededed;
+    border-top-color: var(--app-border);
     padding-top: 0.5rem;
   }
 
@@ -305,9 +305,9 @@ app-partner-status-title {
   }
 
   .selection-status {
-    background: var(--partners-accent);
+    background: var(--tint-magenta);
     border-radius: 999px;
-    color: #fff;
+    color: var(--app-ink);
     display: inline-flex;
     padding: 0.2rem 0.45rem;
     transform: translateY(-0.2rem);
@@ -325,7 +325,7 @@ app-partner-status-title {
   }
 
   .mobile-card-link:focus-visible {
-    outline: 3px solid #4347a7;
+    outline: 3px solid var(--app-ink);
     outline-offset: 2px;
   }
 
@@ -336,7 +336,7 @@ app-partner-status-title {
 
 @media (max-width: 700px) {
   .partner-card {
-    background: #fff;
+    background: var(--app-card);
     cursor: pointer;
     gap: 0.65rem 0.85rem;
     grid-template-columns: 6.25rem minmax(0, 1fr);

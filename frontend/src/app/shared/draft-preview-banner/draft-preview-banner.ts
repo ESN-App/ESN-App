@@ -23,14 +23,14 @@ import { Component } from '@angular/core';
 
     .draft-preview-banner {
       align-items: center;
-      background: #f1f1f2;
-      border: 1px solid #cfd1d4;
+      background: var(--app-raised);
+      border: 1px solid var(--app-border);
       // Not a pill. The sentence wraps to two lines in any narrow column (the admin
       // preview panel in both Desktop and Mobile, and real phones), and a 999px radius
       // on a two-line box renders as large semicircular ends. The short DRAFT chip
       // inside stays a pill, which is what that radius is actually suited to.
       border-radius: 1rem;
-      color: #4f515a;
+      color: var(--app-muted);
       display: flex;
       flex-wrap: wrap;
       font-size: 0.78rem;
@@ -43,9 +43,9 @@ import { Component } from '@angular/core';
     }
 
     .draft-preview-banner__badge {
-      background: #dfe1e5;
+      background: var(--app-raised);
       border-radius: 999px;
-      color: #3f414a;
+      color: var(--app-ink);
       flex: 0 0 auto;
       font-size: 0.7rem;
       font-weight: 800;

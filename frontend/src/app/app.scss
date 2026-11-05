@@ -1,6 +1,6 @@
 .toolbar,
 .content {
-  background-color: #fff;
+  background-color: var(--app-card);
 }
 
 @property --nav-gradient-angle {
@@ -16,16 +16,16 @@
 }
 
 :host {
-  background: #fff;
+  background: var(--app-card);
   display: block;
   min-height: 100vh;
   min-height: 100dvh;
 }
 
 .toolbar {
-  background: #4347a7;
-  border-bottom: 1px solid #d6dae1;
-  color: #fff;
+  background: var(--app-primary);
+  border-bottom: 1px solid var(--app-border);
+  color: var(--app-on-primary);
   gap: 0.5rem;
   min-height: 8vh;
   min-height: 8dvh;
@@ -52,7 +52,7 @@
 
   .account {
     align-items: center;
-    background: #fff;
+    background: var(--app-card);
     border-radius: 200px;
     box-shadow: 0 2px 8px rgba(17, 17, 17, 0.12);
     display: flex;
@@ -62,9 +62,9 @@
   }
 
   .user-email {
-    background: #eef0f5;
+    background: var(--app-raised);
     border-radius: 200px;
-    color: #25273b;
+    color: var(--app-ink);
     display: block;
     font-size: 0.8125rem;
     font-weight: 600;
@@ -110,7 +110,7 @@
 
   .toolbar {
     .desktop-menu {
-      background: #fff;
+      background: var(--app-card);
       border-radius: 200px;
       justify-content: space-evenly;
       margin-left: 2.5rem;
@@ -165,7 +165,7 @@
 
     .account a,
     .account button {
-      color: #111;
+      color: var(--app-ink);
     }
 
     .account button {
@@ -179,7 +179,7 @@
 
 @media (max-width: 700px) {
   :host {
-    background-color: #fff;
+    background-color: var(--app-card);
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
@@ -199,7 +199,7 @@
     align-items: center;
     animation: rotate-nav-gradient 4s linear infinite;
     background:
-      linear-gradient(#fff, #fff) padding-box,
+      linear-gradient(var(--app-card), var(--app-card)) padding-box,
       conic-gradient(
           from var(--nav-gradient-angle),
           #00aeef,
@@ -260,22 +260,22 @@
 
   .mobile-menu a:nth-child(1) {
     --nav-icon: url('/icons/home.svg');
-    color: #00aeef;
+    color: var(--app-ink);
   }
 
   .mobile-menu a:nth-child(2) {
     --nav-icon: url('/icons/calendar.svg');
-    color: #7ac143;
+    color: var(--app-ink);
   }
 
   .mobile-menu a:nth-child(3) {
     --nav-icon: url('/icons/discount.svg');
-    color: #ec008c;
+    color: var(--app-ink);
   }
 
   .mobile-menu a:nth-child(4) {
     --nav-icon: url('/icons/info.svg');
-    color: #f47b20;
+    color: var(--app-ink);
   }
 
   .mobile-menu a:hover .nav-icon {
@@ -290,7 +290,7 @@
   }
 
   .content {
-    background-color: #fff;
+    background-color: var(--app-card);
     box-sizing: border-box;
     flex: 1 1 auto;
     min-height: 0;

@@ -10,7 +10,7 @@
 
 .back {
   align-items: center;
-  color: #111;
+  color: var(--app-ink);
   display: inline-flex;
   font-size: 0.8rem;
   font-weight: 700;
@@ -41,7 +41,7 @@
 
 @media (max-width: 700px) {
   .back {
-    background: #fff;
+    background: var(--app-card);
     border-radius: 50%;
     box-shadow: 0 3px 10px rgba(17, 17, 17, 0.1);
     height: 2.5rem;

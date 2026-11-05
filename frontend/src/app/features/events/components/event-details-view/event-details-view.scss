@@ -18,7 +18,7 @@ article { display: grid; gap: 1rem; }
 
 .hero-image {
   align-items: center;
-  background: #fff;
+  background: var(--app-card);
   border-radius: 1.35rem;
   display: flex;
   justify-content: center;
@@ -61,7 +61,7 @@ h1 {
   overflow-wrap: anywhere;
 }
 
-.summary { color: #555; line-height: 1.45; margin: 1rem 0 0; }
+.summary { color: var(--app-muted); line-height: 1.45; margin: 1rem 0 0; }
 
 .facts {
   border: 1px solid var(--events-accent);
@@ -72,10 +72,10 @@ h1 {
 }
 
 .fact { align-items: center; display: flex; gap: 0.8rem; min-height: 4.5rem; padding: 0.8rem 1rem; }
-.fact + .fact { border-top: 1px solid #ddd; }
+.fact + .fact { border-top: 1px solid var(--app-border); }
 .fact div { display: grid; gap: 0.1rem; min-width: 0; }
 .fact small,
-.fact span { color: #777; font-size: 0.7rem; }
+.fact span { color: var(--app-muted); font-size: 0.7rem; }
 .fact strong { font-size: 0.85rem; overflow-wrap: anywhere; }
 
 .location-value strong,
@@ -95,9 +95,9 @@ h1 {
 
 .register {
   align-items: center;
-  background: var(--events-accent);
+  background: var(--app-primary);
   border-radius: 100px;
-  color: #fff;
+  color: var(--app-on-primary);
   display: flex;
   font-weight: 800;
   justify-content: space-between;
@@ -105,7 +105,7 @@ h1 {
   text-decoration: none;
 }
 
-.register-arrow { background: #fff; height: 1.7rem; mask: url('/icons/arrow-circle-right.svg') center / contain no-repeat; transition: transform 140ms ease; width: 1.7rem; }
+.register-arrow { background: var(--app-card); height: 1.7rem; mask: url('/icons/arrow-circle-right.svg') center / contain no-repeat; transition: transform 140ms ease; width: 1.7rem; }
 .register:hover .register-arrow { transform: translateX(2px); }
 
 @container (min-width: 36rem) {
@@ -116,11 +116,11 @@ h1 {
   .hero-image { min-height: 18rem; }
   .facts { grid-template-columns: repeat(3, 1fr); }
   .facts.has-participants { grid-template-columns: repeat(2, 1fr); }
-  .fact { border-right: 1px solid #ddd; }
+  .fact { border-right: 1px solid var(--app-border); }
   .fact + .fact { border-top: 0; }
   .fact:last-child,
   .facts.has-participants .fact:nth-child(2) { border-right: 0; }
-  .facts.has-participants .fact:nth-child(n + 3) { border-top: 1px solid #ddd; }
+  .facts.has-participants .fact:nth-child(n + 3) { border-top: 1px solid var(--app-border); }
 }
 
 // Cap the space between the draft banner and the hero copy at 1rem so every section

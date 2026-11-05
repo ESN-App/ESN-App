@@ -1,5 +1,5 @@
 app-partners-map {
-  background: #f7f7f7;
+  background: var(--app-raised);
   border: 2px solid var(--partners-accent);
   border-radius: 1.5rem;
   display: block;
@@ -38,7 +38,7 @@ app-partners-map {
 }
 
 .partners-map__empty p {
-  color: #666;
+  color: var(--app-muted);
   font-size: 0.78rem;
   line-height: 1.4;
   margin: 0.35rem 0 0;
@@ -47,7 +47,7 @@ app-partners-map {
 .partners-map-marker {
   align-items: center;
   background: rgba(236, 0, 151);
-  border: 1px solid #fff;
+  border: 1px solid var(--app-card);
   border-radius: 50%;
   box-sizing: border-box;
   box-shadow: none;
@@ -71,7 +71,7 @@ app-partners-map {
 }
 
 .partners-map-marker:focus-visible {
-  outline: 3px solid #4347a7;
+  outline: 3px solid var(--app-ink);
   outline-offset: 4px;
 }
 
@@ -84,11 +84,11 @@ app-partners-map {
   }
 
   .partners-map-marker::after {
-    background: #2e3192;
+    background: var(--app-primary);
     border-radius: 999px;
     bottom: calc(100% + 0.65rem);
     box-shadow: 0 6px 18px rgba(46, 49, 146, 0.24);
-    color: #fff;
+    color: var(--app-on-primary);
     content: attr(data-label);
     font-size: 0.7rem;
     font-weight: 800;
@@ -122,7 +122,7 @@ app-partners-map {
 
 .maplibregl-ctrl-zoom-in,
 .maplibregl-ctrl-zoom-out {
-  color: #111;
+  color: var(--app-ink);
 }
 
 .maplibregl-ctrl-attrib {
@@ -143,7 +143,7 @@ app-partners-map {
   .map-partner-card {
     align-items: center;
     background: rgba(255, 255, 255, 0.97);
-    border: 2px solid color-mix(in srgb, var(--partners-accent) 42%, #ddd);
+    border: 2px solid color-mix(in srgb, var(--partners-accent) 42%, var(--app-border));
     border-radius: 1.15rem;
     bottom: 0.75rem;
     box-sizing: border-box;
@@ -160,10 +160,10 @@ app-partners-map {
 
   .map-partner-card__close {
     align-items: center;
-    background: #f1f1f1;
+    background: var(--app-raised);
     border: 0;
     border-radius: 50%;
-    color: #333;
+    color: var(--app-ink);
     cursor: pointer;
     display: flex;
     font-size: 1.3rem;
@@ -178,13 +178,13 @@ app-partners-map {
   }
 
   .map-partner-card__close:focus-visible {
-    outline: 3px solid #4347a7;
+    outline: 3px solid var(--app-ink);
     outline-offset: 2px;
   }
 
   .map-partner-card__logo {
     align-items: center;
-    background: #fff;
+    background: var(--app-card);
     border-radius: 0.75rem;
     display: flex;
     height: 4.5rem;
@@ -200,7 +200,7 @@ app-partners-map {
   }
 
   .map-partner-card__logo img {
-    background: #fff;
+    background: var(--app-card);
     box-sizing: border-box;
     height: 100%;
     inset: 0;
@@ -232,7 +232,7 @@ app-partners-map {
   }
 
   .map-partner-card p {
-    color: #626262;
+    color: var(--app-muted);
     display: -webkit-box;
     font-size: 0.72rem;
     -webkit-box-orient: vertical;

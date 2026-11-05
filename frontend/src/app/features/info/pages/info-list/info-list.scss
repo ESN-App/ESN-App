@@ -30,7 +30,7 @@ h1 {
 }
 
 .intro {
-  color: #575757;
+  color: var(--app-muted);
   font-size: clamp(0.95rem, 2vw, 1.1rem);
   line-height: 1.5;
   margin: 1rem 0 1.5rem;
@@ -51,9 +51,9 @@ h1 {
 
 .error-state > span {
   align-items: center;
-  background: var(--info-accent);
+  background: var(--tint-orange);
   border-radius: 50%;
-  color: #fff;
+  color: var(--app-ink);
   display: inline-flex;
   font-size: 1.1rem;
   font-weight: 900;
@@ -67,7 +67,7 @@ h1 {
 }
 
 .error-state p {
-  color: #666;
+  color: var(--app-muted);
   margin: 0;
 }
 

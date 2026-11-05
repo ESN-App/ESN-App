@@ -129,14 +129,14 @@ app-admin-news-edit {
   }
 
   .status-field legend {
-    color: #444653;
+    color: var(--app-muted);
     font-size: 0.76rem;
     font-weight: 800;
     padding: 0;
   }
 
   .status-field > p {
-    color: #777985;
+    color: var(--app-muted);
     font-size: 0.7rem;
     margin: 0.2rem 0 0.65rem;
   }
@@ -148,8 +148,8 @@ app-admin-news-edit {
 
   .status-option {
     align-items: center;
-    background: #fff;
-    border: 1px solid #dedfe5;
+    background: var(--app-card);
+    border: 1px solid var(--app-border);
     border-radius: 0.7rem;
     cursor: pointer;
     display: flex;
@@ -160,18 +160,18 @@ app-admin-news-edit {
   }
 
   .status-option:hover {
-    background: #fafafd;
-    border-color: #bfc1d9;
+    background: var(--app-card);
+    border-color: var(--app-border);
   }
 
   .status-option:has(input:checked) {
-    background: #f3f3fc;
-    border-color: #7276c9;
+    background: var(--tint-neutral);
+    border-color: var(--app-ink);
     box-shadow: 0 0 0 2px rgb(83 88 189 / 10%);
   }
 
   .status-option:focus-within {
-    outline: 2px solid #5358bd;
+    outline: 2px solid var(--app-ink);
     outline-offset: 2px;
   }
 
@@ -183,7 +183,7 @@ app-admin-news-edit {
   }
 
   .status-option__dot {
-    background: #7a7c85;
+    background: var(--app-muted);
     border-radius: 50%;
     box-shadow: 0 0 0 3px rgb(122 124 133 / 12%);
     flex: 0 0 0.5rem;
@@ -196,7 +196,7 @@ app-admin-news-edit {
   }
 
   .status-option--cancelled .status-option__dot {
-    background: #bc563f;
+    background: var(--app-danger);
     box-shadow: 0 0 0 3px rgb(188 86 63 / 12%);
   }
 
@@ -207,24 +207,24 @@ app-admin-news-edit {
   }
 
   .status-option__copy strong {
-    color: #333540;
+    color: var(--app-ink);
     font-size: 0.78rem;
   }
 
   .status-option__copy small {
-    color: #777985;
+    color: var(--app-muted);
     font-size: 0.67rem;
   }
 
   .status-option__choice {
-    border: 1px solid #b6b8c1;
+    border: 1px solid var(--app-border);
     border-radius: 50%;
     height: 1rem;
     width: 1rem;
   }
 
   .status-option input:checked ~ .status-option__choice {
-    border: 0.3rem solid #5358bd;
+    border: 0.3rem solid var(--app-ink);
   }
 }
 
@@ -240,8 +240,8 @@ app-admin-news-edit {
 }
 
 .confirmation-dialog {
-  background: #fff;
-  border: 1px solid #dedfe5;
+  background: var(--app-card);
+  border: 1px solid var(--app-border);
   border-radius: 1rem;
   box-shadow: 0 24px 60px rgb(23 24 33 / 25%);
   box-sizing: border-box;
@@ -263,7 +263,7 @@ app-admin-news-edit {
 }
 
 .confirmation-error {
-  color: #b3261e;
+  color: var(--app-danger);
 }
 
 .confirmation-actions {
@@ -284,18 +284,18 @@ app-admin-news-edit {
 }
 
 .confirmation-cancel {
-  background: #eff0f3;
-  color: #555762;
+  background: var(--app-raised);
+  color: var(--app-muted);
 }
 
 .confirmation-submit {
-  background: #5358bd;
-  color: #fff;
+  background: var(--app-primary);
+  color: var(--app-on-primary);
 }
 
 .confirmation-delete {
-  background: #bd3535;
-  color: #fff;
+  background: var(--app-danger);
+  color: var(--app-on-danger);
 }
 
 .confirmation-actions button:disabled {
@@ -304,15 +304,15 @@ app-admin-news-edit {
 }
 
 .confirmation-cancel:hover {
-  background: #e4e5e9;
+  background: var(--app-raised);
 }
 
 .confirmation-submit:hover {
-  background: #454aa7;
+  background: var(--app-primary);
 }
 
 .confirmation-delete:hover:not(:disabled) {
-  background: #a52c2c;
+  background: var(--app-danger);
 }
 
 app-root {
@@ -324,7 +324,7 @@ app-root {
 @media (max-width: 700px) {
   app-events-list {
     .mobile-date-calendar {
-      background: #f7f9f6;
+      background: var(--app-card);
       border: 1px solid var(--events-accent);
       border-radius: 1.4rem;
       display: block !important;
@@ -361,7 +361,7 @@ app-root {
       align-items: center;
       background: transparent;
       border: 0;
-      color: #555b52;
+      color: var(--app-muted);
       cursor: pointer;
       display: flex;
       flex-direction: column;
@@ -373,8 +373,8 @@ app-root {
 
     .mobile-date__number {
       align-items: center;
-      background: #fff;
-      border: 1px solid #dce3d8;
+      background: var(--app-card);
+      border: 1px solid var(--app-border);
       border-radius: 50%;
       display: flex;
       font-size: 0.78rem;
@@ -402,9 +402,9 @@ app-root {
     }
 
     .mobile-date--has-events .mobile-date__number {
-      background: #eaf4e5;
-      border-color: #d2e7c8;
-      color: #315d18;
+      background: var(--tint-green);
+      border-color: var(--app-border);
+      color: var(--app-ink);
     }
 
     .mobile-date--today .mobile-date__number {
@@ -415,11 +415,11 @@ app-root {
     .mobile-date--selected .mobile-date__number {
       background: var(--events-accent-dark);
       border-color: var(--events-accent-dark);
-      color: #fff;
+      color: var(--app-on-primary);
     }
 
     .mobile-date--selected .mobile-date__dot {
-      background: #fff;
+      background: var(--app-card);
     }
 
     .mobile-date:focus-visible {

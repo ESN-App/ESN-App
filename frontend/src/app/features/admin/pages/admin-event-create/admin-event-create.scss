@@ -1,8 +1,8 @@
 :host {
   --accent: #7ac143;
-  --accent-dark: #4e8c24;
-  --admin-accent: #5358bd;
-  --admin-accent-dark: #343897;
+  --accent-dark: var(--app-ink);
+  --admin-accent: var(--app-primary);
+  --admin-accent-dark: var(--app-primary);
   display: block;
 }
 
@@ -21,7 +21,7 @@
 
 .back-link {
   align-items: center;
-  color: #42469d;
+  color: var(--app-ink);
   display: inline-flex;
   font-size: 0.78rem;
   font-weight: 750;
@@ -63,15 +63,15 @@
 }
 
 .page-header > div > p:last-child {
-  color: #666875;
+  color: var(--app-muted);
   margin: 0.6rem 0 0;
 }
 
 .preview-toggle {
-  background: #eceeff;
+  background: var(--tint-neutral);
   border: 0;
   border-radius: 0.55rem;
-  color: #3d4297;
+  color: var(--app-ink);
   cursor: pointer;
   flex: 0 0 auto;
   font: inherit;
@@ -81,7 +81,7 @@
 }
 
 .preview-toggle:hover {
-  background: #dfe1ff;
+  background: var(--tint-neutral);
 }
 
 .event-form {
@@ -89,7 +89,7 @@
   // being stretched to match the taller preview panel beside it.
   align-self: start;
   align-content: start;
-  border: 1px solid #dedfe5;
+  border: 1px solid var(--app-border);
   border-radius: 1rem;
   display: grid;
   gap: 1rem;
@@ -111,7 +111,7 @@
 }
 
 .save-action small {
-  color: #777985;
+  color: var(--app-muted);
   font-size: 0.68rem;
   font-weight: 650;
 }
@@ -122,7 +122,7 @@
 }
 
 .form-heading p {
-  color: #777985;
+  color: var(--app-muted);
   font-size: 0.75rem;
   margin: 0.25rem 0 0;
 }
@@ -136,17 +136,17 @@
 
 .field > span:first-child,
 .field > label:first-child {
-  color: #444653;
+  color: var(--app-muted);
   font-size: 0.76rem;
   font-weight: 750;
 }
 
 .field input,
 .field textarea {
-  background: #fff;
-  border: 1px solid #d7d8df;
+  background: var(--app-card);
+  border: 1px solid var(--app-border);
   border-radius: 0.65rem;
-  color: #252630;
+  color: var(--app-ink);
   font: inherit;
   font-size: 0.82rem;
   outline: 0;
@@ -173,24 +173,24 @@
 
 .field input:focus,
 .field textarea:focus {
-  border-color: #5358bd;
+  border-color: var(--app-ink);
   box-shadow: 0 0 0 3px rgb(83 88 189 / 13%);
 }
 
 .field input.ng-invalid.ng-touched,
 .field textarea.ng-invalid.ng-touched {
-  border-color: #bd4b42;
+  border-color: var(--app-danger);
 }
 
 .field small,
 .group-error {
-  color: #a23831;
+  color: var(--app-danger);
   font-size: 0.7rem;
 }
 
 .character-count {
   bottom: 0.45rem;
-  color: #8b8c94 !important;
+  color: var(--app-muted) !important;
   font-size: 0.66rem !important;
   font-weight: 600 !important;
   position: absolute;
@@ -225,14 +225,14 @@
 }
 
 .field-hint {
-  color: #85868f !important;
+  color: var(--app-muted) !important;
   font-size: 0.68rem !important;
   font-weight: 600 !important;
 }
 
 .price-control {
   align-items: center;
-  border: 1px solid #d7d8df;
+  border: 1px solid var(--app-border);
   border-radius: 0.65rem;
   display: flex;
   max-width: 12rem;
@@ -247,15 +247,15 @@
 }
 
 .price-control > span {
-  border-left: 1px solid #e1e2e7;
-  color: #686a75;
+  border-left: 1px solid var(--app-border);
+  color: var(--app-muted);
   font-size: 0.72rem;
   font-weight: 800;
   padding: 0.75rem;
 }
 
 .price-control:focus-within {
-  border-color: #5358bd;
+  border-color: var(--app-ink);
   box-shadow: 0 0 0 3px rgb(83 88 189 / 13%);
 }
 
@@ -271,10 +271,10 @@
 }
 
 .upload-control button {
-  background: #fff1ef;
+  background: var(--tint-red);
   border: 0;
   border-radius: 0.55rem;
-  color: #9a3931;
+  color: var(--app-danger);
   cursor: pointer;
   flex: 0 0 auto;
   font: inherit;
@@ -285,15 +285,15 @@
 }
 
 .field input.file-input {
-  color: #666875;
+  color: var(--app-muted);
   padding: 0.42rem;
 }
 
 .file-input::file-selector-button {
-  background: #eceeff;
+  background: var(--tint-neutral);
   border: 0;
   border-radius: 0.45rem;
-  color: #3d4297;
+  color: var(--app-ink);
   cursor: pointer;
   font: inherit;
   font-size: 0.72rem;
@@ -307,7 +307,7 @@
 }
 
 .participant-section {
-  border: 1px solid #e1e2e7;
+  border: 1px solid var(--app-border);
   border-radius: 0.75rem;
   margin: 0;
   min-width: 0;
@@ -315,30 +315,30 @@
 }
 
 .participant-section legend {
-  color: #444653;
+  color: var(--app-muted);
   font-size: 0.76rem;
   font-weight: 800;
   padding: 0 0.3rem;
 }
 
 .save-error {
-  background: #fff1ef;
+  background: var(--tint-red);
   border-radius: 0.6rem;
-  color: #91362e;
+  color: var(--app-danger);
   font-size: 0.76rem;
   padding: 0.7rem;
 }
 
 .form-actions {
   align-items: flex-start;
-  border-top: 1px solid #e6e6ea;
+  border-top: 1px solid var(--app-border);
   margin-top: 0.25rem;
   padding-top: 1rem;
 }
 
 .form-actions a {
   align-items: center;
-  color: #666875;
+  color: var(--app-muted);
   display: inline-flex;
   font-size: 0.78rem;
   font-weight: 750;
@@ -347,10 +347,10 @@
 }
 
 .form-actions button {
-  background: #5358bd;
+  background: var(--app-primary);
   border: 0;
   border-radius: 0.65rem;
-  color: #fff;
+  color: var(--app-on-primary);
   cursor: pointer;
   font: inherit;
   font-size: 0.78rem;
