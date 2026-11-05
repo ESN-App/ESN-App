@@ -1,5 +1,6 @@
 import { Component, inject } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
+import { MatIconModule } from '@angular/material/icon';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { catchError, of, switchMap } from 'rxjs';
 import { LoadingSpinner } from '../../../../shared';
@@ -10,7 +11,7 @@ import { createPartnerSlug } from '../../utils/partner-url';
 
 @Component({
   selector: 'app-partner-details',
-  imports: [RouterLink, LoadingSpinner, PartnerDetailsView],
+  imports: [RouterLink, LoadingSpinner, MatIconModule, PartnerDetailsView],
   templateUrl: './partner-details.html',
   styleUrl: './partner-details.scss',
 })

@@ -524,6 +524,14 @@ app-root {
   position: relative;
 }
 
+// Back button projected into a detail hero sits on its top-left corner.
+.detail-hero > .back-button {
+  left: 16px;
+  position: absolute;
+  top: 16px;
+  z-index: 1;
+}
+
 .back-button {
   align-items: center;
   background: #fff;

@@ -1,6 +1,9 @@
+import { DatePipe } from '@angular/common';
 import { Component, input, signal } from '@angular/core';
-import { DraftPreviewBanner, InactiveBadge } from '../../../../shared';
+import { MatIconModule } from '@angular/material/icon';
+import { DraftPreviewBanner, urlHost } from '../../../../shared';
 import { PartnerOffer } from '../../data-access/partners.models';
+import { discountParts, initials } from '../../utils/partner-offer';
 import { PartnerListItemView } from '../partner-list-item/partner-list-item';
 
 export interface PartnerDetailsViewModel extends PartnerListItemView {
@@ -15,7 +18,7 @@ export interface PartnerDetailsViewModel extends PartnerListItemView {
 
 @Component({
   selector: 'app-partner-details-view',
-  imports: [DraftPreviewBanner, InactiveBadge],
+  imports: [DatePipe, DraftPreviewBanner, MatIconModule],
   templateUrl: './partner-details-view.html',
   styleUrl: './partner-details-view.scss',
 })
@@ -24,16 +27,9 @@ export class PartnerDetailsView {
   readonly interactive = input(true);
 
   protected readonly logoBroken = signal(false);
-
-  protected initials(name: string): string {
-    return name
-      .split(/\s+/)
-      .filter(Boolean)
-      .slice(0, 2)
-      .map((part) => part[0])
-      .join('')
-      .toUpperCase();
-  }
+  protected readonly initials = initials;
+  protected readonly discountParts = discountParts;
+  protected readonly urlHost = urlHost;
 
   protected mapUrl(
     latitude: number | null,
