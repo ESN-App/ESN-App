@@ -1,12 +1,12 @@
-<section class="partners-page">
+<section class="partners-page page-stack">
   <header class="world-header world-header--partners">
     <h1>Partners</h1>
-    <p class="intro">Enjoy special discounts and offers prepared for ESN members.</p>
+    <p class="intro">Student discounts around Gdańsk. Show your ESNcard.</p>
   </header>
 
   <div class="partner-tools">
-    <label class="search">
-      <span class="search-icon" aria-hidden="true"></span>
+    <label class="search-pill">
+      <mat-icon aria-hidden="true">search</mat-icon>
       <span class="visually-hidden">Search partners</span>
       <input
         type="search"
@@ -16,11 +16,31 @@
       />
     </label>
 
-    @if (state().status === 'loaded') {
-      <span class="result-count" aria-live="polite">
-        {{ filteredPartners().length }}
-        {{ filteredPartners().length === 1 ? 'partner' : 'partners' }}
-      </span>
+    @if (state().status === 'loaded' && state().partners.length > 0 && !isDesktop()) {
+      <div class="view-switch" role="tablist" aria-label="Partners view">
+        <button
+          id="partners-list-tab"
+          type="button"
+          role="tab"
+          [attr.aria-selected]="mobileView() === 'list'"
+          aria-controls="partners-list-panel"
+          (click)="setMobileView('list')"
+        >
+          <mat-icon aria-hidden="true">list</mat-icon>
+          List
+        </button>
+        <button
+          id="partners-map-tab"
+          type="button"
+          role="tab"
+          [attr.aria-selected]="mobileView() === 'map'"
+          aria-controls="partners-map-panel"
+          (click)="setMobileView('map')"
+        >
+          <mat-icon aria-hidden="true">map</mat-icon>
+          Map
+        </button>
+      </div>
     }
   </div>
 
@@ -29,85 +49,48 @@
       <app-loading-spinner />
     }
     @case ('error') {
-      <section class="error-state">
-        <span aria-hidden="true">!</span>
-        <h2>We could not load the partners</h2>
-        <p>Please try again in a moment.</p>
-      </section>
+      <app-error-state title="We couldn’t load partners" (retry)="retry()" />
     }
     @case ('loaded') {
       @if (state().partners.length === 0) {
         <app-empty-state message="No partners are available yet." />
       } @else {
-        @if (!isDesktop()) {
-          <div class="mobile-view-switch" role="tablist" aria-label="Partners view">
-            <button
-              id="partners-list-tab"
-              type="button"
-              role="tab"
-              [attr.aria-selected]="mobileView() === 'list'"
-              aria-controls="partners-list-panel"
-              [class.mobile-view-switch__option--active]="mobileView() === 'list'"
-              (click)="setMobileView('list')"
-            >
-              List
-            </button>
-            <button
-              id="partners-map-tab"
-              type="button"
-              role="tab"
-              [attr.aria-selected]="mobileView() === 'map'"
-              aria-controls="partners-map-panel"
-              [class.mobile-view-switch__option--active]="mobileView() === 'map'"
-              (click)="setMobileView('map')"
-            >
-              Map
-            </button>
+        @if (isDesktop() || mobileView() === 'list') {
+          <div class="section-row count-row">
+            <h2 class="section-title" aria-live="polite">
+              {{ filteredPartners().length }}
+              {{ filteredPartners().length === 1 ? 'partner' : 'partners' }}
+            </h2>
           </div>
         }
 
         <div class="partners-split">
           @if (isDesktop() || mobileView() === 'list') {
-            <div class="partner-list-shell">
-              <section
-                #partnerList
-                id="partners-list-panel"
-                class="partner-list-region"
-                role="tabpanel"
-                aria-labelledby="partners-list-tab"
-                aria-label="ESN partners"
-                (scroll)="updatePartnerScroll($event)"
-              >
+            <section
+              id="partners-list-panel"
+              class="partner-list-region"
+              [attr.role]="isDesktop() ? null : 'tabpanel'"
+              [attr.aria-labelledby]="isDesktop() ? null : 'partners-list-tab'"
+            >
               @if (filteredPartners().length === 0) {
                 <app-empty-state message="No partners match your search." />
               } @else {
-                <div class="partner-grid">
-                  @for (partner of filteredPartners(); track partner.id) {
+                <div class="partner-list">
+                  @for (partner of filteredPartners(); track partner.id; let index = $index) {
                     <app-partner-list-item
                       #partnerCard
                       [id]="'partner-' + partner.id"
                       [attr.data-partner-id]="partner.id"
                       [partner]="partnerListItemView(partner)"
-                      [selected]="selectedPartnerId() === partner.id"
-                      [selectable]="true"
+                      [tint]="tints[index % 4]"
+                      [selected]="isDesktop() && selectedPartnerId() === partner.id"
+                      [selectable]="isDesktop()"
                       (selectPartner)="selectPartner($event)"
                     />
                   }
                 </div>
               }
-              </section>
-
-              <input
-                class="partner-scrollbar"
-                type="range"
-                min="0"
-                [max]="partnerScrollMaximum()"
-                [value]="partnerScrollPosition()"
-                [disabled]="partnerScrollMaximum() === 0"
-                aria-label="Scroll partners list"
-                (input)="scrollPartnerList($event)"
-              />
-            </div>
+            </section>
           }
 
           @if (isDesktop()) {
@@ -121,7 +104,7 @@
           } @else if (mobileView() === 'map') {
             <section
               id="partners-map-panel"
-              class="partners-map-region partners-map-region--mobile"
+              class="partners-map-region"
               role="tabpanel"
               aria-labelledby="partners-map-tab"
             >
@@ -132,39 +115,42 @@
               />
 
               @if (selectedPartner(); as partner) {
-                <article class="map-partner-card" aria-live="polite">
+                <article class="map-card card" aria-live="polite">
+                  <div class="map-card__logo tint-magenta">
+                    @if (partner.logoPath && !hasBrokenLogo(partner.id)) {
+                      <img [src]="partner.logoPath" alt="" (error)="markLogoAsBroken(partner.id)" />
+                    } @else {
+                      <span aria-hidden="true">{{ initials(partner.name) }}</span>
+                    }
+                  </div>
+
+                  <div class="map-card__copy">
+                    <h2>
+                      <a
+                        [routerLink]="['/partners', partnerSlug(partner)]"
+                        [queryParams]="{ view: 'map', selectedPartner: partner.id }"
+                        >{{ partner.name }}</a
+                      >
+                    </h2>
+                    <p>{{ partner.shortDescription }}</p>
+                    @if (discountLabel(topDiscount(partner)); as label) {
+                      <span class="chip chip--magenta">{{ label }} with ESNcard</span>
+                    } @else {
+                      <span class="chip chip--magenta">
+                        {{ partner.offers.length }}
+                        {{ partner.offers.length === 1 ? 'offer' : 'offers' }}
+                      </span>
+                    }
+                  </div>
+
                   <button
-                    class="map-partner-card__close"
+                    class="map-card__close"
                     type="button"
                     aria-label="Close selected partner"
                     (click)="clearSelection()"
                   >
-                    <span aria-hidden="true">×</span>
+                    <mat-icon aria-hidden="true">close</mat-icon>
                   </button>
-
-                  <div class="map-partner-card__logo">
-                    <span aria-hidden="true">{{ initials(partner.name) }}</span>
-                    @if (partner.logoPath && !hasBrokenLogo(partner.id)) {
-                      <img
-                        [src]="partner.logoPath"
-                        [alt]="partner.name + ' logo'"
-                        (error)="markLogoAsBroken(partner.id)"
-                      />
-                    }
-                  </div>
-
-                  <div class="map-partner-card__content">
-                    <h2>{{ partner.name }}</h2>
-                    <p>{{ partner.shortDescription }}</p>
-                    <a
-                      class="map-partner-card__details"
-                      [routerLink]="['/partners', partnerSlug(partner)]"
-                      [queryParams]="{ view: 'map', selectedPartner: partner.id }"
-                    >
-                      View partner details
-                      <span class="arrow-icon" aria-hidden="true"></span>
-                    </a>
-                  </div>
                 </article>
               }
             </section>

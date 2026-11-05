@@ -1,23 +1,15 @@
-import {
-  Component,
-  computed,
-  ElementRef,
-  effect,
-  inject,
-  QueryList,
-  signal,
-  ViewChild,
-  ViewChildren,
-} from '@angular/core';
+import { Component, computed, ElementRef, inject, QueryList, signal, ViewChildren } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { BreakpointObserver } from '@angular/cdk/layout';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import { catchError, map, of, startWith } from 'rxjs';
-import { EmptyState, LoadingSpinner } from '../../../../shared';
+import { MatIconModule } from '@angular/material/icon';
+import { BehaviorSubject, catchError, map, of, startWith, switchMap } from 'rxjs';
+import { EmptyState, ErrorState, LoadingSpinner } from '../../../../shared';
 import { PartnerListItem, PartnerListItemView } from '../../components/partner-list-item/partner-list-item';
 import { PartnersMap } from '../../components/partners-map/partners-map';
 import { PartnersApi } from '../../data-access/partners-api';
 import { PartnerView } from '../../data-access/partners.models';
+import { discountLabel, initials } from '../../utils/partner-offer';
 import { createPartnerSlug } from '../../utils/partner-url';
 
 interface PartnersPageState {
@@ -29,7 +21,7 @@ type MobilePartnersView = 'list' | 'map';
 
 @Component({
   selector: 'app-partners-list',
-  imports: [RouterLink, EmptyState, LoadingSpinner, PartnerListItem, PartnersMap],
+  imports: [RouterLink, EmptyState, ErrorState, LoadingSpinner, MatIconModule, PartnerListItem, PartnersMap],
   templateUrl: './partners-list.html',
   styleUrl: './partners-list.scss',
 })
@@ -41,9 +33,6 @@ export class PartnersList {
   @ViewChildren('partnerCard', { read: ElementRef })
   private partnerCards?: QueryList<ElementRef<HTMLElement>>;
 
-  @ViewChild('partnerList', { read: ElementRef })
-  private partnerList?: ElementRef<HTMLElement>;
-
   protected readonly searchQuery = signal('');
   protected readonly selectedPartnerId = signal<string | null>(
     this.route.snapshot.queryParamMap.get('selectedPartner'),
@@ -51,21 +40,25 @@ export class PartnersList {
   protected readonly mobileView = signal<MobilePartnersView>(
     this.route.snapshot.queryParamMap.get('view') === 'map' ? 'map' : 'list',
   );
-  protected readonly partnerScrollPosition = signal(0);
-  protected readonly partnerScrollMaximum = signal(0);
   private readonly brokenLogoIds = signal<ReadonlySet<string>>(new Set());
   protected readonly isDesktop = toSignal(
-    this.breakpointObserver.observe('(min-width: 1024px)').pipe(map((result) => result.matches)),
+    this.breakpointObserver.observe('(min-width: 701px)').pipe(map((result) => result.matches)),
     { initialValue: false },
   );
+  // Emits on start and on every "Try again".
+  private readonly reload$ = new BehaviorSubject<void>(undefined);
   protected readonly state = toSignal(
-    this.api.getAll().pipe(
-      map((partners): PartnersPageState => ({
-        status: 'loaded',
-        partners,
-      })),
-      startWith<PartnersPageState>({ status: 'loading', partners: [] }),
-      catchError(() => of<PartnersPageState>({ status: 'error', partners: [] })),
+    this.reload$.pipe(
+      switchMap(() =>
+        this.api.getAll().pipe(
+          map((partners): PartnersPageState => ({
+            status: 'loaded',
+            partners,
+          })),
+          startWith<PartnersPageState>({ status: 'loading', partners: [] }),
+          catchError(() => of<PartnersPageState>({ status: 'error', partners: [] })),
+        ),
+      ),
     ),
     { requireSync: true },
   );
@@ -93,28 +86,12 @@ export class PartnersList {
     const selectedId = this.selectedPartnerId();
     return this.state().partners.find((partner) => partner.id === selectedId) ?? null;
   });
-  private readonly refreshPartnerScrollbar = effect(() => {
-    this.filteredPartners();
-    this.isDesktop();
-
-    requestAnimationFrame(() => this.capturePartnerScroll());
-  });
-
   protected updateSearch(event: Event): void {
     this.searchQuery.set((event.currentTarget as HTMLInputElement).value);
   }
 
-  protected updatePartnerScroll(event: Event): void {
-    this.capturePartnerScroll(event.currentTarget as HTMLElement);
-  }
-
-  protected scrollPartnerList(event: Event): void {
-    const position = Number((event.currentTarget as HTMLInputElement).value);
-    const list = this.partnerList?.nativeElement;
-
-    if (list) {
-      list.scrollTop = position;
-    }
+  protected retry(): void {
+    this.reload$.next();
   }
 
   protected selectPartner(partnerId: string, scrollCardIntoView = false): void {
@@ -144,15 +121,6 @@ export class PartnersList {
     this.selectedPartnerId.set(null);
   }
 
-  private capturePartnerScroll(list = this.partnerList?.nativeElement): void {
-    if (!list) {
-      return;
-    }
-
-    this.partnerScrollPosition.set(list.scrollTop);
-    this.partnerScrollMaximum.set(Math.max(0, list.scrollHeight - list.clientHeight));
-  }
-
   protected partnerSlug(partner: PartnerView): string {
     return partner.slug || createPartnerSlug(partner.name);
   }
@@ -166,17 +134,16 @@ export class PartnersList {
       shortDescription: partner.shortDescription,
       status: partner.status,
       offersCount: partner.offers.length,
+      topDiscount: this.topDiscount(partner),
     };
   }
 
-  protected initials(name: string): string {
-    return name
-      .split(/\s+/)
-      .filter(Boolean)
-      .slice(0, 2)
-      .map((part) => part[0])
-      .join('')
-      .toUpperCase();
+  protected readonly initials = initials;
+  protected readonly discountLabel = discountLabel;
+  protected readonly tints = ['magenta', 'cyan', 'orange', 'green'];
+
+  protected topDiscount(partner: PartnerView): string | null {
+    return partner.offers.find((offer) => offer.discountValue)?.discountValue ?? null;
   }
 
   protected hasBrokenLogo(partnerId: string): boolean {

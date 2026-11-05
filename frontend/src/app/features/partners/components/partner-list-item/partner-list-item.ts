@@ -1,6 +1,7 @@
-import { Component, input, output, signal } from '@angular/core';
+import { Component, computed, input, output, signal } from '@angular/core';
+import { MatIconModule } from '@angular/material/icon';
 import { RouterLink } from '@angular/router';
-import { PartnerStatusTitle } from '../../../../shared';
+import { discountLabel, initials } from '../../utils/partner-offer';
 import { createPartnerSlug } from '../../utils/partner-url';
 
 export interface PartnerListItemView {
@@ -11,11 +12,13 @@ export interface PartnerListItemView {
   shortDescription: string;
   status: number;
   offersCount: number;
+  /** Discount value of the featured offer, shown as a sticker when present. */
+  topDiscount?: string | null;
 }
 
 @Component({
   selector: 'app-partner-list-item',
-  imports: [PartnerStatusTitle, RouterLink],
+  imports: [MatIconModule, RouterLink],
   templateUrl: './partner-list-item.html',
   styleUrl: './partner-list-item.scss',
 })
@@ -24,22 +27,16 @@ export class PartnerListItem {
   readonly interactive = input(true);
   readonly selectable = input(false);
   readonly selected = input(false);
+  /** Tint of the logo square: magenta, cyan, orange or green. */
+  readonly tint = input('magenta');
   readonly selectPartner = output<string>();
 
   protected readonly logoBroken = signal(false);
+  protected readonly initials = initials;
+  protected readonly discount = computed(() => discountLabel(this.partner().topDiscount));
 
   protected partnerLink(): string[] {
     const partner = this.partner();
     return ['/partners', partner.slug || createPartnerSlug(partner.name)];
-  }
-
-  protected initials(name: string): string {
-    return name
-      .split(/\s+/)
-      .filter(Boolean)
-      .slice(0, 2)
-      .map((part) => part[0])
-      .join('')
-      .toUpperCase();
   }
 }
