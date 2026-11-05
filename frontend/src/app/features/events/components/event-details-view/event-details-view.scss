@@ -51,10 +51,10 @@ article { display: grid; gap: 1rem; }
 }
 
 h1 {
-  font-size: clamp(2.2rem, 7cqw, 4rem);
+  font-size: 28px;
   font-weight: 800;
-  letter-spacing: -0.055em;
-  line-height: 0.92;
+  letter-spacing: -0.01em;
+  line-height: 1.1;
   margin: 0;
   overflow-wrap: anywhere;
 }
