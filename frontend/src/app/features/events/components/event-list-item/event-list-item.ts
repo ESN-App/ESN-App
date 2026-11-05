@@ -1,7 +1,7 @@
 import { DatePipe, DecimalPipe } from '@angular/common';
-import { Component, input } from '@angular/core';
+import { Component, input, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { EventStatusTitle } from '../../../../shared';
+import { MatIconModule } from '@angular/material/icon';
 import { isSameCalendarDay } from '../../utils/event-date';
 import { createEventSlug } from '../../utils/event-url';
 
@@ -21,7 +21,7 @@ export interface EventListItemView {
 
 @Component({
   selector: 'app-event-list-item',
-  imports: [DatePipe, DecimalPipe, EventStatusTitle, RouterLink],
+  imports: [DatePipe, DecimalPipe, MatIconModule, RouterLink],
   templateUrl: './event-list-item.html',
   styleUrl: './event-list-item.scss',
   host: {
@@ -32,6 +32,8 @@ export class EventListItem {
   readonly event = input.required<EventListItemView>();
   readonly interactive = input(true);
   readonly displayMode = input<'auto' | 'desktop' | 'mobile'>('auto');
+  /** Show the date in the time line; off when the list is already filtered to one day. */
+  readonly showDate = input(true);
 
   protected readonly isSameDay = isSameCalendarDay;
 
@@ -40,7 +42,13 @@ export class EventListItem {
     return ['/events', createEventSlug(event.title, event.id)];
   }
 
-  protected hideBrokenImage(event: Event): void {
-    (event.currentTarget as HTMLImageElement).style.display = 'none';
+  protected readonly imageBroken = signal(false);
+
+  protected isFull(item: EventListItemView): boolean {
+    return (
+      item.maximumParticipants !== null &&
+      item.currentParticipants !== null &&
+      item.currentParticipants >= item.maximumParticipants
+    );
   }
 }

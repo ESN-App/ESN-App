@@ -1,69 +1,84 @@
 @let item = event();
-<article class="event-item" [class.event-item--draft]="item.status === 0">
-  @if (interactive()) {
-    <a
-      class="mobile-card-link"
-      [routerLink]="eventLink()"
-      queryParamsHandling="preserve"
-      [attr.aria-label]="'Read more about ' + item.title"
-    ></a>
+<article
+  class="event-card card"
+  [class.event-card--cancelled]="item.status === 2"
+  [class.event-card--draft]="item.status === 0"
+>
+  @if (item.price === 0 && item.status !== 2) {
+    <span class="sticker sticker--magenta sticker--corner">Free!</span>
   }
 
-  <div class="event-image">
-    <span aria-hidden="true">{{ item.startsAt ? (item.startsAt | date: 'dd') : '—' }}</span>
-    @if (item.imagePath) {
+  <div class="event-tile">
+    @if (item.imagePath && !imageBroken()) {
       <img
         [src]="item.imagePath"
-        [alt]="item.title"
+        alt=""
         [attr.loading]="interactive() ? 'lazy' : null"
-        (error)="hideBrokenImage($event)"
+        (error)="imageBroken.set(true)"
       />
-    }
-    @if (item.price === 0) {
-      <span class="sticker sticker--green event-sticker">Free!</span>
     }
   </div>
 
   <div class="event-copy">
-    <app-event-status-title [status]="item.status"><h3>{{ item.title }}</h3></app-event-status-title>
-    <p class="description">{{ item.shortDescription }}</p>
-
-    <div class="desktop-facts">
-      <p class="location desktop-location">
-        <span class="event-icon location-icon" aria-hidden="true"></span>
-        <span>{{ item.location }}</span>
-      </p>
-      <strong class="price">
-        <span class="event-icon wallet-icon" aria-hidden="true"></span>
-        <span>{{ item.price === 0 ? 'Free' : (item.price | number: '1.0-2') + ' zł' }}</span>
-      </strong>
-      @if (item.currentParticipants !== null) {
-        <span class="participants">
-          <span class="event-icon participants-icon" aria-hidden="true"></span>
-          <span>{{ item.currentParticipants }}@if (item.maximumParticipants !== null) { /{{ item.maximumParticipants }} } going</span>
-        </span>
-      }
-    </div>
-  </div>
-
-  <div class="event-meta">
-    <p class="event-date">
+    <p class="event-time">
       @if (item.startsAt) {
-        <time [attr.datetime]="item.startsAt">{{ item.startsAt | date: 'd MMM' }}</time>
-        @if (item.endsAt && !isSameDay(item.startsAt, item.endsAt)) {
-          <span class="event-end">— {{ item.endsAt | date: 'dd MMM' }}</span>
+        <time [attr.datetime]="item.startsAt">
+          @if (showDate()) {
+            {{ item.startsAt | date: 'EEE d MMM' }},
+          }
+          {{ item.startsAt | date: 'HH:mm' }}
+        </time>
+        @if (item.endsAt) {
+          to
+          {{
+            isSameDay(item.startsAt, item.endsAt)
+              ? (item.endsAt | date: 'HH:mm')
+              : (item.endsAt | date: 'd MMM, HH:mm')
+          }}
         }
       } @else {
-        <time>Date</time>
+        Date to be announced
       }
     </p>
 
-    @if (interactive()) {
-      <a class="arrow-link" [routerLink]="eventLink()" queryParamsHandling="preserve" [attr.aria-label]="'Read more about ' + item.title">
-        <span class="details-label">Read more</span><span class="arrow" aria-hidden="true"></span>
-      </a>
-    } @else {
-      <span class="arrow-link" aria-hidden="true"><span class="details-label">Read more</span><span class="arrow"></span></span>
+    <h3 class="event-title">
+      @if (interactive()) {
+        <a [routerLink]="eventLink()" queryParamsHandling="preserve">{{ item.title }}</a>
+      } @else {
+        {{ item.title }}
+      }
+    </h3>
+
+    @if (item.location) {
+      <p class="event-location">
+        <mat-icon aria-hidden="true">location_on</mat-icon>
+        <span>{{ item.location }}</span>
+      </p>
     }
+
+    <div class="event-chips">
+      @if (item.status === 0) {
+        <span class="chip chip--orange">Draft</span>
+      }
+      @if (item.status === 2) {
+        <span class="chip chip--red">Cancelled</span>
+      } @else {
+        @if (item.currentParticipants !== null) {
+          <span class="chip chip--green">
+            {{ item.currentParticipants }}
+            @if (item.maximumParticipants !== null) {
+              of {{ item.maximumParticipants }}
+            }
+            going
+          </span>
+        }
+        @if (item.price > 0) {
+          <span class="chip">{{ item.price | number: '1.0-2' }} zł</span>
+        }
+        @if (isFull(item)) {
+          <span class="chip chip--red">Full</span>
+        }
+      }
+    </div>
   </div>
 </article>

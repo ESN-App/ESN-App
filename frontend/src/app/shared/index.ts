@@ -11,3 +11,4 @@ export * from './utils/password-validators';
 export * from './utils/theme-preference';
 export * from './theme-toggle/theme-toggle';
 export * from './nav-item/nav-item';
+export * from './error-state/error-state';

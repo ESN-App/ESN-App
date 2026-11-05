@@ -7,18 +7,23 @@ import {
   MatCalendarCellClassFunction,
   MatDatepickerModule,
 } from '@angular/material/datepicker';
+import { MatIconModule } from '@angular/material/icon';
 import { ActivatedRoute, Router } from '@angular/router';
 import {
+  BehaviorSubject,
+  catchError,
   combineLatest,
   distinctUntilChanged,
+  EMPTY,
   filter,
   map,
+  of,
   shareReplay,
   startWith,
   switchMap,
   tap,
 } from 'rxjs';
-import { LoadingSpinner } from '../../../../shared';
+import { ErrorState, LoadingSpinner } from '../../../../shared';
 import { EventListItem } from '../../components/event-list-item/event-list-item';
 import { EventsApi } from '../../data-access/events-api';
 import type { EventListItemDto } from '../../data-access/events.models';
@@ -47,7 +52,7 @@ interface MonthOption {
 
 @Component({
   selector: 'app-events-list',
-  imports: [DatePipe, EventListItem, LoadingSpinner, MatDatepickerModule],
+  imports: [DatePipe, ErrorState, EventListItem, LoadingSpinner, MatDatepickerModule, MatIconModule],
   providers: [provideNativeDateAdapter(), { provide: MAT_DATE_LOCALE, useValue: 'en-GB' }],
   templateUrl: './events-list.html',
   styleUrl: './events-list.scss',
@@ -58,8 +63,20 @@ export class EventsList {
   private readonly api = inject(EventsApi);
   private readonly calendar = viewChild<MatCalendar<Date>>(MatCalendar);
 
-  private readonly availableMonths$ = this.api.getAvailableMonths().pipe(
-    map(normalizeAvailableMonths),
+  // Emits once on start and again on every "Try again"; filters are kept.
+  private readonly reload$ = new BehaviorSubject<void>(undefined);
+  readonly loadError = signal(false);
+
+  private readonly availableMonths$ = this.reload$.pipe(
+    switchMap(() =>
+      this.api.getAvailableMonths().pipe(
+        map(normalizeAvailableMonths),
+        catchError(() => {
+          this.loadError.set(true);
+          return EMPTY;
+        }),
+      ),
+    ),
     tap((months) => {
       if (months.length === 0) {
         this.router.navigateByUrl('/');
@@ -109,11 +126,16 @@ export class EventsList {
   });
 
   readonly events = toSignal(
-    this.monthKey$.pipe(
-      map(monthFromKey),
-      map(monthRange),
+    combineLatest([this.monthKey$, this.reload$]).pipe(
+      map(([key]) => monthRange(monthFromKey(key))),
       switchMap((range) =>
-        this.api.getAll({ ...range, page: 1, pageSize: 100 }).pipe(startWith(null)),
+        this.api.getAll({ ...range, page: 1, pageSize: 100 }).pipe(
+          startWith(null),
+          catchError(() => {
+            this.loadError.set(true);
+            return of(null);
+          }),
+        ),
       ),
     ),
   );
@@ -314,6 +336,11 @@ export class EventsList {
 
   updateSearch(event: Event): void {
     this.searchTerm.set((event.currentTarget as HTMLInputElement).value);
+  }
+
+  retry(): void {
+    this.loadError.set(false);
+    this.reload$.next();
   }
 
   clearFilters(): void {

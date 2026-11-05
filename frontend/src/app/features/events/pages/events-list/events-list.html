@@ -1,98 +1,93 @@
-<section class="events-page">
+<section class="events-page page-stack">
   <header class="world-header world-header--events">
-    <p class="eyebrow">ESN Gdańsk</p>
     <h1>Events</h1>
-    <p class="intro">Discover upcoming events, trips and activities prepared for ESN members.</p>
-  </header>
+    <p class="intro">Trips, parties and city games. Pick a day.</p>
 
-  @if (events(); as loaded) {
-    <div class="events-toolbar">
-      <div class="search-field">
-        <label class="search-control">
-          <span class="search-icon" aria-hidden="true"></span>
-          <input
-            id="event-search"
-            type="search"
-            aria-label="Search events"
-            placeholder="Search by name, description or place"
-            [value]="searchTerm()"
-            (input)="updateSearch($event)"
-          />
-        </label>
-      </div>
-      <span class="event-count">
-        {{ filteredEvents().length }}
-        {{ filteredEvents().length === 1 ? 'event' : 'events' }}
-      </span>
-    </div>
+    <label class="search-pill">
+      <mat-icon aria-hidden="true">search</mat-icon>
+      <span class="visually-hidden">Search events</span>
+      <input
+        id="event-search"
+        type="search"
+        placeholder="Search events or places"
+        [value]="searchTerm()"
+        (input)="updateSearch($event)"
+      />
+    </label>
 
-    <section class="mobile-date-calendar" aria-label="Filter events by date">
-      <header class="mobile-date-calendar__header">
+    @if (events() && !loadError()) {
+      <div class="month-row">
+        <h2 class="month-label">{{ selectedMonth() | date: 'MMMM yyyy' }}</h2>
         <button
-          class="month-picker-control"
+          class="month-pill"
           type="button"
           [attr.aria-expanded]="monthPickerOpen()"
           aria-controls="month-picker-popover"
           (click)="toggleMonthPicker()"
         >
-          <span>{{ selectedMonth() | date: 'MMMM, yyyy' }}</span>
-          <span class="mobile-calendar-icon" aria-hidden="true"></span>
+          <mat-icon aria-hidden="true">calendar_today</mat-icon>
+          Month
         </button>
-      </header>
 
-      @if (monthPickerOpen()) {
-        <button
-          class="month-picker-backdrop"
-          type="button"
-          aria-label="Close month picker"
-          (click)="closeMonthPicker()"
-        ></button>
-        <section id="month-picker-popover" class="month-picker-popover" aria-label="Choose month">
-          <header>
-            <button
-              type="button"
-              [disabled]="!canChangeMonthPickerYear(-1)"
-              aria-label="Previous year"
-              (click)="changeMonthPickerYear(-1)"
-            >
-              <span class="year-chevron previous" aria-hidden="true"></span>
-            </button>
-            <h3>{{ monthPickerYear() }}</h3>
-            <button
-              type="button"
-              [disabled]="!canChangeMonthPickerYear(1)"
-              aria-label="Next year"
-              (click)="changeMonthPickerYear(1)"
-            >
-              <span class="year-chevron next" aria-hidden="true"></span>
-            </button>
-          </header>
-
-          <div class="month-picker-grid">
-            @for (month of visibleMonthOptions(); track month.key) {
+        @if (monthPickerOpen()) {
+          <button
+            class="month-picker-backdrop"
+            type="button"
+            aria-label="Close month picker"
+            (click)="closeMonthPicker()"
+          ></button>
+          <section
+            id="month-picker-popover"
+            class="month-picker-popover card"
+            aria-label="Choose month"
+          >
+            <header>
               <button
+                class="round-button"
                 type="button"
-                [disabled]="!month.hasEvents"
-                [class.selected]="month.key === selectedMonthKey()"
-                [attr.aria-pressed]="month.key === selectedMonthKey()"
-                (click)="selectMonth(month.key)"
+                [disabled]="!canChangeMonthPickerYear(-1)"
+                aria-label="Previous year"
+                (click)="changeMonthPickerYear(-1)"
               >
-                {{ month.date | date: 'MMM' }}
+                <mat-icon aria-hidden="true">chevron_left</mat-icon>
               </button>
-            }
-          </div>
-        </section>
-      }
+              <h3>{{ monthPickerYear() }}</h3>
+              <button
+                class="round-button"
+                type="button"
+                [disabled]="!canChangeMonthPickerYear(1)"
+                aria-label="Next year"
+                (click)="changeMonthPickerYear(1)"
+              >
+                <mat-icon aria-hidden="true">chevron_right</mat-icon>
+              </button>
+            </header>
 
-      <div class="mobile-date-strip">
+            <div class="month-picker-grid">
+              @for (month of visibleMonthOptions(); track month.key) {
+                <button
+                  type="button"
+                  [disabled]="!month.hasEvents"
+                  [class.selected]="month.key === selectedMonthKey()"
+                  [attr.aria-pressed]="month.key === selectedMonthKey()"
+                  (click)="selectMonth(month.key)"
+                >
+                  {{ month.date | date: 'MMM' }}
+                </button>
+              }
+            </div>
+          </section>
+        }
+      </div>
+
+      <div class="day-strip day-strip--scroll" role="group" aria-label="Filter events by day">
         @for (day of mobileCalendarDays(); track day.dateKey) {
           <button
             type="button"
-            class="mobile-date"
-            [class.mobile-date--selected]="selectedDateKey() === day.dateKey"
-            [class.mobile-date--today]="day.isToday"
-            [class.mobile-date--has-events]="day.eventCount > 0"
+            class="day-tile"
+            [class.day-tile--active]="selectedDateKey() === day.dateKey"
             [attr.aria-pressed]="selectedDateKey() === day.dateKey"
+            [attr.aria-current]="day.isToday ? 'date' : null"
             [attr.aria-label]="
               (day.date | date: 'fullDate') +
               (day.eventCount
@@ -101,37 +96,51 @@
             "
             (click)="selectDate(day.date)"
           >
-            <span class="mobile-date__number">{{ day.date | date: 'd' }}</span>
-            <span class="mobile-date__weekday">{{ day.date | date: 'EEE' }}</span>
+            <span class="day-name">{{ day.date | date: 'EEE' }}</span>
+            <span class="day-number">{{ day.date | date: 'd' }}</span>
             @if (day.eventCount > 0) {
-              <span class="mobile-date__dot" aria-hidden="true"></span>
+              <span class="day-dot" aria-hidden="true"></span>
             }
           </button>
         }
       </div>
-    </section>
+    }
+  </header>
 
+  @if (loadError()) {
+    <app-error-state
+      title="We couldn’t load events"
+      message="Check your connection and try again. Your filters stay as they were."
+      (retry)="retry()"
+    />
+  } @else if (events(); as loaded) {
     <div class="events-layout">
-      <aside class="calendar-panel" aria-label="Event calendar">
-        <nav class="month-switcher" aria-label="Choose events month" (pointerdown)="$event.stopPropagation()">
+      <aside class="calendar-panel card" aria-label="Event calendar">
+        <nav
+          class="month-switcher"
+          aria-label="Choose events month"
+          (pointerdown)="$event.stopPropagation()"
+        >
           <button
+            class="round-button"
             type="button"
             (click)="changeMonth(-1)"
             (pointerdown)="$event.preventDefault()"
             [disabled]="!hasPreviousMonth()"
             aria-label="Show previous month"
           >
-            <span class="month-arrow previous" aria-hidden="true"></span>
+            <mat-icon aria-hidden="true">chevron_left</mat-icon>
           </button>
           <h2 class="month-name">{{ selectedMonth() | date: 'MMMM yyyy' }}</h2>
           <button
+            class="round-button"
             type="button"
             (click)="changeMonth(1)"
             (pointerdown)="$event.preventDefault()"
             [disabled]="!hasNextMonth()"
             aria-label="Show next month"
           >
-            <span class="month-arrow next" aria-hidden="true"></span>
+            <mat-icon aria-hidden="true">chevron_right</mat-icon>
           </button>
         </nav>
 
@@ -145,27 +154,39 @@
           [dateClass]="calendarDateClass()"
           (_userSelection)="selectDate($event.value)"
         />
+        <p class="legend"><span aria-hidden="true"></span>Days with events</p>
       </aside>
 
-      <section class="events-results" aria-label="Events list">
+      <section class="events-results" aria-labelledby="events-heading">
+        <div class="section-row">
+          <h2 id="events-heading" class="section-title">
+            @if (selectedCalendarDate(); as day) {
+              {{ day | date: 'EEEE, d MMMM' }}
+            } @else {
+              {{ selectedMonth() | date: 'MMMM yyyy' }}
+            }
+          </h2>
+          <span class="meta" aria-live="polite">
+            {{ filteredEvents().length }} {{ filteredEvents().length === 1 ? 'event' : 'events' }}
+          </span>
+        </div>
+
         @if (filteredEvents().length > 0) {
-          <div class="event-list" aria-label="Upcoming events">
+          <div class="event-list">
             @for (event of filteredEvents(); track event.id) {
-              <app-event-list-item [event]="event" />
+              <app-event-list-item [event]="event" [showDate]="!selectedDateKey()" />
             }
           </div>
         } @else if (loaded.items.length === 0) {
-          <div class="empty-month">
-            <span class="empty-calendar-icon" aria-hidden="true"></span>
+          <div class="empty-month card">
             <h3>No events this month</h3>
-            <p>Use the calendar arrows to see what’s happening in another month.</p>
+            <p>Pick another month to see what’s happening.</p>
           </div>
         } @else {
-          <div class="empty-month">
-            <span class="empty-calendar-icon" aria-hidden="true"></span>
+          <div class="empty-month card">
             <h3>No matching events</h3>
-            <p>Try another search or select a different calendar date.</p>
-            <button class="clear-filters" type="button" (click)="clearFilters()">
+            <p>Try another search or pick a different day.</p>
+            <button class="pill-button" type="button" (click)="clearFilters()">
               Clear filters
             </button>
           </div>

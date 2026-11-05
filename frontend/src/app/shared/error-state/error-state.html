@@ -1,0 +1,9 @@
+<section class="error-state" role="alert">
+  <img src="/images/esnstar.png" alt="" width="150" height="150" />
+  <h2>{{ title() }}</h2>
+  <p>{{ message() }}</p>
+  <button class="pill-button pill-button--primary" type="button" (click)="retry.emit()">
+    <mat-icon aria-hidden="true">refresh</mat-icon>
+    Try again
+  </button>
+</section>
