@@ -239,7 +239,7 @@ h1 {
 
 .search-control:focus-within {
   border-color: var(--app-ink);
-  box-shadow: 0 0 0 3px rgb(83 88 189 / 14%);
+  box-shadow: 0 0 0 3px var(--tint-neutral);
 }
 
 .search-icon,

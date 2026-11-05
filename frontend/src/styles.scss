@@ -161,6 +161,11 @@ a {
   color: var(--app-ink);
 }
 
+input[type='checkbox'],
+input[type='radio'] {
+  accent-color: var(--app-ink);
+}
+
 // Stickers ("Free!", "New", "Top deal") and small chips use the section tints with ink text.
 .sticker,
 .chip {
