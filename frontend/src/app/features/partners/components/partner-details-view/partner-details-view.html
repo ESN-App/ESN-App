@@ -3,7 +3,7 @@
   @if (item.status === 0) { <app-draft-preview-banner /> }
 
   <section class="partner-hero">
-    <div class="hero-logo">
+    <div class="hero-logo world-header world-header--partners">
       @if (item.logoPath && !logoBroken()) {
         <img
           [src]="item.logoPath"
@@ -17,7 +17,7 @@
 
     <div class="hero-copy">
       <div class="eyebrow-row">
-        <p class="eyebrow">ESN GDAŃSK PARTNER</p>
+        <p class="eyebrow">ESN Gdańsk partner</p>
         @if (item.status === 2) { <app-inactive-badge /> }
       </div>
       <h1>{{ item.name }}</h1>

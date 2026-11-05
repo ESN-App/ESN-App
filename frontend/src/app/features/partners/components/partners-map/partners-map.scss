@@ -32,7 +32,7 @@ app-partners-map {
 }
 
 .partners-map__empty > span {
-  color: var(--partners-accent);
+  color: var(--app-ink);
   font-size: 2rem;
   font-weight: 900;
 }
@@ -216,7 +216,7 @@ app-partners-map {
   }
 
   .map-partner-card__category {
-    color: var(--partners-accent);
+    color: var(--app-ink);
     display: block;
     font-size: 0.62rem;
     font-weight: 900;
@@ -246,7 +246,7 @@ app-partners-map {
     -webkit-tap-highlight-color: transparent;
     align-items: center;
     background: transparent;
-    color: var(--partners-accent);
+    color: var(--app-ink);
     display: inline-flex;
     font-size: 0.74rem;
     font-weight: 900;

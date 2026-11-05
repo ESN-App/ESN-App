@@ -47,7 +47,7 @@ app-partner-status-title {
 
 .selection-status {
   align-items: center;
-  color: var(--partners-accent);
+  color: var(--app-ink);
   display: none;
   font-size: 0.68rem;
   font-weight: 900;
@@ -145,7 +145,7 @@ app-partner-status-title {
   -webkit-tap-highlight-color: transparent;
   align-items: center;
   background: transparent;
-  color: var(--partners-accent);
+  color: var(--app-ink);
   display: inline-flex;
   font-size: 0.78rem;
   font-weight: 800;

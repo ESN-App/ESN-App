@@ -149,7 +149,7 @@ app-event-status-title {
 .arrow-link {
   align-items: center;
   border-radius: 100px;
-  color: var(--events-accent-dark);
+  color: var(--app-ink);
   display: inline-flex;
   font-size: 0.78rem;
   font-weight: 800;
@@ -236,7 +236,7 @@ app-event-status-title {
 
   .event-date {
     align-items: baseline;
-    color: var(--events-accent-dark);
+    color: var(--app-ink);
     display: flex;
     font-size: 0.8rem;
     font-weight: 850;

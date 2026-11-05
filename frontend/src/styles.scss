@@ -480,31 +480,92 @@ app-root {
   }
 }
 
-.page-heading {
-  align-items: center;
-  display: flex;
-  gap: 0;
-}
+// Section "world" header: a block in the section colour with a rounded bottom and the
+// ESN star as decoration. It bleeds into the .content padding (see app.scss).
+.world-header {
+  --world-colour: var(--c-cyan);
+  background: var(--world-colour);
+  border-radius: 0 0 32px 32px;
+  box-sizing: border-box;
+  color: var(--ink-fixed);
+  isolation: isolate;
+  margin: calc(-1 * var(--page-pad-top, 0px)) calc(-1 * var(--page-pad-x, 0px)) 1.5rem;
+  overflow: hidden;
+  padding: 1.75rem var(--page-pad-x, 1rem) 2rem;
+  position: relative;
 
-.page-heading img {
-  display: none;
-}
-
-@media (max-width: 700px) {
-  .page-heading {
-    gap: 0.75rem;
-    padding: 1rem 0 1.25rem 0.5rem;
+  &::after {
+    background: url('/images/esnstar.png') center / contain no-repeat;
+    content: '';
+    filter: brightness(0) invert(1);
+    height: 13rem;
+    opacity: 0.3;
+    pointer-events: none;
+    position: absolute;
+    right: -3rem;
+    top: -2.5rem;
+    transform: rotate(12deg);
+    width: 13rem;
+    z-index: -1;
   }
 
-  .page-heading img {
-    display: block;
-    height: 2.5rem;
-    object-fit: contain;
-    width: 2.5rem;
+  .eyebrow {
+    font-size: 14px;
+    font-weight: 700;
+    margin: 0 0 0.35rem;
   }
 
-  .page-heading h1 {
+  h1 {
+    font-size: 44px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    line-height: 1.02;
     margin: 0;
   }
+
+  .intro {
+    font-size: 15px;
+    line-height: 1.55;
+    margin: 0.75rem 0 0;
+    max-width: 36rem;
+  }
 }
+
+.world-header--events {
+  --world-colour: var(--c-green);
+}
+
+.world-header--info {
+  --world-colour: var(--c-orange);
+}
+
+// Only the title and subtitle may sit on solid magenta, both in white.
+.world-header--partners {
+  --world-colour: var(--c-magenta);
+  color: #fff;
+
+  .intro {
+    font-size: 18px;
+    font-weight: 700;
+  }
+}
+
+@media (min-width: 701px) {
+  .world-header {
+    border-radius: 0 0 40px 40px;
+    padding: 3rem 2.5rem 2.75rem;
+
+    &::after {
+      height: 18rem;
+      right: 2rem;
+      top: -3.5rem;
+      width: 18rem;
+    }
+
+    h1 {
+      font-size: clamp(44px, 5vw, 64px);
+    }
+  }
+}
+
 /* You can add global styles to this file, and also import other style files */
