@@ -1,0 +1,14 @@
+<a
+  [routerLink]="link()"
+  routerLinkActive="active"
+  ariaCurrentWhenActive="page"
+  [routerLinkActiveOptions]="{ exact: exact() }"
+  #active="routerLinkActive"
+>
+  <span class="pill">
+    <mat-icon [fontSet]="active.isActive ? 'material-icons' : 'material-icons-outlined'" aria-hidden="true">
+      {{ icon() }}
+    </mat-icon>
+  </span>
+  <span class="label">{{ label() }}</span>
+</a>

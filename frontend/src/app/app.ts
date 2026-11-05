@@ -1,15 +1,15 @@
 import { Component, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { MatButtonModule } from '@angular/material/button';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { Meta } from '@angular/platform-browser';
-import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { NavigationEnd, Router, RouterLink, RouterOutlet } from '@angular/router';
 import { filter } from 'rxjs';
 import { AuthService, ThemeService } from './core';
+import { NavItem, ThemeToggle } from './shared';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, MatToolbarModule, MatButtonModule],
+  imports: [RouterOutlet, RouterLink, MatToolbarModule, NavItem, ThemeToggle],
   templateUrl: './app.html',
   styleUrl: './app.scss',
 })
@@ -21,6 +21,12 @@ export class App {
   // Instantiated here so the stored theme is applied on every route.
   private readonly theme = inject(ThemeService);
   protected readonly hideMobileNavigation = signal(false);
+  protected readonly navItems = [
+    { link: '/', label: 'Home', icon: 'home', colour: 'var(--c-cyan)' },
+    { link: '/events', label: 'Events', icon: 'event', colour: 'var(--c-green)' },
+    { link: '/partners', label: 'Partners', icon: 'local_offer', colour: 'var(--c-magenta)' },
+    { link: '/info', label: 'Info', icon: 'info', colour: 'var(--c-orange)' },
+  ];
 
   constructor() {
     this.router.events

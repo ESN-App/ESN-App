@@ -106,6 +106,57 @@ body {
   overscroll-behavior: none;
 }
 
+// Shared buttons: primary = ink pill (light pill in dark mode), secondary = outlined pill.
+.pill-button {
+  align-items: center;
+  background: transparent;
+  border: 1.5px solid var(--app-ink);
+  border-radius: 999px;
+  box-sizing: border-box;
+  color: var(--app-ink);
+  cursor: pointer;
+  display: inline-flex;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  gap: 0.4rem;
+  justify-content: center;
+  min-height: 44px;
+  padding: 0 1.1rem;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.pill-button:hover {
+  background: var(--app-raised);
+}
+
+.pill-button--primary {
+  background: var(--app-primary);
+  border-color: var(--app-primary);
+  color: var(--app-on-primary);
+}
+
+.pill-button--primary:hover {
+  background: var(--app-primary);
+  opacity: 0.88;
+}
+
+.pill-button--danger {
+  background: var(--app-danger);
+  border-color: var(--app-danger);
+  color: var(--app-on-danger);
+}
+
+.pill-button:focus-visible {
+  outline: 2px solid var(--app-ink);
+  outline-offset: 2px;
+}
+
+:focus-visible {
+  outline-color: var(--app-ink);
+}
+
 button,
 input,
 select,

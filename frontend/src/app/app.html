@@ -1,26 +1,33 @@
 <!-- Main application shell -->
-<mat-toolbar color="primary" class="toolbar">
-  <a class="brand" routerLink="/">
+<mat-toolbar class="toolbar">
+  <a class="brand" routerLink="/" aria-label="ESN Gdańsk home">
     <img src="/images/esnstar.png" alt="" />
     <span>ESN Gdańsk</span>
   </a>
 
   <nav class="desktop-menu" aria-label="Main navigation">
-    <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Home</a>
-    <a routerLink="/events" routerLinkActive="active">Events</a>
-    <a routerLink="/partners" routerLinkActive="active">Partners</a>
-    <a routerLink="/info" routerLinkActive="active">Info</a>
+    @for (item of navItems; track item.link) {
+      <app-nav-item
+        layout="inline"
+        [link]="item.link"
+        [label]="item.label"
+        [icon]="item.icon"
+        [colour]="item.colour"
+        [exact]="item.link === '/'"
+      />
+    }
   </nav>
 
   <div class="account">
+    <app-theme-toggle class="theme-toggle--mobile" />
+    <app-theme-toggle class="theme-toggle--desktop" variant="segmented" />
     @if (auth.isLoggedIn()) {
       @if (auth.isAdmin()) {
-        <a mat-button routerLink="/admin" routerLinkActive="active">Admin panel</a>
+        <a class="pill-button pill-button--primary" routerLink="/admin">Admin panel</a>
       }
-      <span class="user-email">{{ auth.email() }}</span>
-      <button mat-button (click)="logout()">Log out</button>
+      <button class="pill-button" type="button" (click)="logout()">Log out</button>
     } @else {
-      <a mat-button routerLink="/auth">Log in</a>
+      <a class="pill-button" routerLink="/auth">Log in</a>
     }
   </div>
 </mat-toolbar>
@@ -29,21 +36,14 @@
   <router-outlet />
 </main>
 
-<nav
-  class="mobile-menu"
-  [class.hidden]="hideMobileNavigation()"
-  aria-label="Mobile navigation"
->
-  <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" aria-label="Home">
-    <span class="nav-icon" aria-hidden="true"></span>
-  </a>
-  <a routerLink="/events" routerLinkActive="active" aria-label="Events">
-    <span class="nav-icon" aria-hidden="true"></span>
-  </a>
-  <a routerLink="/partners" routerLinkActive="active" aria-label="Partners">
-    <span class="nav-icon" aria-hidden="true"></span>
-  </a>
-  <a routerLink="/info" routerLinkActive="active" aria-label="Info">
-    <span class="nav-icon" aria-hidden="true"></span>
-  </a>
+<nav class="mobile-menu" [class.hidden]="hideMobileNavigation()" aria-label="Mobile navigation">
+  @for (item of navItems; track item.link) {
+    <app-nav-item
+      [link]="item.link"
+      [label]="item.label"
+      [icon]="item.icon"
+      [colour]="item.colour"
+      [exact]="item.link === '/'"
+    />
+  }
 </nav>

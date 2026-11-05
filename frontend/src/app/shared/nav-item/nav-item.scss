@@ -1,0 +1,80 @@
+:host {
+  display: flex;
+  flex: 1 1 0;
+  justify-content: center;
+}
+
+a {
+  -webkit-tap-highlight-color: transparent;
+  align-items: center;
+  border-radius: 16px;
+  color: var(--app-ink);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-height: 44px;
+  min-width: 64px;
+  padding: 6px 4px;
+  text-decoration: none;
+}
+
+a:focus-visible {
+  outline: 2px solid var(--app-ink);
+  outline-offset: 2px;
+}
+
+.pill {
+  align-items: center;
+  border-radius: 999px;
+  color: var(--app-muted);
+  display: flex;
+  height: 32px;
+  justify-content: center;
+  transition: background-color 160ms ease;
+  width: 56px;
+}
+
+a:hover .pill {
+  background: var(--app-raised);
+}
+
+a.active .pill {
+  background: var(--nav-colour);
+  color: var(--ink-fixed);
+}
+
+mat-icon {
+  font-size: 24px;
+  height: 24px;
+  width: 24px;
+}
+
+.label {
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+}
+
+a.active .label {
+  font-weight: 700;
+}
+
+:host(.nav-item--inline) {
+  flex: 0 0 auto;
+
+  a {
+    flex-direction: row;
+    gap: 8px;
+    padding: 4px 12px 4px 4px;
+  }
+
+  .label {
+    font-size: 15px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pill {
+    transition: none;
+  }
+}
