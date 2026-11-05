@@ -1,55 +1,23 @@
 :host {
-  --info-accent: #f47b20;
   display: block;
 }
 
-.info-page {
-  margin: 0 auto;
-  max-width: 52rem;
+.start-title {
+  margin-bottom: 14px;
 }
 
-.info-grid {
+.guides,
+.guide-rows {
   display: grid;
-  gap: 0.9rem;
-}
-
-.error-state {
-  border: 1px solid var(--app-border);
-  border-radius: var(--app-radius);
-  padding: 2rem;
-  text-align: center;
-}
-
-.error-state > span {
-  align-items: center;
-  background: var(--tint-orange);
-  border-radius: 50%;
-  color: var(--app-ink);
-  display: inline-flex;
-  font-size: 1.1rem;
-  font-weight: 900;
-  height: 2.25rem;
-  justify-content: center;
-  width: 2.25rem;
-}
-
-.error-state h2 {
-  margin: 0.8rem 0 0.25rem;
-}
-
-.error-state p {
-  color: var(--app-muted);
-  margin: 0;
+  gap: 12px;
+  grid-template-columns: minmax(0, 1fr);
 }
 
 @media (min-width: 701px) {
-  .info-page {
-    max-width: 72rem;
-  }
-
-  .info-grid {
-    gap: 1.5rem;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+  // Featured card on the left (544 wide), guide rows stacked on the right.
+  .guides {
+    align-items: start;
+    gap: 32px;
+    grid-template-columns: minmax(0, 544px) minmax(0, 1fr);
   }
 }
-

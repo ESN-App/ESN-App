@@ -1,7 +1,8 @@
-import { Component, inject } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { catchError, map, of, startWith } from 'rxjs';
-import { EmptyState, LoadingSpinner } from '../../../../shared';
+import { MatIconModule } from '@angular/material/icon';
+import { BehaviorSubject, catchError, map, of, startWith, switchMap } from 'rxjs';
+import { EmptyState, ErrorState, LoadingSpinner } from '../../../../shared';
 import { InfoListItem } from '../../components/info-list-item/info-list-item';
 import { InfoApi, InfoArticleDto } from '../../data-access/info-api';
 
@@ -12,27 +13,57 @@ interface InfoPageState {
 
 @Component({
   selector: 'app-info-list',
-  imports: [EmptyState, InfoListItem, LoadingSpinner],
+  imports: [EmptyState, ErrorState, InfoListItem, LoadingSpinner, MatIconModule],
   templateUrl: './info-list.html',
   styleUrl: './info-list.scss',
 })
 export class InfoList {
   private readonly api = inject(InfoApi);
 
+  // Emits on start and on every "Try again".
+  private readonly reload$ = new BehaviorSubject<void>(undefined);
+
   protected readonly state = toSignal(
-    this.api.getAll().pipe(
-      map(
-        (articles): InfoPageState => ({
-          status: 'loaded',
-          articles: [...articles].sort(
-            (left, right) =>
-              left.displayOrder - right.displayOrder || left.title.localeCompare(right.title),
+    this.reload$.pipe(
+      switchMap(() =>
+        this.api.getAll().pipe(
+          map(
+            (articles): InfoPageState => ({
+              status: 'loaded',
+              articles: [...articles].sort(
+                (left, right) =>
+                  left.displayOrder - right.displayOrder || left.title.localeCompare(right.title),
+              ),
+            }),
           ),
-        }),
+          startWith<InfoPageState>({ status: 'loading', articles: [] }),
+          catchError(() => of<InfoPageState>({ status: 'error', articles: [] })),
+        ),
       ),
-      startWith<InfoPageState>({ status: 'loading', articles: [] }),
-      catchError(() => of<InfoPageState>({ status: 'error', articles: [] })),
     ),
     { requireSync: true },
   );
+
+  protected readonly searchQuery = signal('');
+  protected readonly filteredArticles = computed(() => {
+    const query = this.searchQuery().trim().toLocaleLowerCase();
+    const articles = this.state().articles;
+
+    return query
+      ? articles.filter((article) =>
+          `${article.title} ${article.category} ${article.content}`
+            .toLocaleLowerCase()
+            .includes(query),
+        )
+      : articles;
+  });
+  protected readonly tints = ['orange', 'cyan', 'green', 'magenta'];
+
+  protected updateSearch(event: Event): void {
+    this.searchQuery.set((event.currentTarget as HTMLInputElement).value);
+  }
+
+  protected retry(): void {
+    this.reload$.next();
+  }
 }

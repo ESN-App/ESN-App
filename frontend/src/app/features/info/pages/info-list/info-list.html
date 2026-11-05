@@ -1,8 +1,17 @@
-<section class="info-page">
+<section class="info-page page-stack">
   <header class="world-header world-header--info">
-    <p class="eyebrow">ESN Gdańsk</p>
-    <h1>Information</h1>
-    <p class="intro">Everything you need for student life, the ESN community and your stay in Gdańsk.</p>
+    <h1>Info</h1>
+    <p class="intro">The practical stuff for your first weeks in Gdańsk.</p>
+    <label class="search-pill">
+      <mat-icon aria-hidden="true">search</mat-icon>
+      <span class="visually-hidden">Search guides</span>
+      <input
+        type="search"
+        placeholder="Search guides"
+        [value]="searchQuery()"
+        (input)="updateSearch($event)"
+      />
+    </label>
   </header>
 
   @switch (state().status) {
@@ -10,21 +19,33 @@
       <app-loading-spinner />
     }
     @case ('error') {
-      <section class="error-state">
-        <span aria-hidden="true">!</span>
-        <h2>We could not load the information</h2>
-        <p>Please try again in a moment.</p>
-      </section>
+      <app-error-state title="We couldn’t load the guides" (retry)="retry()" />
     }
     @case ('loaded') {
       @if (state().articles.length === 0) {
-        <app-empty-state message="No information is available yet." />
+        <app-empty-state message="No guides are available yet." />
+      } @else if (filteredArticles().length === 0) {
+        <app-empty-state message="No guides match your search." />
       } @else {
-        <div class="info-grid" aria-label="Information sections">
-          @for (article of state().articles; track article.id) {
-            <app-info-list-item [article]="article" />
-          }
-        </div>
+        <section aria-labelledby="start-title">
+          <h2 id="start-title" class="section-title start-title">
+            {{ searchQuery().trim() ? 'Results' : 'Start here' }}
+          </h2>
+          <div class="guides">
+            <app-info-list-item [article]="filteredArticles()[0]" [featured]="true" />
+            @if (filteredArticles().length > 1) {
+              <div class="guide-rows">
+                @for (
+                  article of filteredArticles().slice(1);
+                  track article.id;
+                  let index = $index
+                ) {
+                  <app-info-list-item [article]="article" [tint]="tints[index % 4]" />
+                }
+              </div>
+            }
+          </div>
+        </section>
       }
     }
   }

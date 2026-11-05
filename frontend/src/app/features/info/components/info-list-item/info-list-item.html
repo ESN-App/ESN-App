@@ -1,43 +1,42 @@
 @let item = article();
-<article class="info-card" [class.info-card--draft]="item.status === 0">
-  @if (interactive()) {
-    <a
-      class="card-link"
-      [routerLink]="infoLink()"
-      [attr.aria-label]="'Read more about ' + item.title"
-    ></a>
+<article
+  class="guide card"
+  [class.guide--featured]="featured()"
+  [class.guide--draft]="item.status === 0"
+>
+  @if (featured()) {
+    <div class="guide-tile">
+      @if (item.imagePath && !imageBroken()) {
+        <img [src]="item.imagePath" alt="" loading="lazy" (error)="imageBroken.set(true)" />
+      }
+    </div>
+  } @else {
+    <span class="icon-square guide-icon tint-{{ tint() }}" aria-hidden="true">
+      <mat-icon>menu_book</mat-icon>
+    </span>
   }
 
-  <div class="article-image">
-    @if (item.imagePath && !imageBroken()) {
-      <img
-        [src]="item.imagePath"
-        [alt]="item.title"
-        [attr.loading]="interactive() ? 'lazy' : null"
-        (error)="imageBroken.set(true)"
-      />
+  <div class="guide-copy">
+    <h3>
+      @if (interactive()) {
+        <a [routerLink]="infoLink()">{{ item.title }}</a>
+      } @else {
+        {{ item.title }}
+      }
+    </h3>
+    @if (featured()) {
+      <p class="guide-summary">{{ item.content }}</p>
     } @else {
-      <span class="image-fallback" aria-hidden="true"></span>
+      <p class="guide-meta">
+        {{ minutes() }} min read
+        @if (item.status === 0) {
+          <span class="chip chip--orange">Draft</span>
+        }
+      </p>
     }
   </div>
 
-  <div class="article-copy">
-    @if (item.status === 0) {
-      <span class="draft-badge">Draft</span>
-    }
-    <h2>{{ item.title }}</h2>
-    <p class="article-description">{{ item.content }}</p>
-  </div>
-
-  @if (interactive()) {
-    <a class="details-link" [routerLink]="infoLink()" [attr.aria-label]="'Read more about ' + item.title">
-      <span>Read more</span>
-      <span class="arrow-icon" aria-hidden="true"></span>
-    </a>
-  } @else {
-    <span class="details-link" aria-hidden="true">
-      <span>Read more</span>
-      <span class="arrow-icon"></span>
-    </span>
+  @if (!featured()) {
+    <mat-icon class="chevron" aria-hidden="true">chevron_right</mat-icon>
   }
 </article>
