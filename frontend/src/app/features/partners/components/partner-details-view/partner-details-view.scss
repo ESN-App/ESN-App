@@ -33,6 +33,23 @@ article {
 }
 
 .hero-logo > img,
+.hero-logo > span {
+  align-items: center;
+  // Logos are drawn for a white background, so the tile stays white in both themes.
+  background: #fff;
+  border-radius: var(--app-radius);
+  box-sizing: border-box;
+  color: var(--ink-fixed);
+  display: flex;
+  font-size: 2.75rem;
+  font-weight: 800;
+  height: 9rem;
+  justify-content: center;
+  object-fit: contain;
+  padding: 1rem;
+  width: 9rem;
+}
+
 .hero-copy {
   padding: 0 0.25rem;
 }

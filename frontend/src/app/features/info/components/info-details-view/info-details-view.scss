@@ -1,6 +1,6 @@
 :host {
   --info-accent: #f47b20;
-  --info-background: color-mix(in srgb, var(--info-accent) 10%, #fff);
+  --info-background: var(--tint-orange);
   container-type: inline-size;
   display: block;
 }
@@ -13,8 +13,8 @@
 .info-hero,
 .content-section {
   background: var(--app-card);
-  border: 1px solid var(--info-accent);
-  border-radius: 2rem;
+  border: 1px solid var(--app-border);
+  border-radius: var(--app-radius);
 }
 
 .info-hero {
@@ -62,9 +62,7 @@
   font-size: 0.68rem;
   font-weight: 800;
   gap: 0.4rem;
-  letter-spacing: 0.1em;
   margin: 0 0 0.45rem;
-  text-transform: uppercase;
 }
 
 h1 {

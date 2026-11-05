@@ -18,9 +18,7 @@
   color: var(--app-ink);
   font-size: 0.72rem;
   font-weight: 800;
-  letter-spacing: 0.1em;
   margin: 0 0 0.2rem;
-  text-transform: uppercase;
 }
 
 .news-header h2 {
@@ -84,8 +82,8 @@
 }
 
 .news-badge.draft-badge {
-  background: var(--app-border);
-  color: var(--app-muted);
+  background: var(--tint-orange);
+  color: var(--app-ink);
 }
 
 .news-card.active {
@@ -94,13 +92,13 @@
 }
 
 .news-card:focus-visible {
-  outline: 3px solid var(--accent);
+  outline: 3px solid var(--app-ink);
   outline-offset: 3px;
 }
 
 .news-card img {
-  border: 3px solid var(--accent);
-  border-radius: 1.75rem;
+  border: 1px solid var(--app-border);
+  border-radius: var(--app-radius);
   box-sizing: border-box;
   height: 100%;
   object-fit: cover;
@@ -120,15 +118,16 @@
 }
 
 .news-badge {
-  background: var(--accent);
+  background: var(--tint-cyan);
   border-radius: 100px;
+  color: var(--app-ink);
+  rotate: -6deg;
   display: block;
   flex: 0 0 auto;
-  font-size: 0.82rem;
-  font-weight: 900;
+  font-size: 13px;
+  font-weight: 800;
   justify-self: start;
   padding: 0.48rem 0.85rem;
-  text-transform: uppercase;
   transition: transform 180ms ease;
   width: fit-content;
 }
@@ -205,7 +204,7 @@
 }
 
 .news-button:focus-visible {
-  outline: 3px solid var(--accent);
+  outline: 3px solid var(--app-ink);
   outline-offset: 3px;
 }
 
@@ -291,8 +290,8 @@
   }
 
   .news-card {
-    border: 2px solid var(--accent);
-    border-radius: 1.6rem;
+    border: 1px solid var(--app-border);
+    border-radius: var(--app-radius);
     display: block;
     height: 13rem;
     overflow: hidden;

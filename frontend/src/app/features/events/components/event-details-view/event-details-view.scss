@@ -7,8 +7,8 @@
 article { display: grid; gap: 1rem; }
 
 .hero {
-  border: 1px solid var(--events-accent);
-  border-radius: 2rem;
+  border: 1px solid var(--app-border);
+  border-radius: var(--app-radius);
   display: grid;
   gap: 1.5rem;
   grid-template-columns: 1fr;
@@ -47,9 +47,7 @@ article { display: grid; gap: 1rem; }
   color: var(--app-ink);
   font-size: 0.7rem;
   font-weight: 800;
-  letter-spacing: 0.1em;
   margin: 0 0 0.5rem;
-  text-transform: uppercase;
 }
 
 h1 {
@@ -64,8 +62,8 @@ h1 {
 .summary { color: var(--app-muted); line-height: 1.45; margin: 1rem 0 0; }
 
 .facts {
-  border: 1px solid var(--events-accent);
-  border-radius: 1.5rem;
+  border: 1px solid var(--app-border);
+  border-radius: var(--app-radius);
   display: grid;
   grid-template-columns: 1fr;
   overflow: hidden;
@@ -90,7 +88,7 @@ h1 {
 .wallet { mask: url('/icons/wallet.svg') center / contain no-repeat; }
 .users { mask: url('/icons/users.svg') center / contain no-repeat; }
 
-.about { border: 1px solid var(--events-accent); border-radius: 1.5rem; padding: 1.5rem; }
+.about { border: 1px solid var(--app-border); border-radius: var(--app-radius); padding: 1.5rem; }
 .about > p:last-child { line-height: 1.6; margin: 0; overflow-wrap: anywhere; white-space: pre-line; }
 
 .register {

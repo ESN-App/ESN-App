@@ -12,7 +12,7 @@
   background: var(--app-card);
   // The card paints its own background behind the rounded image, so it needs the same
   // radius or the draft grey shows as square corners around the rounded photo.
-  border-radius: 1.75rem;
+  border-radius: var(--app-radius);
   color: var(--app-ink);
   display: block;
   height: 20rem;
@@ -26,8 +26,8 @@
 
 .news-card img,
 .image-fallback {
-  border: 3px solid var(--accent);
-  border-radius: 1.75rem;
+  border: 1px solid var(--app-border);
+  border-radius: var(--app-radius);
   box-sizing: border-box;
   display: block;
   height: 100%;
@@ -63,21 +63,22 @@
 }
 
 .news-badge {
-  background: var(--accent);
+  background: var(--tint-cyan);
   border-radius: 100px;
+  color: var(--app-ink);
+  rotate: -6deg;
   display: block;
   flex: 0 0 auto;
-  font-size: 0.82rem;
-  font-weight: 900;
+  font-size: 13px;
+  font-weight: 800;
   justify-self: start;
   padding: 0.48rem 0.85rem;
-  text-transform: uppercase;
   width: fit-content;
 }
 
 .news-badge.draft-badge {
-  background: var(--app-border);
-  color: var(--app-muted);
+  background: var(--tint-orange);
+  color: var(--app-ink);
 }
 
 .news-overlay strong {
@@ -110,7 +111,7 @@
   }
 
   .news-overlay {
-    border-radius: 1.75rem;
+    border-radius: var(--app-radius);
     padding: 1rem;
   }
 

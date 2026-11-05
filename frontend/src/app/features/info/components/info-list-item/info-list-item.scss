@@ -6,8 +6,8 @@
 .info-card {
   align-items: center;
   background: var(--app-card);
-  border: 1px solid var(--info-accent);
-  border-radius: 1.4rem;
+  border: 1px solid var(--app-border);
+  border-radius: var(--app-radius);
   display: grid;
   gap: 0.75rem 1.15rem;
   grid-template-columns: 9rem minmax(0, 1fr);
@@ -25,15 +25,13 @@
 }
 
 .draft-badge {
-  background: var(--app-raised);
+  background: var(--tint-orange);
   border-radius: 999px;
-  color: var(--app-muted);
+  color: var(--app-ink);
   display: inline-block;
   font-size: 0.65rem;
   font-weight: 850;
-  letter-spacing: 0.05em;
   padding: 0.22rem 0.45rem;
-  text-transform: uppercase;
 }
 
 .info-card:hover {
@@ -73,9 +71,8 @@
 }
 
 .article-copy h2 {
-  font-size: 1.3rem;
-  font-weight: 850;
-  letter-spacing: -0.035em;
+  font-size: 17px;
+  font-weight: 700;
   line-height: 1.15;
   margin: 0.35rem 0 0;
 }
@@ -129,7 +126,7 @@
 }
 
 .card-link:focus-visible {
-  outline: 3px solid var(--info-accent);
+  outline: 3px solid var(--app-ink);
   outline-offset: 3px;
 }
 
@@ -184,7 +181,7 @@
   }
 
   .article-copy h2 {
-    font-size: 1.05rem;
+    font-size: 17px;
   }
 
   .article-description {

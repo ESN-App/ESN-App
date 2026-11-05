@@ -12,12 +12,12 @@ import { Component } from '@angular/core';
     }
 
     span {
-      background: var(--app-raised);
+      background: var(--tint-orange);
       border-radius: 999px;
-      color: var(--app-muted);
+      color: var(--app-ink);
       display: inline-block;
       font-size: var(--status-badge-font-size, 0.75rem);
-      font-weight: 750;
+      font-weight: 700;
       line-height: var(--status-badge-line-height, 1.35);
       padding: var(--status-badge-padding, 0.3rem 0.55rem);
       white-space: nowrap;

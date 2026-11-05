@@ -12,8 +12,8 @@ app-partner-status-title {
 .partner-card {
   align-items: center;
   background: var(--app-card);
-  border: 1px solid var(--partners-accent);
-  border-radius: 1.4rem;
+  border: 1px solid var(--app-border);
+  border-radius: var(--app-radius);
   display: grid;
   gap: 0.8rem 1.15rem;
   grid-template-columns: 8.25rem minmax(0, 1fr);
@@ -96,9 +96,8 @@ app-partner-status-title {
 }
 
 .partner-identity h2 {
-  font-size: 1.25rem;
-  font-weight: 800;
-  letter-spacing: -0.035em;
+  font-size: 17px;
+  font-weight: 700;
   line-height: 1.15;
   margin: 0;
 }
@@ -125,16 +124,11 @@ app-partner-status-title {
 }
 
 .discount-count {
-  align-items: center;
-  color: var(--app-muted);
-  display: inline-flex;
-  font-size: 0.76rem;
-  font-weight: 700;
-  gap: 0.45rem;
+  align-self: start;
 }
 
 .discount-icon {
-  background: var(--partners-accent);
+  background: var(--app-ink);
   display: inline-block;
   height: 1.35rem;
   mask: url('/icons/discount.svg') center / contain no-repeat;
@@ -207,7 +201,7 @@ app-partner-status-title {
 @media (min-width: 1024px) {
   .partner-card {
     align-items: center;
-    border: 1px solid var(--partners-accent);
+    border: 1px solid var(--app-border);
     border-radius: 0.85rem;
     box-shadow: none;
     gap: 0.55rem 0.85rem;
@@ -269,7 +263,7 @@ app-partner-status-title {
   }
 
   .partner-identity h2 {
-    font-size: 1rem;
+    font-size: 17px;
   }
 
   .partner-description {
@@ -285,7 +279,6 @@ app-partner-status-title {
     padding-top: 0.5rem;
   }
 
-  .discount-count,
   .details-link {
     font-size: 0.72rem;
   }
@@ -366,7 +359,7 @@ app-partner-status-title {
   }
 
   .partner-identity h2 {
-    font-size: 1.05rem;
+    font-size: 17px;
   }
 
   .partner-description {

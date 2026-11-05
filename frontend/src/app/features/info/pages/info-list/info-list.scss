@@ -14,8 +14,8 @@
 }
 
 .error-state {
-  border: 1px solid var(--info-accent);
-  border-radius: 1.5rem;
+  border: 1px solid var(--app-border);
+  border-radius: var(--app-radius);
   padding: 2rem;
   text-align: center;
 }

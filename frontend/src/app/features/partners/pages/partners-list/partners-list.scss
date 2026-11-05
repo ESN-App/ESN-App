@@ -29,7 +29,7 @@
 }
 
 .search:focus-within {
-  border-color: var(--partners-accent);
+  border-color: var(--app-border);
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--partners-accent) 14%, transparent);
 }
 
@@ -108,8 +108,8 @@
 }
 
 .error-state {
-  border: 1px solid var(--partners-accent);
-  border-radius: 1.5rem;
+  border: 1px solid var(--app-border);
+  border-radius: var(--app-radius);
   margin-top: 1rem;
   padding: 2rem;
   text-align: center;
@@ -180,8 +180,8 @@
   }
 
   .partner-list-shell {
-    background: rgba(255, 255, 255, 0.97);
-    border: 2px solid var(--partners-accent);
+    background: color-mix(in srgb, var(--app-card) 95%, transparent);
+    border: 1px solid var(--app-border);
     border-radius: 1.15rem;
     bottom: 1.25rem;
     box-shadow: 0 14px 36px rgba(35, 24, 31, 0.18);

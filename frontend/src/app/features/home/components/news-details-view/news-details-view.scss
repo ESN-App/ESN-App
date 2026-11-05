@@ -12,8 +12,8 @@ article {
 }
 
 .hero {
-  border: 1px solid var(--accent);
-  border-radius: 2rem;
+  border: 1px solid var(--app-border);
+  border-radius: var(--app-radius);
   display: grid;
   gap: 1.5rem;
   overflow: hidden;
@@ -51,9 +51,7 @@ article {
   color: var(--app-ink);
   font-size: 0.7rem;
   font-weight: 800;
-  letter-spacing: 0.1em;
   margin: 0 0 0.5rem;
-  text-transform: uppercase;
 }
 
 h1 {
@@ -65,8 +63,8 @@ h1 {
 }
 
 .about {
-  border: 1px solid var(--accent);
-  border-radius: 1.5rem;
+  border: 1px solid var(--app-border);
+  border-radius: var(--app-radius);
   padding: 1.5rem;
 }
 

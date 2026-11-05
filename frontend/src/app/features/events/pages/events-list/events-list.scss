@@ -58,7 +58,7 @@
 }
 
 .month-switcher button:focus-visible {
-  outline: 2px solid var(--events-accent);
+  outline: 2px solid var(--app-ink);
   outline-offset: 2px;
 }
 
@@ -120,7 +120,7 @@
 }
 
 .search-control:focus-within {
-  border-color: var(--events-accent);
+  border-color: var(--app-border);
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--events-accent) 14%, transparent);
 }
 
@@ -173,7 +173,7 @@
 .empty-month {
   align-items: center;
   border: 1px dashed var(--app-border);
-  border-radius: 1.5rem;
+  border-radius: var(--app-radius);
   display: flex;
   flex-direction: column;
   padding: 3rem 1.5rem;
@@ -216,8 +216,8 @@
 
   .calendar-panel {
     background: var(--app-card);
-    border: 3px solid var(--events-accent);
-    border-radius: 1.5rem;
+    border: 1px solid var(--app-border);
+    border-radius: var(--app-radius);
     box-shadow: 0 12px 30px rgba(41, 66, 26, 0.07);
     order: initial;
     padding: 1.15rem;
@@ -247,7 +247,6 @@
     color: var(--app-muted);
     font-size: 0.68rem;
     font-weight: 800;
-    text-transform: uppercase;
   }
 
   :host ::ng-deep .calendar .mat-calendar-body-label {
@@ -296,8 +295,8 @@
   }
 
   .events-results {
-    border: 3px solid var(--events-accent);
-    border-radius: 1.5rem;
+    border: 1px solid var(--app-border);
+    border-radius: var(--app-radius);
     order: initial;
     padding: 1.15rem;
   }
@@ -480,7 +479,6 @@
   .mobile-date__weekday {
     font-size: 0.62rem;
     font-weight: 750;
-    text-transform: uppercase;
   }
 
   .mobile-date__dot {
@@ -492,7 +490,7 @@
   }
 
   .mobile-date--today {
-    border-color: var(--events-accent);
+    border-color: var(--app-border);
   }
 
   .mobile-date--has-events {
@@ -703,7 +701,6 @@
   .mobile-date__weekday {
     font-size: 0.62rem;
     font-weight: 750;
-    text-transform: uppercase;
   }
 
   .mobile-date__dot {
@@ -715,7 +712,7 @@
   }
 
   .mobile-date--today {
-    border-color: var(--events-accent);
+    border-color: var(--app-border);
   }
 
   .mobile-date--has-events {

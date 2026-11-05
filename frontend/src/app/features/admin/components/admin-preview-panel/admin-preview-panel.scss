@@ -39,9 +39,7 @@
   color: var(--admin-accent-dark, var(--app-ink));
   font-size: 0.7rem;
   font-weight: 800;
-  letter-spacing: 0.1em;
   margin: 0 0 0.4rem;
-  text-transform: uppercase;
 }
 
 .device-switch {
@@ -94,9 +92,7 @@
 .preview-section > h3 {
   color: var(--app-muted);
   font-size: 0.7rem;
-  letter-spacing: 0.08em;
   margin: 0 0 0.6rem;
-  text-transform: uppercase;
 }
 
 @media (max-width: 850px) {

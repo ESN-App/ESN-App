@@ -157,6 +157,51 @@ body {
   outline-color: var(--app-ink);
 }
 
+a {
+  color: var(--app-ink);
+}
+
+// Stickers ("Free!", "New", "Top deal") and small chips use the section tints with ink text.
+.sticker,
+.chip {
+  align-items: center;
+  background: var(--tint-neutral);
+  border-radius: 999px;
+  color: var(--app-ink);
+  display: inline-flex;
+  font-size: 13px;
+  font-weight: 700;
+  gap: 0.3rem;
+  line-height: 1.2;
+  padding: 0.3rem 0.65rem;
+  white-space: nowrap;
+}
+
+.sticker {
+  font-weight: 800;
+  transform: rotate(-6deg);
+}
+
+.sticker--cyan,
+.chip--cyan {
+  background: var(--tint-cyan);
+}
+
+.sticker--green,
+.chip--green {
+  background: var(--tint-green);
+}
+
+.sticker--magenta,
+.chip--magenta {
+  background: var(--tint-magenta);
+}
+
+.sticker--orange,
+.chip--orange {
+  background: var(--tint-orange);
+}
+
 button,
 input,
 select,
@@ -376,8 +421,8 @@ app-root {
   app-events-list {
     .mobile-date-calendar {
       background: var(--app-card);
-      border: 1px solid var(--events-accent);
-      border-radius: 1.4rem;
+      border: 1px solid var(--app-border);
+      border-radius: var(--app-radius);
       display: block !important;
       margin: 1rem 0;
       overflow: visible;
@@ -439,7 +484,6 @@ app-root {
       font-size: 0.58rem;
       font-weight: 750;
       margin-top: 0.3rem;
-      text-transform: uppercase;
     }
 
     .mobile-date__dot {
@@ -474,7 +518,7 @@ app-root {
     }
 
     .mobile-date:focus-visible {
-      outline: 2px solid var(--events-accent);
+      outline: 2px solid var(--app-ink);
       outline-offset: 2px;
     }
   }

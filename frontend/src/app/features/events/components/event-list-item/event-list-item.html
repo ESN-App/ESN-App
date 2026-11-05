@@ -19,6 +19,9 @@
         (error)="hideBrokenImage($event)"
       />
     }
+    @if (item.price === 0) {
+      <span class="sticker sticker--green event-sticker">Free!</span>
+    }
   </div>
 
   <div class="event-copy">

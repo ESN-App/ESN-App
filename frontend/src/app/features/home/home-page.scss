@@ -18,14 +18,13 @@
   color: var(--app-ink);
   font-size: 0.72rem;
   font-weight: 800;
-  letter-spacing: 0.1em;
   margin: 0 0 0.2rem;
-  text-transform: uppercase;
 }
 
 .welcome-panel {
-  border: 3px solid var(--home-accent);
-  border-radius: 2rem;
+  background: var(--app-card);
+  border: 1px solid var(--app-border);
+  border-radius: var(--app-radius);
   margin-top: 1.5rem;
   padding: clamp(1.25rem, 4vw, 2.5rem);
 }
@@ -63,7 +62,7 @@
   --tile-accent: var(--home-accent);
   background: color-mix(in srgb, var(--tile-accent) 14%, var(--app-card));
   border: 2px solid var(--tile-accent);
-  border-radius: 1.4rem;
+  border-radius: var(--app-radius);
   color: var(--app-ink);
   display: flex;
   flex-direction: column;
@@ -184,8 +183,9 @@
 
 .about-card,
 .office-card {
-  border: 3px solid var(--home-accent);
-  border-radius: 2rem;
+  background: var(--app-card);
+  border: 1px solid var(--app-border);
+  border-radius: var(--app-radius);
   box-sizing: border-box;
   min-width: 0;
   overflow: hidden;
@@ -193,9 +193,7 @@
 
 .about-card {
   background:
-    radial-gradient(circle at 88% 12%, rgba(122, 193, 67, 0.2), transparent 28%),
-    radial-gradient(circle at 8% 92%, rgba(236, 0, 140, 0.1), transparent 30%),
-    #e6f7fd;
+    var(--tint-cyan);
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -360,8 +358,9 @@
 }
 
 .platform-card {
-  border: 3px solid var(--home-accent);
-  border-radius: 1.4rem;
+  background: var(--app-card);
+  border: 1px solid var(--app-border);
+  border-radius: var(--app-radius);
   padding: clamp(1.15rem, 3vw, 1.6rem);
 }
 
@@ -416,7 +415,7 @@
 
   .welcome-panel {
     border-width: 2px;
-    border-radius: 1.6rem;
+    border-radius: var(--app-radius);
     margin-top: 0.5rem;
   }
 
@@ -530,7 +529,7 @@
   .about-card,
   .office-card {
     border-width: 2px;
-    border-radius: 1.6rem;
+    border-radius: var(--app-radius);
   }
 
   .office-photo {

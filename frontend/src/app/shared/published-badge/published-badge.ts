@@ -17,7 +17,7 @@ import { Component } from '@angular/core';
       color: var(--app-ink);
       display: inline-block;
       font-size: 0.75rem;
-      font-weight: 750;
+      font-weight: 700;
       line-height: 1.35;
       padding: 0.3rem 0.55rem;
       white-space: nowrap;

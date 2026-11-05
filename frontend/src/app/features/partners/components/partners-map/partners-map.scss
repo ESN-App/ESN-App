@@ -1,7 +1,7 @@
 app-partners-map {
   background: var(--app-raised);
-  border: 2px solid var(--partners-accent);
-  border-radius: 1.5rem;
+  border: 1px solid var(--app-border);
+  border-radius: var(--app-radius);
   display: block;
   height: 100%;
   min-height: 0;
@@ -17,7 +17,7 @@ app-partners-map {
 
 .partners-map__empty {
   align-items: center;
-  background: rgba(255, 255, 255, 0.9);
+  background: color-mix(in srgb, var(--app-card) 95%, transparent);
   border-radius: 1rem;
   box-shadow: 0 8px 24px rgba(55, 35, 48, 0.08);
   display: flex;
@@ -77,7 +77,7 @@ app-partners-map {
 
 @media (min-width: 1024px) {
   app-partners-map {
-    border: 3px solid var(--partners-accent);
+    border: 1px solid var(--app-border);
     border-radius: 1.35rem;
     box-sizing: border-box;
     box-shadow: 0 12px 34px rgba(35, 24, 31, 0.12);
@@ -142,7 +142,7 @@ app-partners-map {
 
   .map-partner-card {
     align-items: center;
-    background: rgba(255, 255, 255, 0.97);
+    background: color-mix(in srgb, var(--app-card) 95%, transparent);
     border: 2px solid color-mix(in srgb, var(--partners-accent) 42%, var(--app-border));
     border-radius: 1.15rem;
     bottom: 0.75rem;
@@ -220,9 +220,7 @@ app-partners-map {
     display: block;
     font-size: 0.62rem;
     font-weight: 900;
-    letter-spacing: 0.08em;
     margin-bottom: 0.15rem;
-    text-transform: uppercase;
   }
 
   .map-partner-card h2 {

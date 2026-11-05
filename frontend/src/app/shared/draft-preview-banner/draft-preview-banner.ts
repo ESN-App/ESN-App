@@ -23,7 +23,7 @@ import { Component } from '@angular/core';
 
     .draft-preview-banner {
       align-items: center;
-      background: var(--app-raised);
+      background: var(--app-card);
       border: 1px solid var(--app-border);
       // Not a pill. The sentence wraps to two lines in any narrow column (the admin
       // preview panel in both Desktop and Mobile, and real phones), and a 999px radius
@@ -43,15 +43,13 @@ import { Component } from '@angular/core';
     }
 
     .draft-preview-banner__badge {
-      background: var(--app-raised);
+      background: var(--tint-orange);
       border-radius: 999px;
       color: var(--app-ink);
       flex: 0 0 auto;
       font-size: 0.7rem;
       font-weight: 800;
-      letter-spacing: 0.04em;
       padding: 0.2rem 0.5rem;
-      text-transform: uppercase;
     }
 
     .draft-preview-banner__text {

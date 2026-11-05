@@ -17,7 +17,7 @@ import { MatIconModule } from '@angular/material/icon';
       align-items: center;
       gap: 0.5rem;
       padding: 2rem;
-      opacity: 0.6;
+      color: var(--app-muted);
     }
   `,
 })
