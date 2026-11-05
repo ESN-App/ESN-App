@@ -1,165 +1,74 @@
 :host {
-  --info-accent: #f47b20;
-  --info-background: var(--tint-orange);
-  container-type: inline-size;
   display: block;
 }
 
-.article {
+// Read time only shows in the desktop hero, as in the mockup.
+.read-time {
+  display: none;
+}
+
+.links {
   display: grid;
-  gap: 1rem;
+  gap: 12px;
+  margin-top: 8px;
 }
 
-.info-hero,
-.content-section {
-  background: var(--app-card);
-  border: 1px solid var(--app-border);
-  border-radius: var(--app-radius);
+.link-row {
+  align-items: center;
+  border-radius: 20px;
+  display: flex;
+  gap: 16px;
+  padding: 16px;
+  position: relative;
+
+  .icon-square {
+    height: 48px;
+    width: 48px;
+  }
+
+  &:has(a:focus-visible) {
+    outline: 2px solid var(--app-ink);
+    outline-offset: 2px;
+  }
 }
 
-.info-hero {
+.link-copy {
   display: grid;
-  gap: 1.5rem;
-  grid-template-columns: 15rem minmax(0, 1fr);
-  min-height: 16rem;
-  overflow: hidden;
-  padding: 1rem;
+  flex: 1;
+  min-width: 0;
+
+  a,
+  strong {
+    color: var(--app-ink);
+    font-size: 17px;
+    font-weight: 700;
+    outline: none;
+    text-decoration: none;
+  }
+
+  // Stretched link: the whole row opens the page.
+  a::after {
+    content: '';
+    inset: 0;
+    position: absolute;
+  }
+
+  span:not(.visually-hidden) {
+    color: var(--app-muted);
+    font-size: 13px;
+    font-weight: 500;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
 }
 
-.hero-image {
-  align-items: center;
-  background: var(--info-background);
-  border-radius: 1.35rem;
-  display: flex;
-  justify-content: center;
-  min-height: 14rem;
-  overflow: hidden;
-}
-
-.hero-image img {
-  height: 100%;
-  object-fit: cover;
-  width: 100%;
-}
-
-.image-fallback {
-  background: var(--info-accent);
-  display: block;
-  height: 3.5rem;
-  mask: url('/icons/info.svg') center / contain no-repeat;
-  width: 3.5rem;
-}
-
-.hero-copy {
-  align-self: center;
-  padding: 1.25rem 1.25rem 1.25rem 0;
-}
-
-.eyebrow {
-  align-items: center;
-  color: var(--app-ink);
-  display: flex;
-  font-size: 0.68rem;
-  font-weight: 800;
-  gap: 0.4rem;
-  margin: 0 0 0.45rem;
-}
-
-h1 {
-  font-size: 28px;
-  font-weight: 800;
-  letter-spacing: -0.01em;
-  line-height: 1.1;
-  margin: 0;
-}
-
-.content-section {
-  padding: 1.5rem;
-}
-
-.section-heading {
-  align-items: center;
-  display: flex;
-  gap: 0.6rem;
-}
-
-h2 {
-  font-size: 1.55rem;
-  letter-spacing: -0.04em;
-  margin: 0;
-}
-
-.content-section > p {
+.external {
   color: var(--app-muted);
-  line-height: 1.7;
-  margin: 1rem 0 0;
-  white-space: pre-line;
 }
 
-.link-list {
-  display: grid;
-  gap: 0.65rem;
-}
-
-.read-more-cta {
-  -webkit-tap-highlight-color: transparent;
-  align-items: center;
-  background: var(--app-primary);
-  border-radius: 100px;
-  color: var(--app-on-primary);
-  display: flex;
-  font-weight: 800;
-  justify-content: space-between;
-  padding: 1rem 1.25rem;
-  text-decoration: none;
-}
-
-.external-arrow {
-  background: var(--app-card);
-  display: block;
-  height: 1.4rem;
-  mask: url('/icons/arrow-circle-right.svg') center / contain no-repeat;
-  transition: transform 140ms ease;
-  width: 1.4rem;
-}
-
-.read-more-cta:hover .external-arrow {
-  transform: translateX(2px);
-}
-
-@container (max-width: 700px) {
-  .info-hero {
-    background: var(--app-card);
-    gap: 0.75rem;
-    grid-template-columns: 1fr;
-    padding: 0.75rem;
+@media (min-width: 701px) {
+  .read-time {
+    display: block;
   }
-
-  .hero-image {
-    background: var(--app-card);
-    height: 10.5rem;
-    min-height: 0;
-  }
-
-  .hero-copy {
-    padding: 0.5rem 0.25rem 0.75rem;
-  }
-
-  .content-section {
-    background: var(--app-card);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .external-arrow {
-    transition: none;
-  }
-}
-
-// Cap the space between the draft banner and the hero copy at 1rem so every section
-// matches. Scoped to the banner via the adjacent sibling combinator, so published pages
-// keep their normal hero padding. The .no-image / container-query variants are listed
-// explicitly because they are more specific than the base .hero-copy rule.
-app-draft-preview-banner + .info-hero .hero-copy {
-  padding-top: 0;
 }

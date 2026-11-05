@@ -1,5 +1,7 @@
-import { Component, input, signal } from '@angular/core';
-import { DraftPreviewBanner } from '../../../../shared';
+import { Component, computed, input, signal } from '@angular/core';
+import { MatIconModule } from '@angular/material/icon';
+import { DraftPreviewBanner, urlHost } from '../../../../shared';
+import { readMinutes } from '../../utils/read-time';
 
 export interface InfoDetailsViewModel {
   id: string;
@@ -12,7 +14,7 @@ export interface InfoDetailsViewModel {
 
 @Component({
   selector: 'app-info-details-view',
-  imports: [DraftPreviewBanner],
+  imports: [DraftPreviewBanner, MatIconModule],
   templateUrl: './info-details-view.html',
   styleUrl: './info-details-view.scss',
 })
@@ -21,4 +23,6 @@ export class InfoDetailsView {
   readonly interactive = input(true);
 
   protected readonly imageBroken = signal(false);
+  protected readonly minutes = computed(() => readMinutes(this.article().content));
+  protected readonly urlHost = urlHost;
 }

@@ -550,6 +550,56 @@ app-root {
   }
 }
 
+// Long-form detail pages (Info article, News): title sheet over the hero, then text.
+.hero-image {
+  height: 100%;
+  inset: 0;
+  object-fit: cover;
+  position: absolute;
+  width: 100%;
+  z-index: -2;
+}
+
+.article-head {
+  background: var(--app-bg);
+  border-radius: 32px 32px 0 0;
+  margin: -50px calc(-1 * var(--bleed, 0px)) 0;
+  padding: 28px var(--bleed, 0px) 16px;
+  position: relative;
+
+  h1 {
+    font-size: 28px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    line-height: 1.12;
+    margin: 0;
+  }
+
+  .article-meta {
+    font-size: 13px;
+    font-weight: 700;
+    margin: 0 0 8px;
+  }
+
+  > .sticker {
+    position: absolute;
+    right: 20px;
+    top: -12px;
+  }
+}
+
+.article-body {
+  display: grid;
+  gap: 16px;
+
+  .article-text {
+    font-size: 15px;
+    line-height: 1.55;
+    margin: 0;
+    white-space: pre-line;
+  }
+}
+
 // White content card.
 .card {
   background: var(--app-card);
@@ -787,6 +837,75 @@ app-root {
     min-height: 0;
     padding: 40px var(--bleed, 40px) 48px;
     @include esn-star(420px, -60px, -60px);
+  }
+
+  // Info / News: back button, title and meta sit inside the hero.
+  .article-page {
+    display: grid;
+  }
+
+  .article-page > .detail-hero,
+  .article-page > .article-head {
+    grid-area: 1 / 1;
+  }
+
+  .article-page > .detail-hero {
+    min-height: 0;
+  }
+
+  .article-page > .detail-hero > .back-button {
+    left: var(--bleed, 40px);
+    top: 40px;
+  }
+
+  .article-head {
+    align-self: end;
+    background: none;
+    border-radius: 0;
+    color: var(--ink-fixed);
+    margin: 0;
+    padding: 108px 0 48px;
+
+    h1 {
+      font-size: 56px;
+      letter-spacing: -0.03em;
+      line-height: 1.05;
+      max-width: 760px;
+    }
+
+    .article-meta {
+      font-size: 15px;
+      font-weight: 500;
+      margin: 16px 0 0;
+    }
+
+    > .sticker {
+      margin-top: 16px;
+      position: static;
+    }
+  }
+
+  .article-head {
+    align-items: flex-start;
+    display: flex;
+    flex-direction: column;
+
+    h1 {
+      order: 1;
+    }
+
+    .article-meta {
+      order: 2;
+    }
+
+    > .sticker {
+      order: 3;
+    }
+  }
+
+  .article-body {
+    max-width: 680px;
+    padding-top: 48px;
   }
 
   .detail-sheet {

@@ -1,48 +1,46 @@
 @let loaded = article();
-<article class="article">
-  @if (loaded.status === 0) { <app-draft-preview-banner /> }
-
-  <section class="info-hero">
-    <div class="hero-image">
-      @if (loaded.imagePath && !imageBroken()) {
-        <img
-          [src]="loaded.imagePath"
-          [alt]="loaded.title"
-          (error)="imageBroken.set(true)"
-        />
-      } @else {
-        <span class="image-fallback" aria-hidden="true"></span>
-      }
-    </div>
-
-    <div class="hero-copy">
-      <p class="eyebrow">ESN Gdańsk info</p>
-      <h1>{{ loaded.title }}</h1>
-    </div>
-  </section>
-
-  <section class="content-section" aria-labelledby="article-content-title">
-    <div class="section-heading">
-      <h2 id="article-content-title">About</h2>
-    </div>
-    <p>{{ loaded.content }}</p>
-  </section>
-
-  @if (loaded.externalLinks.length > 0) {
-    <div class="link-list">
-      @for (link of loaded.externalLinks; track link) {
-        @if (interactive()) {
-          <a class="read-more-cta" [href]="link" target="_blank" rel="noopener noreferrer">
-            Read more about it
-            <span class="external-arrow" aria-hidden="true"></span>
-          </a>
-        } @else {
-          <span class="read-more-cta">
-            Read more about it
-            <span class="external-arrow" aria-hidden="true"></span>
-          </span>
-        }
-      }
-    </div>
+<article class="article-page">
+  @if (loaded.status === 0) {
+    <app-draft-preview-banner />
   }
+
+  <div class="detail-hero detail-hero--info">
+    <ng-content select="[detailBack]" />
+    @if (loaded.imagePath && !imageBroken()) {
+      <img class="hero-image" [src]="loaded.imagePath" alt="" (error)="imageBroken.set(true)" />
+    }
+  </div>
+
+  <header class="article-head">
+    <h1>{{ loaded.title }}</h1>
+    <p class="article-meta read-time">{{ minutes() }} min read</p>
+  </header>
+
+  <div class="article-body">
+    <p class="article-text">{{ loaded.content }}</p>
+
+    @if (loaded.externalLinks.length > 0) {
+      <section class="links" aria-labelledby="links-title">
+        <h2 id="links-title" class="section-title">Useful links</h2>
+        @for (link of loaded.externalLinks; track link) {
+          <div class="link-row card">
+            <span class="icon-square tint-orange" aria-hidden="true"
+              ><mat-icon>language</mat-icon></span
+            >
+            <div class="link-copy">
+              @if (interactive()) {
+                <a [href]="link" target="_blank" rel="noopener noreferrer">
+                  {{ urlHost(link) }}<span class="visually-hidden"> (opens in a new tab)</span>
+                </a>
+              } @else {
+                <strong>{{ urlHost(link) }}</strong>
+              }
+              <span>{{ link }}</span>
+            </div>
+            <mat-icon class="external" aria-hidden="true">open_in_new</mat-icon>
+          </div>
+        }
+      </section>
+    }
+  </div>
 </article>
