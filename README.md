@@ -48,8 +48,8 @@ docker compose up --build
 ```
 
 - Frontend: http://localhost:4200
-- API + Swagger: http://localhost:5000/swagger
-- Health check: http://localhost:5000/health
+- API + Swagger: http://localhost:5080/swagger
+- Health check: http://localhost:5080/health
 - PostgreSQL: localhost:5432
 
 On first start the backend applies EF Core migrations and seeds sample data plus a dev admin account (`admin@esngdansk.local` / `Admin123!` — dev only, configurable in `.env`).
@@ -62,11 +62,11 @@ Prerequisites: .NET 10 SDK, Node.js ≥ 24.15 (see [REQUIREMENTS.md](REQUIREMENT
 # database only
 docker compose up -d postgres
 
-# backend — http://localhost:5000, Swagger at /swagger
+# backend — http://localhost:5080, Swagger at /swagger
 cd backend
 dotnet run --project src/EsnApp.Api
 
-# frontend — http://localhost:4200, proxies API calls to localhost:5000
+# frontend — http://localhost:4200, proxies API calls to localhost:5080
 cd frontend
 npm install
 npm start

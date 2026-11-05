@@ -25,7 +25,7 @@ dotnet build EsnApp.sln
 dotnet test EsnApp.sln                        # run all tests
 dotnet test tests/EsnApp.Api.Tests            # integration tests (WebApplicationFactory, health/swagger)
 dotnet test tests/EsnApp.Application.Tests    # handler unit tests (Events, Info, Discounts/Partners)
-dotnet run --project src/EsnApp.Api           # http://localhost:5000/swagger (needs postgres running)
+dotnet run --project src/EsnApp.Api           # http://localhost:5080/swagger (needs postgres running)
 dotnet tool restore                           # installs pinned dotnet-ef
 dotnet ef migrations add <Name> --project src/EsnApp.Infrastructure --startup-project src/EsnApp.Api
 ```
@@ -33,7 +33,7 @@ dotnet ef migrations add <Name> --project src/EsnApp.Infrastructure --startup-pr
 Frontend (from `frontend/`; Angular 22 + TypeScript 6 — requires Node ≥ 24.15, the Angular CLI hard-fails on older Node):
 
 ```bash
-npm start        # dev server on http://localhost:4200, API base http://localhost:5000
+npm start        # dev server on http://localhost:4200, API base http://localhost:5080
 npm run lint     # ESLint (angular-eslint)
 npm test         # vitest via ng test; add --watch=false for single run (NOT run in CI, see Conventions)
 npm run build    # production build (apiBaseUrl '', nginx proxies /api same-origin)
@@ -42,11 +42,11 @@ npm run build    # production build (apiBaseUrl '', nginx proxies /api same-orig
 Rebuild just the backend image and restart its container (leaves postgres and its data alone):
 
 ```bash
-docker compose up -d --build backend    # from the repo root; API back on http://localhost:5000
+docker compose up -d --build backend    # from the repo root; API back on http://localhost:5080
 docker compose logs -f backend          # follow startup: migrations + seeding
 ```
 
-Full stack: `cp .env.example .env && docker compose up --build` → frontend :4200, API :5000, postgres :5432. On startup the backend applies migrations and seeds sample data + dev admin (`admin@esngdansk.local` / `Admin123!`, assigned the `Admin` Identity role) when `Database:ApplyMigrationsOnStartup` is true (Development/compose only).
+Full stack: `cp .env.example .env && docker compose up --build` → frontend :4200, API :5080, postgres :5432. On startup the backend applies migrations and seeds sample data + dev admin (`admin@esngdansk.local` / `Admin123!`, assigned the `Admin` Identity role) when `Database:ApplyMigrationsOnStartup` is true (Development/compose only).
 
 ## Architecture
 

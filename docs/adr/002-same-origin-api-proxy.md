@@ -11,7 +11,7 @@ The Angular PWA needs to call the .NET API. Options: expose the API on a separat
 ## Decision
 
 - **Production / Docker**: the frontend nginx container proxies `/api`, `/health`, and `/swagger` to the backend container (`docker/nginx.conf`). The production Angular build uses `apiBaseUrl: ''`, so all calls are same-origin and no CORS or hardcoded API hostname is needed.
-- **Development**: `ng serve` (localhost:4200) calls the API directly on `http://localhost:5000` (`environment.development.ts`); the backend allows this origin via the `Cors__AllowedOrigins` setting.
+- **Development**: `ng serve` (localhost:4200) calls the API directly on `http://localhost:5080` (`environment.development.ts`); the backend allows this origin via the `Cors__AllowedOrigins` setting.
 
 ## Consequences
 
