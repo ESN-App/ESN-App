@@ -1,573 +1,328 @@
 :host {
-  --home-accent: #00aeef;
-  --events-accent: #7ac143;
-  --partners-accent: #ec008c;
-  --info-accent: #f47b20;
   display: block;
 }
 
-.home-page {
-  margin: 0 auto;
-  max-width: 72rem;
+.home-header {
+  // Room under the strip for the Up next card, which overlaps the header bottom.
+  padding-bottom: 58px;
 }
 
-.panel-label,
-.about-label,
-.office-label,
-.install-label {
-  color: var(--app-ink);
-  font-size: 0.72rem;
-  font-weight: 800;
-  margin: 0 0 0.2rem;
-}
-
-.welcome-panel {
-  background: var(--app-card);
-  border: 1px solid var(--app-border);
-  border-radius: var(--app-radius);
-  margin-top: 1.5rem;
-  padding: clamp(1.25rem, 4vw, 2.5rem);
-}
-
-.welcome-copy {
-  max-width: 48rem;
-}
-
-.welcome-copy h2,
-.install-heading h2 {
-  font-size: clamp(1.65rem, 4vw, 2.5rem);
-  font-weight: 900;
-  letter-spacing: -0.045em;
-  line-height: 1;
-  margin: 0.35rem 0 0;
-}
-
-.welcome-copy > p:last-child,
-.install-heading > p:last-child {
-  color: var(--app-muted);
-  font-size: clamp(0.95rem, 2vw, 1.08rem);
-  line-height: 1.55;
-  margin: 1rem 0 0;
-  max-width: 43rem;
-}
-
-.section-tiles {
+.home-hero {
   display: grid;
-  gap: 1.5rem;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  margin-top: 2rem;
+  grid-template-columns: minmax(0, 1fr);
 }
 
-.section-tile {
-  --tile-accent: var(--home-accent);
-  background: color-mix(in srgb, var(--tile-accent) 14%, var(--app-card));
-  border: 2px solid var(--tile-accent);
-  border-radius: var(--app-radius);
-  color: var(--app-ink);
-  display: flex;
-  flex-direction: column;
-  min-height: 12.5rem;
-  overflow: hidden;
-  position: relative;
-  scroll-snap-align: center;
-  text-decoration: none;
-  transition:
-    box-shadow 140ms ease,
-    opacity 140ms ease,
-    transform 140ms ease;
+.home-header__copy h1 {
+  max-width: 10ch;
 }
 
-.section-tile:hover {
-  box-shadow: 0 10px 24px color-mix(in srgb, var(--tile-accent) 14%, transparent);
-  transform: translateY(-2px);
-}
-
-.tile-body {
-  box-sizing: border-box;
-  display: flex;
-  flex: 1;
-  flex-direction: column;
-  min-height: inherit;
-  padding: 1.35rem;
-}
-
-.events-tile {
-  --tile-accent: var(--events-accent);
-  --tile-icon: url('/icons/calendar.svg');
-}
-
-.partners-tile {
-  --tile-accent: var(--partners-accent);
-  --tile-icon: url('/icons/discount.svg');
-}
-
-.info-tile {
-  --tile-accent: var(--info-accent);
-  --tile-icon: url('/icons/info.svg');
-}
-
-.tile-icon,
-.tile-arrow {
-  background: var(--tile-accent);
-  display: block;
-}
-
-.tile-icon {
-  flex: 0 0 2.5rem;
-  height: 2.5rem;
-  mask: var(--tile-icon) center / 1.9rem no-repeat;
-  width: 2.5rem;
-}
-
-.tile-arrow {
-  height: 1.5rem;
-  mask: url('/icons/arrow-circle-right.svg') center / contain no-repeat;
-  transition: transform 140ms ease;
-  width: 1.5rem;
-}
-
-.tile-action:hover .tile-arrow {
-  transform: translateX(2px);
-}
-
-.tile-copy {
-  display: flex;
-  flex-direction: column;
-  margin-top: auto;
-  padding-right: 2rem;
-}
-
-.tile-copy strong {
-  font-size: 1.15rem;
-  font-weight: 850;
-  letter-spacing: -0.025em;
-}
-
-.tile-description {
-  color: var(--app-muted);
-  font-size: 0.86rem;
-  line-height: 1.45;
-  margin-top: 0.75rem;
-}
-
-.tile-action {
-  -webkit-tap-highlight-color: transparent;
-  display: inline-flex;
-  bottom: 1.25rem;
-  position: absolute;
-  right: 1.25rem;
-  text-decoration: none;
-  z-index: 2;
-}
-
-.tile-action:focus-visible {
-  border-radius: 50%;
-  outline: 3px solid var(--tile-accent);
-  outline-offset: 3px;
-}
-
-.mobile-tile-link {
-  display: none;
-}
-
-.carousel-progress {
-  display: none;
-}
-
-.community-section {
-  display: grid;
-  gap: 1.5rem;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  margin-top: 1.5rem;
-}
-
-.about-card,
-.office-card {
-  background: var(--app-card);
-  border: 1px solid var(--app-border);
-  border-radius: var(--app-radius);
-  box-sizing: border-box;
-  min-width: 0;
-  overflow: hidden;
-}
-
-.about-card {
-  background:
-    var(--tint-cyan);
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  padding: clamp(1.5rem, 4vw, 2.5rem);
-}
-
-.about-card h2,
-.office-copy h2 {
-  font-size: clamp(1.65rem, 3.5vw, 2.35rem);
-  font-weight: 900;
-  letter-spacing: -0.045em;
-  line-height: 1;
-  margin: 0.35rem 0 0;
-}
-
-.about-intro {
-  color: var(--app-ink);
-  font-size: clamp(1rem, 2vw, 1.15rem);
-  font-weight: 700;
-  line-height: 1.5;
-  margin: 1.25rem 0 0;
-  max-width: 30rem;
-}
-
-.about-copy {
-  color: var(--app-muted);
-  line-height: 1.6;
-  margin: 0.85rem 0 0;
-  max-width: 31rem;
-}
-
-.about-highlights {
-  display: grid;
-  gap: 0.7rem;
+.day-strip {
   list-style: none;
-  margin: 2rem 0 0;
   padding: 0;
 }
 
-.about-highlights li {
-  align-items: center;
-  display: flex;
-  font-size: 0.82rem;
-  font-weight: 800;
-  gap: 0.65rem;
-}
-
-.about-highlights li > span {
-  background: var(--highlight-color);
-  border-radius: 50%;
-  flex: 0 0 0.65rem;
-  height: 0.65rem;
-  width: 0.65rem;
-}
-
-.about-highlights li:nth-child(1) {
-  --highlight-color: var(--events-accent);
-}
-
-.about-highlights li:nth-child(2) {
-  --highlight-color: var(--partners-accent);
-}
-
-.about-highlights li:nth-child(3) {
-  --highlight-color: var(--info-accent);
-}
-
-.office-card {
-  background: var(--app-card);
-}
-
-.office-photo {
-  height: 14rem;
-  margin: 0;
-  overflow: hidden;
+.up-next {
+  margin: -30px 0 0;
+  padding: 20px;
   position: relative;
 }
 
-.office-photo img {
-  height: 100%;
-  object-fit: cover;
-  width: 100%;
-}
-
-.office-photo figcaption {
-  background: rgba(17, 17, 17, 0.72);
-  border-radius: 100px;
-  bottom: 0.8rem;
-  color: #fff;
-  font-size: 0.65rem;
-  font-weight: 700;
-  padding: 0.35rem 0.6rem;
-  position: absolute;
-  right: 0.8rem;
-}
-
-.office-copy {
-  padding: clamp(1.35rem, 3vw, 2rem);
-}
-
-.office-details {
-  display: grid;
-  gap: 1.25rem;
-  margin-top: 1.5rem;
-}
-
-.office-detail {
-  align-items: flex-start;
-  display: grid;
-  gap: 0.8rem;
-  grid-template-columns: 2rem minmax(0, 1fr);
-}
-
-.office-icon {
-  background: var(--home-accent);
-  display: block;
-  height: 2rem;
-  width: 2rem;
-}
-
-.office-icon.location {
-  mask: url('/icons/marker.svg') center / 1.4rem no-repeat;
-}
-
-.office-icon.hours {
-  mask: url('/icons/calendar.svg') center / 1.4rem no-repeat;
-}
-
-.office-detail strong {
-  font-size: 0.82rem;
-  font-weight: 850;
-}
-
-.office-detail p {
-  color: var(--app-muted);
-  font-size: 0.84rem;
-  line-height: 1.5;
-  margin: 0.25rem 0 0;
-}
-
-.office-detail small {
-  color: var(--app-muted);
-  display: block;
-  font-size: 0.7rem;
-  line-height: 1.45;
-  margin-top: 0.3rem;
-}
-
-.install-guide {
-  margin-top: clamp(2.5rem, 6vw, 4.5rem);
-}
-
-.install-heading {
-  max-width: 42rem;
-}
-
-.platforms {
-  display: grid;
-  gap: 1rem;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  margin-top: 1.5rem;
-}
-
-.platform-card {
-  background: var(--app-card);
-  border: 1px solid var(--app-border);
-  border-radius: var(--app-radius);
-  padding: clamp(1.15rem, 3vw, 1.6rem);
-}
-
-.platform-title {
+.up-next__main {
   align-items: center;
   display: flex;
-  gap: 0.75rem;
+  gap: 18px;
 }
 
-.platform-title h3 {
-  font-size: 1.15rem;
+.up-next__copy {
+  min-width: 0;
+}
+
+.up-next__label {
+  font-size: 13px;
+  font-weight: 700;
+  margin: 0 0 4px;
+}
+
+.up-next h2 {
+  font-size: 20px;
+  font-weight: 800;
+  line-height: 1.25;
   margin: 0;
+
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  a:hover {
+    text-decoration: underline;
+  }
 }
 
-.platform-mark {
-  align-items: center;
-  background: var(--app-raised);
-  border-radius: 0.65rem;
-  display: inline-flex;
-  flex: 0 0 2.5rem;
-  height: 2.5rem;
-  justify-content: center;
-  width: 2.5rem;
-}
-
-.android-mark {
-  background: color-mix(in srgb, var(--events-accent) 18%, var(--app-card));
-}
-
-.platform-mark img {
-  display: block;
-  height: 1.6rem;
-  width: 1.6rem;
-}
-
-.platform-card ol {
+.up-next__meta {
   color: var(--app-muted);
-  line-height: 1.55;
-  margin: 1rem 0 0;
-  padding-left: 1.25rem;
+  font-size: 14px;
+  font-weight: 500;
+  margin: 2px 0 0;
 }
 
-.platform-card li + li {
-  margin-top: 0.45rem;
+.up-next__actions {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 18px;
 }
 
-.platform-card strong {
+.up-next__spots {
+  color: var(--app-muted);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+
+
+.explore-title {
+  margin-bottom: 14px;
+}
+
+.explore {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.explore-tile {
+  border-radius: 18px;
   color: var(--app-ink);
-}
+  display: grid;
+  gap: 2px;
+  text-decoration: none;
 
-@media (max-width: 700px) {
-
-  .welcome-panel {
-    border-width: 2px;
-    border-radius: var(--app-radius);
-    margin-top: 0.5rem;
+  strong {
+    font-size: 17px;
+    font-weight: 700;
+    margin-top: 8px;
   }
 
-  .section-tiles,
-  .platforms {
-    grid-template-columns: 1fr;
-  }
-
-  .platform-card {
-    border-width: 2px;
-  }
-
-  .section-tiles {
-    gap: 1rem;
-    grid-auto-columns: 100%;
-    grid-auto-flow: column;
-    grid-template-columns: none;
-    margin-top: 1.5rem;
-    overflow-x: auto;
-    overscroll-behavior-x: contain;
-    padding: 0.5rem 10% 0.8rem;
-    scroll-behavior: smooth;
-    scroll-padding-inline: 10%;
-    scroll-snap-type: x mandatory;
-    scrollbar-width: none;
-  }
-
-  .section-tiles::-webkit-scrollbar {
-    display: none;
-  }
-
-  .community-section {
-    grid-template-columns: 1fr;
-  }
-
-  .section-tile {
-    -webkit-tap-highlight-color: transparent;
-    background: color-mix(in srgb, var(--tile-accent) 20%, var(--app-card));
-    cursor: pointer;
-    min-height: 13rem;
-    opacity: 0.7;
-    transform: scale(0.9);
-  }
-
-  .section-tile:hover {
-    box-shadow: none;
-    transform: none;
-  }
-
-  .section-tile:active {
-    background: color-mix(in srgb, var(--tile-accent) 30%, var(--app-card));
-    transform: scale(0.99);
-  }
-
-  .section-tile.active {
-    background: color-mix(in srgb, var(--tile-accent) 30%, var(--app-card));
-    opacity: 1;
-    transform: scale(1);
-  }
-
-  .mobile-tile-link {
-    -webkit-tap-highlight-color: transparent;
-    background: transparent;
-    border-radius: inherit;
-    display: block;
-    inset: 0;
-    position: absolute;
-    z-index: 1;
-  }
-
-  .mobile-tile-link:focus,
-  .mobile-tile-link:active {
-    background: transparent;
-    outline: none;
-  }
-
-  .mobile-tile-link:focus-visible {
-    outline: 3px solid var(--tile-accent);
+  &:focus-visible {
+    outline: 2px solid var(--app-ink);
     outline-offset: 3px;
   }
+}
 
-  .tile-action {
-    bottom: 1.1rem;
-    pointer-events: none;
-    right: 1.1rem;
+.explore-tile__block {
+  --world-colour: var(--c-green);
+  align-items: center;
+  background: var(--world-colour);
+  border-radius: 18px;
+  color: var(--ink-fixed);
+  display: flex;
+  height: 92px;
+  isolation: isolate;
+  justify-content: center;
+  overflow: hidden;
+  position: relative;
+
+  // Corner piece of the star.
+  &::after {
+    -webkit-mask: url('/images/esnstar.png') center / contain no-repeat;
+    background: rgb(255 255 255 / 30%);
+    content: '';
+    height: 170px;
+    mask: url('/images/esnstar.png') center / contain no-repeat;
+    position: absolute;
+    right: -95px;
+    top: -75px;
+    transform: rotate(12deg);
+    width: 170px;
+    z-index: -1;
   }
 
-  .carousel-progress {
-    align-items: center;
-    display: flex;
-    gap: 0.4rem;
-    justify-content: center;
-    margin-top: 0.2rem;
-  }
-
-  .carousel-progress span {
-    background: var(--app-border);
-    border-radius: 100px;
-    height: 0.4rem;
-    transition:
-      background-color 140ms ease,
-      width 140ms ease;
-    width: 0.4rem;
-  }
-
-  .carousel-progress span.active {
-    background: var(--home-accent);
-    width: 1.25rem;
-  }
-
-  .about-card,
-  .office-card {
-    border-width: 2px;
-    border-radius: var(--app-radius);
-  }
-
-  .office-photo {
-    height: 12rem;
-  }
-
-  .tile-body {
-    pointer-events: none;
-    padding: 1.15rem;
-  }
-
-  .tile-icon {
-    flex-basis: 2.75rem;
-    height: 2.75rem;
-    mask-size: 2rem;
-    width: 2.75rem;
-  }
-
-  .tile-copy strong {
-    font-size: 1.1rem;
-  }
-
-  .tile-description {
-    font-size: 0.74rem;
-    line-height: 1.35;
-    margin-top: 0.3rem;
+  mat-icon {
+    font-size: 32px;
+    height: 32px;
+    width: 32px;
   }
 }
 
-@media (display-mode: standalone), (display-mode: fullscreen) {
-  .install-guide {
-    display: none;
+.explore-tile--partners .explore-tile__block {
+  --world-colour: var(--c-magenta);
+}
+
+.explore-tile--info .explore-tile__block {
+  --world-colour: var(--c-orange);
+}
+
+.explore-tile:hover .explore-tile__block {
+  filter: brightness(1.04);
+}
+
+.explore-tile__count {
+  color: var(--app-muted);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.home-pair {
+  display: grid;
+  gap: 28px;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.find-us {
+  align-items: flex-start;
+  display: flex;
+  gap: 16px;
+  padding: 20px;
+
+  h2 {
+    font-size: 17px;
+    font-weight: 700;
+    margin: 0 0 4px;
+  }
+
+  p {
+    color: var(--app-muted);
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 1.45;
+    margin: 0;
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .section-tile,
-  .tile-arrow {
-    transition: none;
+.find-us__icon {
+  background: var(--c-cyan);
+  color: var(--ink-fixed);
+}
+
+.install {
+  background: #4347a7;
+  border-radius: 24px;
+  color: #fff;
+  padding: 20px;
+  align-self: start;
+
+  h2 {
+    font-size: 17px;
+    font-weight: 700;
+    line-height: 1.3;
+    margin: 0;
+  }
+
+  p {
+    font-size: 13px;
+    font-weight: 500;
+    margin: 2px 0 0;
+  }
+}
+
+.install__row {
+  align-items: center;
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+}
+
+.install__how {
+  background: #fff;
+  border: 0;
+  border-radius: 999px;
+  color: var(--ink-fixed);
+  cursor: pointer;
+  flex: 0 0 auto;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  min-height: 48px;
+  padding: 0 20px;
+
+  &:focus-visible {
+    outline: 2px solid #fff;
+    outline-offset: 2px;
+  }
+}
+
+.install__steps {
+  display: grid;
+  gap: 16px;
+  margin-top: 16px;
+
+  h3 {
+    font-size: 15px;
+    font-weight: 700;
+    margin: 0 0 4px;
+  }
+
+  ol {
+    font-size: 14px;
+    margin: 0;
+    padding-left: 1.2rem;
+  }
+}
+
+@media (min-width: 701px) {
+  // The Up next card sits inside the header area, on the right, without overlapping.
+  .home-header,
+  .home-hero .up-next {
+    grid-area: 1 / 1;
+  }
+
+  .home-header {
+    padding-bottom: 72px;
+  }
+
+  .home-header__copy {
+    max-width: calc(100% - 520px);
+  }
+
+  .home-header__copy h1 {
+    max-width: none;
+  }
+
+  .home-hero .up-next {
+    align-self: center;
+    justify-self: end;
+    margin: 0;
+    width: 480px;
+  }
+
+  .explore {
+    gap: 20px;
+  }
+
+  .explore-tile__block {
+    height: 140px;
+  }
+
+  .home-pair {
+    gap: 24px;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .install {
+    align-self: stretch;
+  }
+
+  .install__steps {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+// Narrow desktop: not enough room beside the title, so the card goes back below.
+@media (min-width: 701px) and (max-width: 1099px) {
+  .home-header,
+  .home-hero .up-next {
+    grid-area: auto;
+  }
+
+  .home-header__copy {
+    max-width: none;
+  }
+
+  .home-hero .up-next {
+    justify-self: stretch;
+    margin-top: -30px;
+    width: auto;
   }
 }

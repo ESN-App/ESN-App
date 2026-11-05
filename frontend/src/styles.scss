@@ -529,71 +529,84 @@ app-root {
   }
 }
 
-// Section "world" header: a block in the section colour with a rounded bottom and the
-// ESN star as decoration. It bleeds into the .content padding (see app.scss).
-.world-header {
-  --world-colour: var(--c-cyan);
-  background: var(--world-colour);
-  border-radius: 0 0 32px 32px;
-  box-sizing: border-box;
-  color: var(--ink-fixed);
-  isolation: isolate;
-  margin: calc(-1 * var(--page-pad-top, 0px)) calc(-1 * var(--page-pad-x, 0px)) 1.5rem;
-  overflow: hidden;
-  padding: 1.75rem var(--page-pad-x, 1rem) 2rem;
-  position: relative;
+// ---------------------------------------------------------------------------
+// Page layout primitives shared by the public screens (v3 mockup).
+// --bleed is set on .content for public pages only (see app.scss), so these blocks
+// stay inside their box when reused in the admin live preview.
+// ---------------------------------------------------------------------------
 
-  // The star is a white shape cut out with a mask at 30% alpha. Using filter() on the
-  // multicolour PNG made some browsers composite the whole header through the filter
-  // layer, which washed out the section colour; a mask only ever paints the star.
+// Big translucent white ESN star in a corner of a section-colour block.
+@mixin esn-star($size, $top, $right) {
   &::after {
     -webkit-mask: url('/images/esnstar.png') center / contain no-repeat;
+    // A mask only paints the star; a filter on the multicolour PNG made some
+    // browsers composite (and wash out) the whole block.
     background: rgb(255 255 255 / 30%);
     content: '';
-    height: 13rem;
+    height: $size;
     mask: url('/images/esnstar.png') center / contain no-repeat;
     pointer-events: none;
     position: absolute;
-    right: -3rem;
-    top: -2.5rem;
+    right: $right;
+    top: $top;
     transform: rotate(12deg);
-    width: 13rem;
+    width: $size;
     z-index: -1;
   }
+}
 
-  .eyebrow {
-    font-size: 14px;
-    font-weight: 700;
-    margin: 0 0 0.35rem;
-  }
+.world-header,
+.detail-hero {
+  --world-colour: var(--c-cyan);
+  background: var(--world-colour);
+  box-sizing: border-box;
+  color: var(--ink-fixed);
+  isolation: isolate;
+  margin-inline: calc(-1 * var(--bleed, 0px));
+  overflow: hidden;
+  position: relative;
+}
+
+.world-header {
+  border-radius: 0 0 32px 32px;
+  margin-top: calc(-1 * var(--page-pad-top, 0px));
+  padding: 24px var(--bleed, 20px) 28px;
+  @include esn-star(220px, -40px, -70px);
 
   h1 {
     font-size: 44px;
     font-weight: 800;
-    letter-spacing: -0.02em;
+    letter-spacing: -0.03em;
     line-height: 1.02;
     margin: 0;
   }
 
   .intro {
     font-size: 15px;
-    line-height: 1.55;
-    margin: 0.75rem 0 0;
+    font-weight: 500;
+    line-height: 1.4;
+    margin: 6px 0 0;
     max-width: 36rem;
   }
 }
 
-.world-header--events {
+.world-header--events,
+.detail-hero--events {
   --world-colour: var(--c-green);
 }
 
-.world-header--info {
+.world-header--info,
+.detail-hero--info {
   --world-colour: var(--c-orange);
 }
 
-// Only the title and subtitle may sit on solid magenta, both in white.
-.world-header--partners {
+.world-header--partners,
+.detail-hero--partners {
   --world-colour: var(--c-magenta);
+}
+
+// Only the large title and subtitle may sit on solid magenta, both in white.
+.world-header--partners {
   color: #fff;
 
   .intro {
@@ -602,21 +615,288 @@ app-root {
   }
 }
 
+// Detail pages: a short hero in the section colour with the back button, and a sheet
+// in the app background that overlaps it.
+.detail-hero {
+  min-height: 220px;
+  padding: 16px var(--bleed, 16px) 66px;
+  @include esn-star(240px, -30px, -60px);
+}
+
+.detail-sheet {
+  background: var(--app-bg);
+  border-radius: 32px 32px 0 0;
+  margin: -50px calc(-1 * var(--bleed, 0px)) 0;
+  padding: 20px var(--bleed, 0px) 0;
+  position: relative;
+}
+
+.back-button {
+  align-items: center;
+  background: #fff;
+  border-radius: 50%;
+  box-shadow: 0 2px 8px rgb(22 23 43 / 12%);
+  color: var(--ink-fixed);
+  display: inline-flex;
+  height: 44px;
+  justify-content: center;
+  text-decoration: none;
+  width: 44px;
+
+  &:focus-visible {
+    outline: 2px solid var(--ink-fixed);
+    outline-offset: 2px;
+  }
+}
+
+// White content card.
+.card {
+  background: var(--app-card);
+  border-radius: 24px;
+  box-sizing: border-box;
+  color: var(--app-ink);
+}
+
+.section-row {
+  align-items: baseline;
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+  margin: 0 0 14px;
+
+  .meta {
+    color: var(--app-muted);
+    font-size: 14px;
+    font-weight: 500;
+  }
+}
+
+.section-title {
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: -0.3px;
+  line-height: 1.25;
+  margin: 0;
+}
+
+// Search field: a white pill, 52 high, with a search icon.
+.search-pill {
+  align-items: center;
+  background: var(--app-card);
+  border: 1px solid light-dark(transparent, var(--app-border));
+  border-radius: 999px;
+  box-sizing: border-box;
+  color: var(--app-muted);
+  display: flex;
+  gap: 10px;
+  height: 52px;
+  margin-top: 16px;
+  max-width: 520px;
+  padding: 0 20px;
+
+  input {
+    background: transparent;
+    border: 0;
+    color: var(--app-ink);
+    flex: 1;
+    font: inherit;
+    font-size: 15px;
+    min-width: 0;
+    outline: none;
+  }
+
+  input::placeholder {
+    color: var(--app-muted);
+  }
+
+  &:focus-within {
+    outline: 2px solid var(--ink-fixed);
+    outline-offset: 2px;
+  }
+}
+
+// Section-colour date tile ("Mon / 2 / March"), rotated like a sticker.
+.date-tile {
+  align-items: center;
+  background: var(--c-green);
+  border-radius: 18px;
+  box-sizing: border-box;
+  color: var(--ink-fixed);
+  display: flex;
+  flex: 0 0 76px;
+  flex-direction: column;
+  height: 84px;
+  justify-content: center;
+  line-height: 1.1;
+  transform: rotate(-4deg);
+  width: 76px;
+
+  span {
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  strong {
+    font-size: 34px;
+    font-weight: 800;
+    line-height: 1;
+  }
+}
+
+// Week / day strip tiles on top of a section header.
+.day-strip {
+  display: flex;
+  gap: 7px;
+  margin-top: 16px;
+}
+
+.day-tile {
+  align-items: center;
+  background: rgb(255 255 255 / 55%);
+  border: 0;
+  border-radius: 14px;
+  box-sizing: border-box;
+  color: var(--ink-fixed);
+  display: flex;
+  flex: 1 0 44px;
+  flex-direction: column;
+  font: inherit;
+  height: 68px;
+  justify-content: center;
+  line-height: 1.15;
+  max-width: 64px;
+  padding: 0;
+  position: relative;
+
+  .day-name {
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  .day-number {
+    font-size: 18px;
+    font-weight: 800;
+  }
+
+  .day-dot {
+    background: currentColor;
+    border-radius: 50%;
+    bottom: 8px;
+    height: 5px;
+    position: absolute;
+    width: 5px;
+  }
+}
+
+.day-tile--active {
+  background: var(--ink-fixed);
+  color: #fff;
+
+  .day-dot {
+    background: var(--c-green);
+  }
+}
+
+// Tinted icon square (44 by default) with a centred Material icon in ink.
+.icon-square {
+  align-items: center;
+  background: var(--tint-neutral);
+  border-radius: 14px;
+  color: var(--app-ink);
+  display: inline-flex;
+  flex: 0 0 auto;
+  height: 44px;
+  justify-content: center;
+  width: 44px;
+}
+
+.tint-cyan {
+  background: var(--tint-cyan);
+}
+
+.tint-green {
+  background: var(--tint-green);
+}
+
+.tint-magenta {
+  background: var(--tint-magenta);
+}
+
+.tint-orange {
+  background: var(--tint-orange);
+}
+
+.chip {
+  font-size: 12px;
+  padding: 4px 10px;
+}
+
+.chip--red,
+.sticker--red {
+  background: var(--tint-red);
+}
+
+// Sticker that overflows the top-right corner of its (position: relative) card.
+.sticker--corner {
+  position: absolute;
+  right: 14px;
+  top: -10px;
+  z-index: 1;
+}
+
+.page-stack {
+  display: grid;
+  gap: 28px;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.pill-button--block {
+  width: 100%;
+}
+
+.pill-button mat-icon {
+  font-size: 20px;
+  height: 20px;
+  width: 20px;
+}
+
+.visually-hidden {
+  clip: rect(0 0 0 0);
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  position: absolute;
+  white-space: nowrap;
+  width: 1px;
+}
+
 @media (min-width: 701px) {
   .world-header {
-    border-radius: 0 0 40px 40px;
-    padding: 3rem 2.5rem 2.75rem;
-
-    &::after {
-      height: 18rem;
-      right: 2rem;
-      top: -3.5rem;
-      width: 18rem;
-    }
+    border-radius: 0 0 48px 48px;
+    padding: 56px var(--bleed, 40px) 64px;
+    @include esn-star(420px, -60px, -60px);
 
     h1 {
-      font-size: clamp(44px, 5vw, 64px);
+      font-size: 64px;
     }
+  }
+
+  .detail-hero {
+    border-radius: 0 0 48px 48px;
+    min-height: 0;
+    padding: 40px var(--bleed, 40px) 48px;
+    @include esn-star(420px, -60px, -60px);
+  }
+
+  .detail-sheet {
+    background: none;
+    border-radius: 0;
+    margin: 0;
+    padding: 40px 0 0;
+  }
+
+  .page-stack {
+    gap: 40px;
   }
 }
 

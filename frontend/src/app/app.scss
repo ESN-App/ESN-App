@@ -89,6 +89,11 @@
 
 .content {
   --page-pad-x: 1rem;
+
+  &.public-page {
+    --bleed: var(--page-pad-x);
+  }
+
   --page-pad-top: 1.5rem;
   box-sizing: border-box;
   margin: 0 auto;
@@ -101,12 +106,17 @@
 }
 
 @media (min-width: 701px) {
-  .content:has(app-home-page),
-  .content:has(app-events-list),
-  .content:has(app-partners-list),
-  .content:has(app-info-list),
   .content:has(app-admin-panel) {
     max-width: 72rem;
+  }
+
+  // Public screens bleed their section headers edge to edge and keep the body at
+  // 1120 px (80 px side padding at 1280).
+  .content.public-page {
+    --page-pad-top: 0px;
+    --page-pad-x: max(32px, calc((100vw - 1120px) / 2));
+    max-width: none;
+    padding-bottom: 80px;
   }
 
   .content:has(app-admin-event-create),
@@ -179,6 +189,11 @@
     padding-right: max(1rem, env(safe-area-inset-right));
     padding-bottom: var(--nav-clearance);
     width: 100%;
+  }
+
+  .content.public-page {
+    --page-pad-x: max(20px, env(safe-area-inset-left));
+    padding-right: max(20px, env(safe-area-inset-right));
   }
 
   .content.mobile-navigation-hidden {

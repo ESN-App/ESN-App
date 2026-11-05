@@ -34,7 +34,11 @@
   </div>
 </mat-toolbar>
 
-<main class="content" [class.mobile-navigation-hidden]="hideMobileNavigation()">
+<main
+  class="content"
+  [class.public-page]="publicPage()"
+  [class.mobile-navigation-hidden]="hideMobileNavigation()"
+>
   <router-outlet />
 </main>
 

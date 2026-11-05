@@ -1,6 +1,8 @@
+import { DatePipe } from '@angular/common';
 import {
   AfterViewInit,
   Component,
+  computed,
   ElementRef,
   inject,
   OnDestroy,
@@ -8,6 +10,7 @@ import {
   signal,
   ViewChild,
 } from '@angular/core';
+import { MatIconModule } from '@angular/material/icon';
 import { RouterLink } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { NewsApi } from '../data-access/news-api';
@@ -15,7 +18,7 @@ import { NewsItemDto } from '../data-access/news.models';
 
 @Component({
   selector: 'app-home-highlights',
-  imports: [RouterLink],
+  imports: [DatePipe, MatIconModule, RouterLink],
   templateUrl: './home-highlights.html',
   styleUrl: './home-highlights.scss',
 })
@@ -25,6 +28,18 @@ export class HomeHighlights implements AfterViewInit, OnDestroy, OnInit {
   private readonly newsApi = inject(NewsApi);
   protected readonly activeIndex = signal(0);
   protected readonly newsItems = signal<NewsItemDto[]>([]);
+  protected readonly brokenImages = signal<ReadonlySet<string>>(new Set());
+  /** Only the most recent published story gets the "New" sticker. */
+  protected readonly newestId = computed(
+    () =>
+      this.newsItems()
+        .filter((item) => item.status !== 0)
+        .reduce<NewsItemDto | null>(
+          (newest, item) => (!newest || item.createdAt > newest.createdAt ? item : newest),
+          null,
+        )?.id ?? null,
+  );
+  protected readonly tileColours = ['var(--c-cyan)', 'var(--c-orange)', 'var(--c-green)'];
   private autoAdvanceTimer?: ReturnType<typeof setInterval>;
   private newsSubscription?: Subscription;
   private programmaticTargetIndex: number | null = null;
@@ -59,6 +74,10 @@ export class HomeHighlights implements AfterViewInit, OnDestroy, OnInit {
   ngOnDestroy(): void {
     this.newsSubscription?.unsubscribe();
     this.clearAutoAdvance();
+  }
+
+  protected markImageBroken(id: string): void {
+    this.brokenImages.update((ids) => new Set(ids).add(id));
   }
 
   protected updateActiveCard(event: Event): void {
