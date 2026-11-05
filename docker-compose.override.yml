@@ -2,7 +2,7 @@
 #
 # This exposes every service on localhost. For hot reload, skip the backend/
 # frontend containers and run them natively instead:
-#   backend:  cd backend && dotnet watch --project src/EsnApp.Api   (http://localhost:5000)
+#   backend:  cd backend && dotnet watch --project src/EsnApp.Api   (http://localhost:5080)
 #   frontend: cd frontend && npm start                              (http://localhost:4200)
 # Both are pre-configured to talk to the postgres container on localhost:5432.
 services:
@@ -12,7 +12,7 @@ services:
 
   backend:
     ports:
-      - "5000:8080"
+      - "5080:8080"
 
   frontend:
     ports:
