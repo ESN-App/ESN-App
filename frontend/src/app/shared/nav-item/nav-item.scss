@@ -84,6 +84,24 @@ a.active .label {
   }
 }
 
+// Narrow desktop bar: icon pills only; the label stays as the accessible name.
+@media (min-width: 701px) and (max-width: 959px) {
+  :host(.nav-item--inline) {
+    a {
+      padding: 4px;
+    }
+
+    .label {
+      clip: rect(0 0 0 0);
+      height: 1px;
+      overflow: hidden;
+      position: absolute;
+      white-space: nowrap;
+      width: 1px;
+    }
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .pill {
     transition: none;

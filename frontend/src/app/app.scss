@@ -144,6 +144,31 @@
   }
 }
 
+// Narrow desktop: keep the bar on one line by dropping the wordmark and using the
+// round theme toggle.
+@media (min-width: 701px) and (max-width: 1023px) {
+  .toolbar {
+    gap: 12px;
+    padding-inline: max(16px, env(safe-area-inset-left)) max(16px, env(safe-area-inset-right));
+
+    .brand span {
+      display: none;
+    }
+
+    .account {
+      gap: 12px;
+    }
+  }
+
+  .theme-toggle--mobile {
+    display: inline-flex;
+  }
+
+  .theme-toggle--desktop {
+    display: none;
+  }
+}
+
 @media (max-width: 700px) {
   :host {
     box-sizing: border-box;
