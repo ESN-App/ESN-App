@@ -1,5 +1,5 @@
 import { DatePipe, DecimalPipe } from '@angular/common';
-import { Component, computed, ElementRef, HostListener, inject, signal, ViewChild, WritableSignal } from '@angular/core';
+import { Component, computed, HostListener, inject, signal, WritableSignal } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { forkJoin, Observable, of } from 'rxjs';
@@ -118,9 +118,6 @@ export class AdminPanel {
   readonly newsOrderModalOpen = signal(false);
   readonly savingNewsOrder = signal(false);
   readonly newsOrderError = signal<string | null>(null);
-  readonly tableScrollPosition = signal(0);
-  readonly tableScrollMaximum = signal(0);
-  @ViewChild('tableScroll') private tableScroll?: ElementRef<HTMLElement>;
   readonly events = signal<AdminEventDto[]>([]);
   readonly news = signal<AdminNewsItemDto[]>([]);
   readonly partners = signal<AdminPartnerDto[]>([]);
@@ -1293,19 +1290,5 @@ export class AdminPanel {
         this.savingNewsOrder.set(false);
       },
     });
-  }
-
-  updateTableScroll(event: Event): void {
-    const element = event.currentTarget as HTMLElement;
-    this.tableScrollPosition.set(element.scrollTop);
-    this.tableScrollMaximum.set(Math.max(0, element.scrollHeight - element.clientHeight));
-    this.closeOptionsMenu();
-  }
-
-  scrollTable(event: Event): void {
-    const position = Number((event.currentTarget as HTMLInputElement).value);
-    if (this.tableScroll) {
-      this.tableScroll.nativeElement.scrollTop = position;
-    }
   }
 }

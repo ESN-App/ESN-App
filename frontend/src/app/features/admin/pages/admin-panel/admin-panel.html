@@ -92,7 +92,7 @@
         @if (searchTerm()) { <button type="button" (click)="clearSearch()">Clear search</button> }
       </div>
     } @else {
-      <div class="table-scroll" #tableScroll (scroll)="updateTableScroll($event)">
+      <div class="table-scroll" (scroll)="closeOptionsMenu()">
         @switch (activeSection()) {
           @case ('events') {
             <table class="events-table">
@@ -127,7 +127,7 @@
                     <td class="selection"><input type="checkbox" [attr.aria-label]="'Select ' + item.title" [checked]="selectedIds().has(item.id)" (change)="toggleSelection(item.id)" /></td>
                     <td class="primary-column" data-label="News item"><a class="details-link" [routerLink]="['/news', item.id]" [title]="item.title">{{ item.title }}</a><small class="created-meta">Created {{ item.createdAt | date: 'd MMM y, HH:mm' }}@if (item.createdBy) { by {{ item.createdBy }}}</small></td>
                     <td class="created-column" data-label="Created"><time [attr.datetime]="item.createdAt">{{ item.createdAt | date: 'd MMM y, HH:mm' }}</time><small>@if (item.createdBy) {<span class="visually-hidden">Created </span>by {{ item.createdBy }}} @else {<span class="visually-hidden">Creator unknown</span><span aria-hidden="true">—</span>}</small></td>
-                    <td data-label="Status"><span class="status-badge" [class.draft-badge]="item.status === 0">{{ item.status === 0 ? 'Draft' : 'Published' }}</span></td>
+                    <td data-label="Status">@if (item.status === 0) { <app-draft-badge /> } @else { <span class="status-badge">Published</span> }</td>
                     <td class="row-tools"><div class="row-tools__buttons"><a class="icon-button icon-button--edit" [routerLink]="['/admin/news', item.id, 'edit']" [attr.aria-label]="'Edit ' + item.title" title="Edit"></a><button type="button" class="icon-button icon-button--delete" [attr.aria-label]="'Delete ' + item.title" title="Delete" (click)="requestNewsDelete(item)"></button></div></td>
                   </tr>
                 }
@@ -145,7 +145,7 @@
                     <td data-label="Address">{{ item.address || '—' }}</td>
                     <td data-label="Website">@if (item.websiteUrl) { <a class="website-link" [href]="item.websiteUrl" target="_blank" rel="noopener noreferrer">{{ item.name }} website</a> } @else { — }</td>
                     <td class="created-column" data-label="Created"><time [attr.datetime]="item.createdAt">{{ item.createdAt | date: 'd MMM y, HH:mm' }}</time><small>@if (item.createdBy) {<span class="visually-hidden">Created </span>by {{ item.createdBy }}} @else {<span class="visually-hidden">Creator unknown</span><span aria-hidden="true">—</span>}</small></td>
-                    <td data-label="Status"><span class="status-badge" [class.draft-badge]="item.status === 0" [class.inactive-badge]="item.status === 2">{{ partnerStatus(item.status) }}</span></td>
+                    <td data-label="Status">@if (item.status === 0) { <app-draft-badge /> } @else { <span class="status-badge" [class.inactive-badge]="item.status === 2">{{ partnerStatus(item.status) }}</span> }</td>
                     <td class="row-tools"><div class="row-tools__buttons"><a class="icon-button icon-button--edit" [routerLink]="['/admin/partners', partnerSlug(item.name), 'edit']" [attr.aria-label]="'Edit ' + item.name" title="Edit"></a><button type="button" class="icon-button icon-button--delete" [attr.aria-label]="'Delete ' + item.name" title="Delete" (click)="requestPartnerDelete(item)"></button></div></td>
                   </tr>
                 }
@@ -162,7 +162,7 @@
                     <td class="primary-column" data-label="Article"><a class="details-link" [routerLink]="['/info', item.slug]" [title]="item.title">{{ item.title }}</a><small class="created-meta">Created {{ item.createdAt | date: 'd MMM y, HH:mm' }}@if (item.createdBy) { by {{ item.createdBy }}}</small></td>
                     <td data-label="Category">{{ item.category }}</td>
                     <td class="created-column" data-label="Created"><time [attr.datetime]="item.createdAt">{{ item.createdAt | date: 'd MMM y, HH:mm' }}</time><small>@if (item.createdBy) {<span class="visually-hidden">Created </span>by {{ item.createdBy }}} @else {<span class="visually-hidden">Creator unknown</span><span aria-hidden="true">—</span>}</small></td>
-                    <td data-label="Status"><span class="status-badge" [class.draft-badge]="item.status === 0">{{ item.status === 0 ? 'Draft' : 'Published' }}</span></td>
+                    <td data-label="Status">@if (item.status === 0) { <app-draft-badge /> } @else { <span class="status-badge">Published</span> }</td>
                     <td class="row-tools"><div class="row-tools__buttons"><a class="icon-button icon-button--edit" [routerLink]="['/admin/info', item.id, 'edit']" [attr.aria-label]="'Edit ' + item.title" title="Edit"></a><button type="button" class="icon-button icon-button--delete" [attr.aria-label]="'Delete ' + item.title" title="Delete" (click)="requestInfoDelete(item)"></button></div></td>
                   </tr>
                 }
@@ -187,17 +187,6 @@
           }
         }
       </div>
-
-      <input
-        class="table-scrollbar"
-        type="range"
-        min="0"
-        [max]="tableScrollMaximum()"
-        [value]="tableScrollPosition()"
-        [disabled]="tableScrollMaximum() === 0"
-        aria-label="Scroll table"
-        (input)="scrollTable($event)"
-      />
 
       <footer class="pagination" aria-label="Table pagination">
         <div class="pagination__summary">

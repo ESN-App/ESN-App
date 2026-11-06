@@ -322,6 +322,8 @@ h1 {
 }
 
 .table-scroll {
+  // Contains absolutely positioned visually-hidden text so it cannot widen the page.
+  position: relative;
   overflow-x: auto;
   overflow-y: auto;
 }
@@ -332,52 +334,8 @@ h1 {
 }
 
 .table-scroll::-webkit-scrollbar-thumb {
-  background: var(--app-border);
+  background: light-dark(color-mix(in srgb, var(--app-muted) 60%, transparent), var(--app-border));
   border-radius: 1rem;
-}
-
-.table-scrollbar {
-  appearance: none;
-  background: transparent;
-  height: 0.5rem;
-  margin: 0;
-  outline: 0;
-  width: 100%;
-  border: 0;
-  cursor: pointer;
-}
-
-.table-scrollbar:disabled {
-  display: none;
-}
-
-.table-scrollbar::-webkit-slider-runnable-track {
-  background: transparent;
-  border-radius: 100px;
-  height: 0.35rem;
-}
-
-.table-scrollbar::-webkit-slider-thumb {
-  appearance: none;
-  background: var(--app-muted);
-  border: 0;
-  border-radius: 100px;
-  height: 0.35rem;
-  width: 2rem;
-}
-
-.table-scrollbar::-moz-range-track {
-  background: transparent;
-  border-radius: 100px;
-  height: 0.35rem;
-}
-
-.table-scrollbar::-moz-range-thumb {
-  background: var(--app-muted);
-  border: 0;
-  border-radius: 100px;
-  height: 0.35rem;
-  width: 2rem;
 }
 
 .empty-results {
@@ -623,16 +581,15 @@ td small {
   background: var(--app-raised);
 }
 
+th.row-tools {
+  background: var(--app-card);
+}
+
 .status-badge {
   background: var(--tint-green);
   color: var(--app-ink);
   display: inline-block;
   padding: 0.3rem 0.55rem;
-}
-
-.draft-badge {
-  background: var(--app-raised);
-  color: var(--app-muted);
 }
 
 .inactive-badge {
@@ -641,7 +598,7 @@ td small {
 }
 
 .row-tools {
-  background: var(--app-card);
+  background: var(--app-bg);
   box-shadow: inset 1px 0 var(--app-border);
   overflow: visible;
   position: sticky;
