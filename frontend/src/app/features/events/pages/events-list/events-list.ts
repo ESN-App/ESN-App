@@ -317,7 +317,7 @@ export class EventsList {
   }
 
   toggleMonthPicker(): void {
-    if (this.monthPickerOpen()) {
+    if (this.monthPicker()?.nativeElement.open) {
       this.closeMonthPicker();
       return;
     }

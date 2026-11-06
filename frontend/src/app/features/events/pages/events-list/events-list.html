@@ -15,7 +15,8 @@
       />
     </label>
 
-    @if (events() && !loadError()) {
+    <!-- Gated on months, not events, so the row (and the Month pill's focus) survives a month reload. -->
+    @if (availableMonths().length > 0 && !loadError()) {
       <div class="month-row">
         <h2 class="month-label">{{ selectedMonth() | date: 'MMMM yyyy' }}</h2>
         <button

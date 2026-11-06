@@ -45,13 +45,13 @@
 }
 
 .month-picker-popover {
-  border: 0;
+  border: 1px solid var(--mat-sys-outline-variant);
   box-shadow: 0 12px 32px rgb(22 23 43 / 18%);
   padding: 0;
   width: min(320px, calc(100vw - 40px));
 
   &::backdrop {
-    background: rgb(22 23 43 / 32%);
+    background: light-dark(rgb(22 23 43 / 32%), rgb(0 0 0 / 64%));
   }
 }
 
