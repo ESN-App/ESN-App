@@ -709,48 +709,6 @@ th.row-tools {
   }
 }
 
-.row-menu {
-  position: relative;
-}
-
-.row-menu__dropdown {
-  background: var(--app-card);
-  border: 1px solid var(--app-border);
-  border-radius: 0.6rem;
-  box-shadow: 0 8px 24px rgb(24 25 38 / 16%);
-  min-width: 9.5rem;
-  overflow: hidden;
-  position: fixed;
-  z-index: 1200;
-
-  button {
-    background: transparent;
-    border: 0;
-    color: var(--app-ink);
-    cursor: pointer;
-    display: block;
-    font: inherit;
-    font-size: 0.82rem;
-    padding: 0.6rem 0.85rem;
-    text-align: left;
-    width: 100%;
-  }
-
-  button:hover {
-    background: var(--tint-neutral);
-    color: var(--app-ink);
-  }
-
-  button:disabled {
-    color: var(--app-muted);
-    cursor: not-allowed;
-  }
-
-  button:disabled:hover {
-    background: transparent;
-  }
-}
-
 .pagination {
   align-items: center;
   background: var(--app-card);

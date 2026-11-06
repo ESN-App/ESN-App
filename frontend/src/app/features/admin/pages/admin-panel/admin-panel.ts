@@ -1,6 +1,7 @@
 import { DatePipe, DecimalPipe } from '@angular/common';
-import { Component, computed, HostListener, inject, signal, WritableSignal } from '@angular/core';
+import { Component, computed, HostListener, inject, signal, viewChildren, WritableSignal } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
+import { MatMenuModule, MatMenuTrigger } from '@angular/material/menu';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { forkJoin, Observable, of } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
@@ -57,7 +58,7 @@ interface SectionOption {
 
 @Component({
   selector: 'app-admin-panel',
-  imports: [AdminFeatures, DatePipe, DecimalPipe, MatButtonModule, RouterLink, AdminDisplayOrderModal, CancelledBadge, DraftBadge, PublishedBadge, Skeleton],
+  imports: [AdminFeatures, DatePipe, DecimalPipe, MatButtonModule, MatMenuModule, RouterLink, AdminDisplayOrderModal, CancelledBadge, DraftBadge, PublishedBadge, Skeleton],
   templateUrl: './admin-panel.html',
   styleUrl: './admin-panel.scss',
 })
@@ -99,8 +100,7 @@ export class AdminPanel {
   readonly adminPendingDelete = signal<AdminUserDto | null>(null);
   readonly deletingAdmin = signal(false);
   readonly deleteError = signal<string | null>(null);
-  readonly openOptionsMenuId = signal<string | null>(null);
-  readonly optionsMenuPosition = signal<{ top: number; right: number } | null>(null);
+  private readonly optionsMenuTriggers = viewChildren(MatMenuTrigger);
   readonly adminPendingReset = signal<AdminUserDto | null>(null);
   readonly resettingPassword = signal(false);
   readonly resetPasswordSent = signal<string | null>(null);
@@ -973,37 +973,14 @@ export class AdminPanel {
     this.cancelBulkPasswordReset();
   }
 
-  toggleOptionsMenu(id: string, trigger: HTMLElement): void {
-    if (this.openOptionsMenuId() === id) {
-      this.closeOptionsMenu();
-      return;
-    }
-
-    const rect = trigger.getBoundingClientRect();
-    this.optionsMenuPosition.set({ top: rect.bottom + 4, right: window.innerWidth - rect.right });
-    this.openOptionsMenuId.set(id);
-  }
-
   closeOptionsMenu(): void {
-    this.openOptionsMenuId.set(null);
-    this.optionsMenuPosition.set(null);
-  }
-
-  @HostListener('document:click', ['$event'])
-  closeOptionsMenuOnOutsideClick(event: MouseEvent): void {
-    if (!this.openOptionsMenuId()) {
-      return;
-    }
-    if (!(event.target as HTMLElement).closest('.row-menu')) {
-      this.closeOptionsMenu();
-    }
+    this.optionsMenuTriggers().forEach((trigger) => trigger.closeMenu());
   }
 
   requestAdminPasswordReset(item: AdminUserDto): void {
     if (this.isCurrentAdmin(item)) {
       return;
     }
-    this.closeOptionsMenu();
     this.deleteError.set(null);
     this.resetPasswordSent.set(null);
     this.adminPendingReset.set(item);
