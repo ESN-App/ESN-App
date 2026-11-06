@@ -6,11 +6,10 @@ import {
   effect,
   ElementRef,
   inject,
-  linkedSignal,
   signal,
   viewChild,
 } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
+import { rxResource, toSignal } from '@angular/core/rxjs-interop';
 import { MAT_DATE_LOCALE, provideNativeDateAdapter } from '@angular/material/core';
 import {
   MatCalendar,
@@ -39,7 +38,6 @@ import { EventsApi } from '../../data-access/events-api';
 import type { EventListItemDto } from '../../data-access/events.models';
 import {
   closestAvailableMonth,
-  defaultEventDay,
   monthFromKey,
   monthKey,
   monthRange,
@@ -47,6 +45,7 @@ import {
   normalizeAvailableMonths,
   normalizeMonthKey,
 } from '../../utils/event-month';
+import { dateFromDayKey, dayKey, groupByDay, upcomingFrom } from '../../utils/event-day';
 
 interface MobileCalendarDay {
   date: Date;
@@ -155,15 +154,17 @@ export class EventsList {
 
   readonly searchTerm = signal('');
   readonly selectedMonthKey = computed(() => monthKey(this.selectedMonth()));
-  // Current month opens on the first event day from today on; any other month starts unfiltered.
-  readonly selectedDateKey = linkedSignal<string | null>(() =>
-    this.selectedMonthKey() === monthKey(new Date())
-      ? defaultEventDay(
-          (this.events()?.items ?? []).map((event) => this.dateKey(new Date(event.startsAt))),
-          this.dateKey(new Date()),
-        )
-      : null,
+  private readonly dayParam = toSignal(
+    this.route.queryParamMap.pipe(map((params) => params.get('day'))),
   );
+  // The tapped day (?day=YYYY-MM-DD) when it lies in the shown month; null = whole month.
+  readonly selectedDateKey = computed<string | null>(() => {
+    const day = this.dayParam();
+
+    return day && /^\d{4}-\d{2}-\d{2}$/.test(day) && day.startsWith(this.selectedMonthKey())
+      ? day
+      : null;
+  });
   readonly monthPickerOpen = signal(false);
   readonly monthPickerYear = signal(this.selectedMonth().getFullYear());
 
@@ -194,7 +195,7 @@ export class EventsList {
   readonly selectedCalendarDate = computed<Date | null>(() => {
     const selectedDate = this.selectedDateKey();
 
-    return selectedDate ? this.dateFromKey(selectedDate) : null;
+    return selectedDate ? dateFromDayKey(selectedDate) : null;
   });
 
   readonly calendarMinDate = computed<Date | null>(() => {
@@ -216,27 +217,27 @@ export class EventsList {
 
   readonly calendarDateClass = computed<MatCalendarCellClassFunction<Date>>(() => {
     const eventDates = new Set(
-      (this.events()?.items ?? []).map((event) => this.dateKey(new Date(event.startsAt))),
+      (this.events()?.items ?? []).map((event) => dayKey(new Date(event.startsAt))),
     );
 
     return (date, view) =>
-      view === 'month' && eventDates.has(this.dateKey(date)) ? 'event-date' : '';
+      view === 'month' && eventDates.has(dayKey(date)) ? 'event-date' : '';
   });
 
   readonly mobileCalendarDays = computed<MobileCalendarDay[]>(() => {
     const month = this.selectedMonth();
     const daysInMonth = new Date(month.getFullYear(), month.getMonth() + 1, 0).getDate();
-    const todayKey = this.dateKey(new Date());
+    const todayKey = dayKey(new Date());
     const eventCounts = new Map<string, number>();
 
     for (const event of this.events()?.items ?? []) {
-      const eventDateKey = this.dateKey(new Date(event.startsAt));
+      const eventDateKey = dayKey(new Date(event.startsAt));
       eventCounts.set(eventDateKey, (eventCounts.get(eventDateKey) ?? 0) + 1);
     }
 
     return Array.from({ length: daysInMonth }, (_, index) => {
       const date = new Date(month.getFullYear(), month.getMonth(), index + 1);
-      const dateKey = this.dateKey(date);
+      const dateKey = dayKey(date);
 
       return {
         date,
@@ -247,21 +248,45 @@ export class EventsList {
     });
   });
 
-  readonly filteredEvents = computed<EventListItemDto[]>(() => {
-    const items = this.events()?.items ?? [];
-    const selectedDate = this.selectedDateKey();
-    const query = this.searchTerm().trim().toLocaleLowerCase();
+  // Selected day: that day's events, then the next few upcoming ones (may cross months).
+  readonly dayEvents = computed(() =>
+    this.matchingSearch(this.events()?.items ?? []).filter(
+      (event) => dayKey(new Date(event.startsAt)) === this.selectedDateKey(),
+    ),
+  );
+  readonly upcoming = rxResource({
+    params: () => this.selectedDateKey() ?? undefined,
+    stream: ({ params }) => {
+      const from = upcomingFrom(params);
+      // shortcut: looks 6 months ahead (the API defaults to one month); widen if events
+      // get announced further out.
+      const to = new Date(from.getFullYear(), from.getMonth() + 6, from.getDate());
 
-    return items.filter((event) => {
-      const matchesDate =
-        selectedDate === null || this.dateKey(new Date(event.startsAt)) === selectedDate;
-      const searchableText = `${event.title} ${event.shortDescription} ${event.location}`;
-      const matchesSearch =
-        query.length === 0 || searchableText.toLocaleLowerCase().includes(query);
-
-      return matchesDate && matchesSearch;
-    });
+      return this.api
+        .getAll({ from: from.toISOString(), to: to.toISOString(), page: 1, pageSize: 5 })
+        .pipe(map((result) => result.items));
+    },
   });
+  readonly upcomingEvents = computed(() =>
+    this.upcoming.hasValue() ? this.matchingSearch(this.upcoming.value()) : [],
+  );
+
+  // Whole month, grouped by day; in the current month, days before today are left out.
+  readonly monthGroups = computed(() => {
+    const today = dayKey(new Date());
+    const isCurrentMonth = this.selectedMonthKey() === today.slice(0, 7);
+
+    return groupByDay(
+      this.matchingSearch(this.events()?.items ?? []).filter(
+        (event) => !isCurrentMonth || dayKey(new Date(event.startsAt)) >= today,
+      ),
+    );
+  });
+  readonly shownCount = computed(() =>
+    this.selectedDateKey()
+      ? this.dayEvents().length
+      : this.monthGroups().reduce((count, group) => count + group.events.length, 0),
+  );
 
   private readonly syncCalendarMonth = effect(() => {
     const selectedMonth = this.selectedMonth();
@@ -272,11 +297,18 @@ export class EventsList {
     }
   });
 
-  // Keeps the selected day in view in the mobile strip (no-op while the strip is hidden).
+  // The calendar stays on screen while a month loads; repaint its event days once they arrive.
+  private readonly refreshCalendarDays = afterRenderEffect(() => {
+    this.calendarDateClass();
+    this.calendar()?.updateTodaysDate();
+  });
+
+  // Keeps the selected day (else today) in view in the mobile strip (no-op while the strip is hidden).
   private readonly scrollStripToSelection = afterRenderEffect(() => {
     const strip = this.dayStrip()?.nativeElement;
     this.selectedDateKey();
-    const tile = strip?.querySelector('.day-tile--active');
+    const tile =
+      strip?.querySelector('.day-tile--active') ?? strip?.querySelector('[aria-current="date"]');
 
     if (strip && tile) {
       const stripBox = strip.getBoundingClientRect();
@@ -295,11 +327,9 @@ export class EventsList {
       return;
     }
 
-    this.selectedDateKey.set(null);
-
     this.router.navigate([], {
       relativeTo: this.route,
-      queryParams: { month: targetMonth, page: null },
+      queryParams: { month: targetMonth, day: null, page: null },
       queryParamsHandling: 'merge',
     });
   }
@@ -362,10 +392,9 @@ export class EventsList {
     }
 
     this.closeMonthPicker();
-    this.selectedDateKey.set(null);
     this.router.navigate([], {
       relativeTo: this.route,
-      queryParams: { month: selectedMonth, page: null },
+      queryParams: { month: selectedMonth, day: null, page: null },
       queryParamsHandling: 'merge',
     });
   }
@@ -375,8 +404,13 @@ export class EventsList {
       return;
     }
 
-    const dateKey = this.dateKey(date);
-    this.selectedDateKey.update((selected) => (selected === dateKey ? null : dateKey));
+    // Tapping the selected day again goes back to the whole month.
+    const dateKey = dayKey(date);
+    this.setDay(dateKey === this.selectedDateKey() ? null : dateKey);
+  }
+
+  showWholeMonth(): void {
+    this.setDay(null);
   }
 
   updateSearch(event: Event): void {
@@ -390,19 +424,28 @@ export class EventsList {
 
   clearFilters(): void {
     this.searchTerm.set('');
-    this.selectedDateKey.set(null);
+    this.setDay(null);
   }
 
-  private dateFromKey(value: string): Date {
-    const [year, month, day] = value.split('-').map(Number);
-    return new Date(year, month - 1, day);
+  private setDay(day: string | null): void {
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { day },
+      queryParamsHandling: 'merge',
+      replaceUrl: true,
+    });
   }
 
-  private dateKey(date: Date): string {
-    return [
-      date.getFullYear(),
-      String(date.getMonth() + 1).padStart(2, '0'),
-      String(date.getDate()).padStart(2, '0'),
-    ].join('-');
+  private matchingSearch(events: EventListItemDto[]): EventListItemDto[] {
+    const query = this.searchTerm().trim().toLocaleLowerCase();
+
+    return query
+      ? events.filter((event) =>
+          `${event.title} ${event.shortDescription} ${event.location}`
+            .toLocaleLowerCase()
+            .includes(query),
+        )
+      : events;
   }
+
 }

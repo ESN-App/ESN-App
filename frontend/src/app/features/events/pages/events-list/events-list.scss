@@ -167,6 +167,67 @@
   grid-template-columns: minmax(0, 1fr);
 }
 
+// Month view: one block per day, each with its own heading.
+.day-groups {
+  display: grid;
+  gap: 28px;
+}
+
+// "Whole month" chip above a selected day.
+.month-chip {
+  align-items: center;
+  background: var(--tint-green);
+  border: 0;
+  border-radius: 999px;
+  color: var(--app-ink);
+  cursor: pointer;
+  display: inline-flex;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  gap: 6px;
+  margin-bottom: 14px;
+  min-height: 44px;
+  padding: 0 16px 0 12px;
+
+  mat-icon {
+    font-size: 18px;
+    height: 18px;
+    width: 18px;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--app-ink);
+    outline-offset: 2px;
+  }
+}
+
+.empty-day {
+  color: var(--app-muted);
+  font-size: 15px;
+  font-weight: 500;
+  margin: 0;
+  padding: 20px;
+}
+
+// "Coming up next": a label between two hairlines.
+.divider {
+  align-items: center;
+  color: var(--app-muted);
+  display: flex;
+  font-size: 14px;
+  font-weight: 700;
+  gap: 12px;
+  margin: 28px 0 14px;
+
+  &::before,
+  &::after {
+    border-top: 1px solid var(--app-border);
+    content: '';
+    flex: 1;
+  }
+}
+
 .empty-month {
   padding: 24px;
   text-align: center;

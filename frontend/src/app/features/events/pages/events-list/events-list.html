@@ -158,41 +158,84 @@
         <p class="legend"><span aria-hidden="true"></span>Days with events</p>
       </aside>
 
-      <section class="events-results" aria-labelledby="events-heading">
+      <section class="events-results" aria-label="Events">
         @if (events(); as loaded) {
-        <div class="section-row">
-          <h2 id="events-heading" class="section-title">
-            @if (selectedCalendarDate(); as day) {
-              {{ day | date: 'EEEE, d MMMM' }}
-            } @else {
-              {{ selectedMonth() | date: 'MMMM yyyy' }}
-            }
-          </h2>
-          <span class="meta" aria-live="polite">
-            {{ filteredEvents().length }} {{ filteredEvents().length === 1 ? 'event' : 'events' }}
-          </span>
-        </div>
+          <p class="visually-hidden" aria-live="polite">
+            {{ shownCount() }} {{ shownCount() === 1 ? 'event' : 'events' }}
+          </p>
 
-        @if (filteredEvents().length > 0) {
-          <div class="event-list" appStaggerIn>
-            @for (event of filteredEvents(); track event.id) {
-              <app-event-list-item [event]="event" [showDate]="!selectedDateKey()" />
-            }
-          </div>
-        } @else if (loaded.items.length === 0) {
-          <div class="empty-month card">
-            <h3>No events this month</h3>
-            <p>Pick another month to see what’s happening.</p>
-          </div>
-        } @else {
-          <div class="empty-month card">
-            <h3>No matching events</h3>
-            <p>Try another search or pick a different day.</p>
-            <button class="pill-button" type="button" (click)="clearFilters()">
-              Clear filters
+          @if (selectedCalendarDate(); as day) {
+            <button class="month-chip" type="button" (click)="showWholeMonth()">
+              <mat-icon aria-hidden="true">arrow_back</mat-icon>
+              Whole month
             </button>
-          </div>
-        }
+            <div class="section-row">
+              <h2 class="section-title">{{ day | date: 'EEEE, d MMMM' }}</h2>
+              <span class="meta">
+                {{ dayEvents().length }} {{ dayEvents().length === 1 ? 'event' : 'events' }}
+              </span>
+            </div>
+
+            @if (dayEvents().length > 0) {
+              <div class="event-list" appStaggerIn>
+                @for (event of dayEvents(); track event.id) {
+                  <app-event-list-item [event]="event" [showDate]="false" />
+                }
+              </div>
+            } @else {
+              <p class="empty-day card">No events on this day</p>
+            }
+
+            @if (upcoming.isLoading()) {
+              <h3 class="divider">Coming up next</h3>
+              <app-skeleton variant="events" [count]="2" />
+            } @else if (upcomingEvents().length > 0) {
+              <h3 class="divider">Coming up next</h3>
+              <div class="event-list" appStaggerIn>
+                @for (event of upcomingEvents(); track event.id) {
+                  <app-event-list-item [event]="event" />
+                }
+              </div>
+            }
+          } @else if (monthGroups().length > 0) {
+            <div class="day-groups" appStaggerIn>
+              @for (group of monthGroups(); track group.dateKey) {
+                <section class="day-group" [attr.aria-labelledby]="'day-' + group.dateKey">
+                  <div class="section-row">
+                    <h2 class="section-title" [id]="'day-' + group.dateKey">
+                      {{ group.date | date: 'EEEE, d MMMM' }}
+                    </h2>
+                    <span class="meta">
+                      {{ group.events.length }} {{ group.events.length === 1 ? 'event' : 'events' }}
+                    </span>
+                  </div>
+                  <div class="event-list">
+                    @for (event of group.events; track event.id) {
+                      <app-event-list-item [event]="event" [showDate]="false" />
+                    }
+                  </div>
+                </section>
+              }
+            </div>
+          } @else if (loaded.items.length === 0) {
+            <div class="empty-month card">
+              <h3>No events this month</h3>
+              <p>Pick another month to see what’s happening.</p>
+            </div>
+          } @else if (searchTerm().trim()) {
+            <div class="empty-month card">
+              <h3>No matching events</h3>
+              <p>Try another search or pick a different day.</p>
+              <button class="pill-button" type="button" (click)="clearFilters()">
+                Clear filters
+              </button>
+            </div>
+          } @else {
+            <div class="empty-month card">
+              <h3>No more events this month</h3>
+              <p>Pick another month to see what’s coming up.</p>
+            </div>
+          }
         } @else {
           <span class="skeleton skeleton-heading"></span>
           <app-skeleton variant="events" />
