@@ -324,13 +324,16 @@ h1 {
 .table-scroll {
   overflow-x: auto;
   overflow-y: auto;
-  scrollbar-width: none;
 }
 
+// Styled bar opts out of macOS overlay scrollbars, so the sideways scroll stays discoverable.
 .table-scroll::-webkit-scrollbar {
-  display: none;
-  height: 0;
-  width: 0;
+  height: 0.5rem;
+}
+
+.table-scroll::-webkit-scrollbar-thumb {
+  background: var(--app-border);
+  border-radius: 1rem;
 }
 
 .table-scrollbar {
@@ -363,10 +366,6 @@ h1 {
   width: 2rem;
 }
 
-.table-scrollbar::-webkit-slider-thumb:hover {
-  background: var(--app-muted);
-}
-
 .table-scrollbar::-moz-range-track {
   background: transparent;
   border-radius: 100px;
@@ -379,10 +378,6 @@ h1 {
   border-radius: 100px;
   height: 0.35rem;
   width: 2rem;
-}
-
-.table-scrollbar::-moz-range-thumb:hover {
-  background: var(--app-muted);
 }
 
 .empty-results {
@@ -646,7 +641,11 @@ td small {
 }
 
 .row-tools {
+  background: var(--app-card);
+  box-shadow: inset 1px 0 var(--app-border);
   overflow: visible;
+  position: sticky;
+  right: 0;
   padding-inline: 0.65rem;
   width: 7.5rem;
 }
