@@ -190,6 +190,11 @@
     min-height: 200px;
   }
 
+  // No back button in the desktop hero (S5); the top bar covers navigation.
+  .detail-hero ::ng-deep [detailBack] {
+    display: none;
+  }
+
   .logo-square {
     font-size: 44px;
     height: 132px;
