@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   closestAvailableMonth,
+  defaultEventDay,
   monthFromKey,
   monthKey,
   monthRange,
@@ -47,5 +48,14 @@ describe('event month helpers', () => {
     expect(closestAvailableMonth('2026-06', available)).toBe('2026-07');
     expect(closestAvailableMonth('2026-07', available)).toBe('2026-07');
     expect(closestAvailableMonth('2026-07', [])).toBeNull();
+  });
+
+  it('picks today, else the next event day this month, else no day', () => {
+    const days = ['2026-07-02', '2026-07-09', '2026-07-06', '2026-08-01'];
+
+    expect(defaultEventDay(days, '2026-07-06')).toBe('2026-07-06');
+    expect(defaultEventDay(days, '2026-07-07')).toBe('2026-07-09');
+    expect(defaultEventDay(days, '2026-07-10')).toBeNull();
+    expect(defaultEventDay([], '2026-07-06')).toBeNull();
   });
 });

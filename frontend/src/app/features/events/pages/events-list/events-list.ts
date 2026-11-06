@@ -39,6 +39,7 @@ import { EventsApi } from '../../data-access/events-api';
 import type { EventListItemDto } from '../../data-access/events.models';
 import {
   closestAvailableMonth,
+  defaultEventDay,
   monthFromKey,
   monthKey,
   monthRange,
@@ -153,9 +154,14 @@ export class EventsList {
 
   readonly searchTerm = signal('');
   readonly selectedMonthKey = computed(() => monthKey(this.selectedMonth()));
-  // Opens on today when today is in the shown month; any other month starts unfiltered.
+  // Current month opens on the first event day from today on; any other month starts unfiltered.
   readonly selectedDateKey = linkedSignal<string | null>(() =>
-    this.selectedMonthKey() === monthKey(new Date()) ? this.dateKey(new Date()) : null,
+    this.selectedMonthKey() === monthKey(new Date())
+      ? defaultEventDay(
+          (this.events()?.items ?? []).map((event) => this.dateKey(new Date(event.startsAt))),
+          this.dateKey(new Date()),
+        )
+      : null,
   );
   readonly monthPickerOpen = signal(false);
   readonly monthPickerYear = signal(this.selectedMonth().getFullYear());

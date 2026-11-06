@@ -63,6 +63,14 @@ export function monthRange(date: Date): MonthRange {
   };
 }
 
+/** Earliest event day (YYYY-MM-DD) on or after today within today's month, or null. */
+export function defaultEventDay(eventDayKeys: string[], todayKey: string): string | null {
+  const month = todayKey.slice(0, 7);
+  const candidates = eventDayKeys.filter((key) => key >= todayKey && key.startsWith(month)).sort();
+
+  return candidates.at(0) ?? null;
+}
+
 function monthNumber(value: string): number {
   const date = monthFromKey(value);
   return date.getFullYear() * 12 + date.getMonth();
