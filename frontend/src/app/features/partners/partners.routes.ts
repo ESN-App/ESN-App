@@ -4,9 +4,5 @@ import { PartnersList } from './pages/partners-list/partners-list';
 
 export const PARTNERS_ROUTES: Routes = [
   { path: '', pathMatch: 'full', component: PartnersList },
-  {
-    path: ':partnerSlug',
-    component: PartnerDetails,
-    data: { hideMobileNavigation: true },
-  },
+  { path: ':partnerSlug', component: PartnerDetails },
 ];

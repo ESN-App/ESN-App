@@ -4,9 +4,5 @@ import { EventsList } from './pages/events-list/events-list';
 
 export const EVENTS_ROUTES: Routes = [
   { path: '', pathMatch: 'full', component: EventsList },
-  {
-    path: ':eventSlug',
-    component: EventDetails,
-    data: { hideMobileNavigation: true },
-  },
+  { path: ':eventSlug', component: EventDetails },
 ];

@@ -4,9 +4,5 @@ import { InfoList } from './pages/info-list/info-list';
 
 export const INFO_ROUTES: Routes = [
   { path: '', pathMatch: 'full', component: InfoList },
-  {
-    path: ':articleSlug',
-    component: InfoDetails,
-    data: { hideMobileNavigation: true },
-  },
+  { path: ':articleSlug', component: InfoDetails },
 ];
