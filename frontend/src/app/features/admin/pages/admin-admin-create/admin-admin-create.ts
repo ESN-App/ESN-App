@@ -3,7 +3,7 @@ import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { PASSWORD_REQUIREMENTS_HINT } from '../../../../shared';
 import { AdminApi } from '../../data-access/admin-api';
-import { createAdminForm } from '../../utils/admin-form';
+import { adminNameError, applyServerErrors, createAdminForm } from '../../utils/admin-form';
 
 @Component({
   selector: 'app-admin-admin-create',
@@ -28,6 +28,10 @@ export class AdminAdminCreate {
   showError(controlName: string): boolean {
     const control = this.form.get(controlName);
     return Boolean(control && control.invalid && (control.dirty || control.touched));
+  }
+
+  nameError(controlName: 'firstName' | 'lastName', requiredMessage: string): string {
+    return adminNameError(this.form.controls[controlName], requiredMessage);
   }
 
   togglePasswordVisibility(): void {
@@ -71,15 +75,26 @@ export class AdminAdminCreate {
     this.submitting.set(true);
     this.error.set(null);
 
-    this.api.createAdmin(value.email!.trim(), value.password!).subscribe({
-      next: () => void this.router.navigate(['/admin'], { queryParams: { section: 'admins' } }),
-      error: (response) => {
-        this.submitting.set(false);
-        this.error.set(
-          response?.error?.error ?? 'The admin account could not be created.',
-        );
-      },
-    });
+    this.api
+      .createAdmin({
+        email: value.email!.trim(),
+        password: value.password!,
+        firstName: value.firstName!.trim(),
+        lastName: value.lastName!.trim(),
+      })
+      .subscribe({
+        next: () => void this.router.navigate(['/admin'], { queryParams: { section: 'admins' } }),
+        error: (response) => {
+          this.submitting.set(false);
+          const unmatched = applyServerErrors(this.form, response?.error?.errors);
+          const fieldErrorsShown = unmatched.length === 0 && Boolean(response?.error?.errors);
+          this.error.set(
+            fieldErrorsShown
+              ? null
+              : (unmatched[0] ?? response?.error?.error ?? 'The admin account could not be created.'),
+          );
+        },
+      });
   }
 
   @HostListener('document:keydown.escape')

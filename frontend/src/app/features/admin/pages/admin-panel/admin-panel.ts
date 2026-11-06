@@ -6,18 +6,21 @@ import { forkJoin, Observable, of } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 import { AuthService } from '../../../../core';
 import { CancelledBadge, DraftBadge, LoadingSpinner, PublishedBadge } from '../../../../shared';
-import type { EventDetailsDto } from '../../../events/data-access/events.models';
 import { createEventSlug } from '../../../events/utils/event-url';
-import type { NewsItemDto } from '../../../home/data-access/news.models';
-import type { InfoArticleDto } from '../../../info/data-access/info-api';
-import type { PartnerDto } from '../../../partners/data-access/partners.models';
 import { createPartnerSlug } from '../../../partners/utils/partner-url';
 import { AdminDisplayOrderModal } from '../../components/admin-display-order-modal/admin-display-order-modal';
-import { AdminApi, AdminUserDto } from '../../data-access/admin-api';
+import {
+  AdminApi,
+  AdminEventDto,
+  AdminInfoArticleDto,
+  AdminNewsItemDto,
+  AdminPartnerDto,
+  AdminUserDto,
+} from '../../data-access/admin-api';
 import { compareArticleOrder } from '../../utils/article-order';
 
 type AdminSection = 'events' | 'news' | 'partners' | 'info' | 'admins';
-type SortField = 'title' | 'date' | 'status';
+type SortField = 'title' | 'date' | 'created' | 'status';
 type ActiveSortField = SortField | 'default';
 type SortDirection = 'ascending' | 'descending';
 type EventStatusValue = 0 | 1 | 2 | 3 | 4;
@@ -84,13 +87,13 @@ export class AdminPanel {
   private readonly loadedSections = new Set<AdminSection>();
   private readonly pendingSections = new Set<AdminSection>();
   readonly publishingIds = signal(new Set<string>());
-  readonly eventPendingDelete = signal<EventDetailsDto | null>(null);
+  readonly eventPendingDelete = signal<AdminEventDto | null>(null);
   readonly deletingEvent = signal(false);
-  readonly partnerPendingDelete = signal<PartnerDto | null>(null);
+  readonly partnerPendingDelete = signal<AdminPartnerDto | null>(null);
   readonly deletingPartner = signal(false);
-  readonly infoPendingDelete = signal<InfoArticleDto | null>(null);
+  readonly infoPendingDelete = signal<AdminInfoArticleDto | null>(null);
   readonly deletingInfo = signal(false);
-  readonly newsPendingDelete = signal<NewsItemDto | null>(null);
+  readonly newsPendingDelete = signal<AdminNewsItemDto | null>(null);
   readonly deletingNews = signal(false);
   readonly adminPendingDelete = signal<AdminUserDto | null>(null);
   readonly deletingAdmin = signal(false);
@@ -118,10 +121,10 @@ export class AdminPanel {
   readonly tableScrollPosition = signal(0);
   readonly tableScrollMaximum = signal(0);
   @ViewChild('tableScroll') private tableScroll?: ElementRef<HTMLElement>;
-  readonly events = signal<EventDetailsDto[]>([]);
-  readonly news = signal<NewsItemDto[]>([]);
-  readonly partners = signal<PartnerDto[]>([]);
-  readonly info = signal<InfoArticleDto[]>([]);
+  readonly events = signal<AdminEventDto[]>([]);
+  readonly news = signal<AdminNewsItemDto[]>([]);
+  readonly partners = signal<AdminPartnerDto[]>([]);
+  readonly info = signal<AdminInfoArticleDto[]>([]);
   readonly admins = signal<AdminUserDto[]>([]);
 
   private readonly normalizedSearchTerm = computed(() =>
@@ -172,7 +175,7 @@ export class AdminPanel {
     ),
   );
   readonly filteredAdmins = computed(() =>
-    this.admins().filter((item) => this.matchesSearch(item.email)),
+    this.admins().filter((item) => this.matchesSearch(this.adminName(item), item.email)),
   );
 
   readonly sortedEvents = computed(() => {
@@ -184,35 +187,35 @@ export class AdminPanel {
     return this.sortItems(events, {
       title: (item) => item.title,
       date: (item) => Date.parse(item.startsAt),
+      created: (item) => Date.parse(item.createdAt),
       status: (item) => item.status,
     });
   });
   readonly sortedNews = computed(() =>
     this.sortItems(this.filteredNews(), {
       title: (item) => item.title,
-      date: (item) => Date.parse(item.createdAt),
+      created: (item) => Date.parse(item.createdAt),
       status: (item) => item.status,
     }, compareArticleOrder),
   );
   readonly sortedPartners = computed(() =>
     this.sortItems(this.filteredPartners(), {
       title: (item) => item.name,
-      date: (item) => Date.parse(item.createdAt),
+      created: (item) => Date.parse(item.createdAt),
       status: (item) => item.status,
     }),
   );
   readonly sortedInfo = computed(() =>
     this.sortItems(this.filteredInfo(), {
       title: (item) => item.title,
-      date: (item) => Date.parse(item.createdAt),
+      created: (item) => Date.parse(item.createdAt),
       status: (item) => item.status,
     }, compareArticleOrder),
   );
   readonly sortedAdmins = computed(() =>
     this.sortItems(this.filteredAdmins(), {
-      title: (item) => item.email,
-      date: (item) => Date.parse(item.createdAt),
-      status: () => '',
+      title: (item) => this.adminName(item),
+      created: (item) => Date.parse(item.createdAt),
     }),
   );
   readonly pagedEvents = computed(() => this.paginate(this.sortedEvents()));
@@ -367,7 +370,7 @@ export class AdminPanel {
       return 'default';
     }
 
-    return section === 'partners' ? 'title' : 'date';
+    return section === 'partners' ? 'title' : 'created';
   }
 
   updateSearch(event: Event): void {
@@ -437,11 +440,11 @@ export class AdminPanel {
     this.selectedIds.set(new Set());
   }
 
-  eventDetailsLink(item: EventDetailsDto): string[] {
+  eventDetailsLink(item: AdminEventDto): string[] {
     return ['/events', createEventSlug(item.title, item.id)];
   }
 
-  partnerDetailsLink(item: PartnerDto): string[] {
+  partnerDetailsLink(item: AdminPartnerDto): string[] {
     return ['/partners', item.slug || createPartnerSlug(item.name)];
   }
 
@@ -540,7 +543,7 @@ export class AdminPanel {
     return ['Draft', 'Active', 'Inactive'][status] ?? 'Unknown';
   }
 
-  requestEventDelete(item: EventDetailsDto): void {
+  requestEventDelete(item: AdminEventDto): void {
     this.deleteError.set(null);
     this.eventPendingDelete.set(item);
   }
@@ -794,7 +797,7 @@ export class AdminPanel {
     });
   }
 
-  requestPartnerDelete(item: PartnerDto): void {
+  requestPartnerDelete(item: AdminPartnerDto): void {
     this.deleteError.set(null);
     this.partnerPendingDelete.set(item);
   }
@@ -832,7 +835,7 @@ export class AdminPanel {
     });
   }
 
-  requestInfoDelete(item: InfoArticleDto): void {
+  requestInfoDelete(item: AdminInfoArticleDto): void {
     this.deleteError.set(null);
     this.infoPendingDelete.set(item);
   }
@@ -870,7 +873,7 @@ export class AdminPanel {
     });
   }
 
-  requestNewsDelete(item: NewsItemDto): void {
+  requestNewsDelete(item: AdminNewsItemDto): void {
     this.deleteError.set(null);
     this.newsPendingDelete.set(item);
   }
@@ -906,6 +909,10 @@ export class AdminPanel {
         this.deletingNews.set(false);
       },
     });
+  }
+
+  adminName(item: AdminUserDto): string {
+    return `${item.firstName} ${item.lastName}`.trim();
   }
 
   isCurrentAdmin(item: AdminUserDto): boolean {
@@ -1088,19 +1095,19 @@ export class AdminPanel {
     );
   }
 
-  updateNewsStatus(item: NewsItemDto, status: number): void {
+  updateNewsStatus(item: AdminNewsItemDto, status: number): void {
     this.updateStatus(item.id, this.api.updateNewsStatus(item.id, status), (updated) =>
       this.news.update((items) => items.map((current) => (current.id === updated.id ? updated : current))),
     );
   }
 
-  updatePartnerStatus(item: PartnerDto, status: number): void {
+  updatePartnerStatus(item: AdminPartnerDto, status: number): void {
     this.updateStatus(item.id, this.api.updatePartnerStatus(item.id, status), (updated) =>
       this.partners.update((items) => items.map((current) => (current.id === updated.id ? updated : current))),
     );
   }
 
-  updateInfoStatus(item: InfoArticleDto, status: number): void {
+  updateInfoStatus(item: AdminInfoArticleDto, status: number): void {
     this.updateStatus(item.id, this.api.updateInfoStatus(item.id, status), (updated) =>
       this.info.update((items) => items.map((current) => (current.id === updated.id ? updated : current))),
     );
@@ -1149,7 +1156,7 @@ export class AdminPanel {
 
   private sortItems<T>(
     items: T[],
-    selectors: Record<SortField, (item: T) => string | number>,
+    selectors: Partial<Record<SortField, (item: T) => string | number>>,
     defaultOrder?: (left: T, right: T) => number,
   ): T[] {
     const field = this.sortField();
@@ -1157,6 +1164,9 @@ export class AdminPanel {
       return defaultOrder ? [...items].sort(defaultOrder) : items;
     }
     const selector = selectors[field];
+    if (!selector) {
+      return items;
+    }
     const multiplier = this.sortDirection() === 'ascending' ? 1 : -1;
 
     return [...items].sort((left, right) => {
@@ -1171,7 +1181,7 @@ export class AdminPanel {
     });
   }
 
-  private sortEventsFromCurrentMonth(items: EventDetailsDto[]): EventDetailsDto[] {
+  private sortEventsFromCurrentMonth(items: AdminEventDto[]): AdminEventDto[] {
     const currentMonth = new Date().getMonth();
 
     return [...items].sort((left, right) => {
@@ -1193,9 +1203,9 @@ export class AdminPanel {
     return items.slice(start, start + this.pageSize());
   }
 
-  readonly partnerLabel = (partner: PartnerDto): string => partner.name;
-  readonly infoLabel = (article: InfoArticleDto): string => article.title;
-  readonly newsLabel = (item: NewsItemDto): string => item.title;
+  readonly partnerLabel = (partner: AdminPartnerDto): string => partner.name;
+  readonly infoLabel = (article: AdminInfoArticleDto): string => article.title;
+  readonly newsLabel = (item: AdminNewsItemDto): string => item.title;
 
   openDisplayOrderModal(): void {
     this.displayOrderModalOpen.set(true);

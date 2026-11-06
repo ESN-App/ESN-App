@@ -16,6 +16,23 @@
       <div><h2>Administrator details</h2><p>Fields marked with * are required.</p></div>
     </div>
 
+    <div class="name-row">
+      <label class="field">
+        <span>First name *</span>
+        <input formControlName="firstName" maxlength="50" placeholder="e.g. Jan" autocomplete="off"
+          [attr.aria-invalid]="showError('firstName') || null"
+          [attr.aria-describedby]="showError('firstName') ? 'admin-first-name-error' : null" />
+        @if (showError('firstName')) { <span class="field-error" id="admin-first-name-error">{{ nameError('firstName', 'Enter a first name.') }}</span> }
+      </label>
+      <label class="field">
+        <span>Last name *</span>
+        <input formControlName="lastName" maxlength="50" placeholder="e.g. Kowalski" autocomplete="off"
+          [attr.aria-invalid]="showError('lastName') || null"
+          [attr.aria-describedby]="showError('lastName') ? 'admin-last-name-error' : null" />
+        @if (showError('lastName')) { <span class="field-error" id="admin-last-name-error">{{ nameError('lastName', 'Enter a last name.') }}</span> }
+      </label>
+    </div>
+
     <label class="field">
       <span>Email *</span>
       <input type="email" formControlName="email" maxlength="256" placeholder="name@esngdansk.local" autocomplete="off" />

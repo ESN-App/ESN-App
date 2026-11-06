@@ -1,4 +1,6 @@
 :host {
+  // Error colour from the admin form spec; slightly darker than --app-danger for contrast on inputs.
+  --field-error: light-dark(#a1221a, #ff8a80);
   --admin-accent: var(--app-primary);
   --admin-accent-dark: var(--app-primary);
   display: block;
@@ -106,20 +108,22 @@
 }
 
 .field > span:first-child {
-  color: var(--app-muted);
-  font-size: 0.76rem;
-  font-weight: 750;
+  color: var(--app-ink);
+  font-size: 0.8125rem;
+  font-weight: 700;
 }
 
 .field input {
   background: var(--app-card);
   border: 1px solid var(--app-border);
-  border-radius: 0.65rem;
+  border-radius: 0.875rem;
   color: var(--app-ink);
   font: inherit;
-  font-size: 0.82rem;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  min-height: 3rem;
   outline: 0;
-  padding: 0.72rem 0.75rem;
+  padding: 0.6rem 0.875rem;
   width: 100%;
 }
 
@@ -165,6 +169,30 @@
 .field small {
   color: var(--app-danger);
   font-size: 0.7rem;
+}
+
+.name-row {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+}
+
+.name-row .field input[aria-invalid='true'] {
+  border-color: var(--field-error);
+  box-shadow: inset 0 0 0 1px var(--field-error);
+}
+
+.field-error {
+  color: var(--field-error);
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+@media (max-width: 700px) {
+  .name-row {
+    grid-template-columns: 1fr;
+  }
 }
 
 .field-hint {

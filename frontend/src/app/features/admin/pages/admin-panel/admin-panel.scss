@@ -525,18 +525,37 @@ td {
   width: 20%;
 }
 
-.news-table th:nth-child(2),
-.news-table th:nth-child(3),
-.news-table th:nth-child(4) {
-  width: calc((100% - 10rem) / 3);
+td.created-column time,
+.admins-table time,
+.admin-email {
+  color: var(--app-ink);
+  font-size: 0.875rem;
+  font-weight: 400;
 }
 
-.admins-table th:nth-child(2) {
-  width: 60%;
+td.created-column time {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.admins-table th:nth-child(3) {
-  width: calc(40% - 10rem);
+td.created-column small {
+  font-size: 0.75rem;
+  margin-top: 2px;
+}
+
+.admins-table strong {
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+td small.created-meta {
+  display: none;
+}
+
+// Column widths in the template are percentages of the design table, so include padding.
+th {
+  box-sizing: border-box;
 }
 
 .selection {
@@ -847,6 +866,16 @@ td small {
 }
 
 @media (max-width: 700px) {
+  .created-column {
+    display: none;
+  }
+
+  td small.created-meta {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 400;
+  }
+
   .admin-header {
     align-items: flex-start;
     margin-top: 0.5rem;

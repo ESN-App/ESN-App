@@ -11,8 +11,27 @@ import type { PartnerDto } from '../../partners/data-access/partners.models';
 export interface AdminUserDto {
   id: string;
   email: string;
+  firstName: string;
+  lastName: string;
   createdAt: string;
 }
+
+export interface CreateAdminRequest {
+  email: string;
+  password: string;
+  firstName: string;
+  lastName: string;
+}
+
+/** Admin endpoints add who created the item; null for legacy rows. Already formatted, e.g. "Jan K.". */
+interface CreatedBy {
+  createdBy: string | null;
+}
+
+export type AdminEventDto = EventDetailsDto & CreatedBy;
+export type AdminNewsItemDto = NewsItemDto & CreatedBy;
+export type AdminInfoArticleDto = InfoArticleDto & CreatedBy;
+export type AdminPartnerDto = PartnerDto & CreatedBy;
 
 export interface CreateEventRequest {
   title: string;
@@ -76,31 +95,31 @@ export class AdminApi {
   private readonly http = inject(HttpClient);
   private readonly baseUrl = `${environment.apiBaseUrl}/api/admin`;
 
-  getEvents(): Observable<EventDetailsDto[]> {
+  getEvents(): Observable<AdminEventDto[]> {
     return this.getEventsPage(1).pipe(
       expand((result) => (result.hasNextPage ? this.getEventsPage(result.page + 1) : EMPTY)),
-      reduce((items, result) => [...items, ...result.items], [] as EventDetailsDto[]),
+      reduce((items, result) => [...items, ...result.items], [] as AdminEventDto[]),
     );
   }
 
-  getNews(): Observable<NewsItemDto[]> {
-    return this.http.get<NewsItemDto[]>(`${this.baseUrl}/news`);
+  getNews(): Observable<AdminNewsItemDto[]> {
+    return this.http.get<AdminNewsItemDto[]>(`${this.baseUrl}/news`);
   }
 
-  getPartners(): Observable<PartnerDto[]> {
-    return this.http.get<PartnerDto[]>(`${this.baseUrl}/partners`);
+  getPartners(): Observable<AdminPartnerDto[]> {
+    return this.http.get<AdminPartnerDto[]>(`${this.baseUrl}/partners`);
   }
 
-  getInfo(): Observable<InfoArticleDto[]> {
-    return this.http.get<InfoArticleDto[]>(`${this.baseUrl}/info`);
+  getInfo(): Observable<AdminInfoArticleDto[]> {
+    return this.http.get<AdminInfoArticleDto[]>(`${this.baseUrl}/info`);
   }
 
   getAdmins(): Observable<AdminUserDto[]> {
     return this.http.get<AdminUserDto[]>(`${this.baseUrl}/admins`);
   }
 
-  createAdmin(email: string, password: string): Observable<AdminUserDto> {
-    return this.http.post<AdminUserDto>(`${this.baseUrl}/admins`, { email, password });
+  createAdmin(request: CreateAdminRequest): Observable<AdminUserDto> {
+    return this.http.post<AdminUserDto>(`${this.baseUrl}/admins`, request);
   }
 
   deleteAdmin(id: string): Observable<void> {
@@ -111,15 +130,15 @@ export class AdminApi {
     return this.http.post<void>(`${this.baseUrl}/admins/${id}/reset-password`, {});
   }
 
-  createEvent(request: CreateEventRequest, image: File | null): Observable<EventDetailsDto> {
-    return this.http.post<EventDetailsDto>(
+  createEvent(request: CreateEventRequest, image: File | null): Observable<AdminEventDto> {
+    return this.http.post<AdminEventDto>(
       `${this.baseUrl}/events`,
       this.eventFormData(request, image),
     );
   }
 
-  getEvent(id: string): Observable<EventDetailsDto> {
-    return this.http.get<EventDetailsDto>(`${this.baseUrl}/events/${id}`);
+  getEvent(id: string): Observable<AdminEventDto> {
+    return this.http.get<AdminEventDto>(`${this.baseUrl}/events/${id}`);
   }
 
   deleteEvent(id: string): Observable<void> {
@@ -131,10 +150,10 @@ export class AdminApi {
     request: CreateEventRequest,
     image: File | null,
     removeImage: boolean,
-  ): Observable<EventDetailsDto> {
+  ): Observable<AdminEventDto> {
     const formData = this.eventFormData(request, image);
     formData.append('removeImage', String(removeImage));
-    return this.http.put<EventDetailsDto>(`${this.baseUrl}/events/${id}`, formData);
+    return this.http.put<AdminEventDto>(`${this.baseUrl}/events/${id}`, formData);
   }
 
   private eventFormData(request: CreateEventRequest, image: File | null): FormData {
@@ -165,18 +184,18 @@ export class AdminApi {
     return formData;
   }
 
-  updateEventStatus(id: string, status: number): Observable<EventDetailsDto> {
-    return this.http.patch<EventDetailsDto>(`${this.baseUrl}/events/${id}`, {
+  updateEventStatus(id: string, status: number): Observable<AdminEventDto> {
+    return this.http.patch<AdminEventDto>(`${this.baseUrl}/events/${id}`, {
       status,
     });
   }
 
-  getNewsItem(id: string): Observable<NewsItemDto> {
-    return this.http.get<NewsItemDto>(`${this.baseUrl}/news/${id}`);
+  getNewsItem(id: string): Observable<AdminNewsItemDto> {
+    return this.http.get<AdminNewsItemDto>(`${this.baseUrl}/news/${id}`);
   }
 
-  createNews(request: CreateNewsItemRequest, image: File | null): Observable<NewsItemDto> {
-    return this.http.post<NewsItemDto>(`${this.baseUrl}/news`, this.newsFormData(request, image));
+  createNews(request: CreateNewsItemRequest, image: File | null): Observable<AdminNewsItemDto> {
+    return this.http.post<AdminNewsItemDto>(`${this.baseUrl}/news`, this.newsFormData(request, image));
   }
 
   updateNews(
@@ -184,10 +203,10 @@ export class AdminApi {
     request: CreateNewsItemRequest,
     image: File | null,
     removeImage: boolean,
-  ): Observable<NewsItemDto> {
+  ): Observable<AdminNewsItemDto> {
     const formData = this.newsFormData(request, image);
     formData.append('removeImage', String(removeImage));
-    return this.http.put<NewsItemDto>(`${this.baseUrl}/news/${id}`, formData);
+    return this.http.put<AdminNewsItemDto>(`${this.baseUrl}/news/${id}`, formData);
   }
 
   deleteNews(id: string): Observable<void> {
@@ -205,32 +224,32 @@ export class AdminApi {
     return formData;
   }
 
-  reorderNews(newsItemIds: string[]): Observable<NewsItemDto[]> {
-    return this.http.put<NewsItemDto[]>(`${this.baseUrl}/news/order`, { newsItemIds });
+  reorderNews(newsItemIds: string[]): Observable<AdminNewsItemDto[]> {
+    return this.http.put<AdminNewsItemDto[]>(`${this.baseUrl}/news/order`, { newsItemIds });
   }
 
-  updateNewsStatus(id: string, status: number): Observable<NewsItemDto> {
-    return this.http.patch<NewsItemDto>(`${this.baseUrl}/news/${id}/status`, { status });
+  updateNewsStatus(id: string, status: number): Observable<AdminNewsItemDto> {
+    return this.http.patch<AdminNewsItemDto>(`${this.baseUrl}/news/${id}/status`, { status });
   }
 
-  updatePartnerStatus(id: string, status: number): Observable<PartnerDto> {
-    return this.http.patch<PartnerDto>(`${this.baseUrl}/partners/${id}/status`, { status });
+  updatePartnerStatus(id: string, status: number): Observable<AdminPartnerDto> {
+    return this.http.patch<AdminPartnerDto>(`${this.baseUrl}/partners/${id}/status`, { status });
   }
 
-  reorderPartners(partnerIds: string[]): Observable<PartnerDto[]> {
-    return this.http.put<PartnerDto[]>(`${this.baseUrl}/partners/order`, { partnerIds });
+  reorderPartners(partnerIds: string[]): Observable<AdminPartnerDto[]> {
+    return this.http.put<AdminPartnerDto[]>(`${this.baseUrl}/partners/order`, { partnerIds });
   }
 
-  createPartner(request: CreatePartnerRequest, logo: File): Observable<PartnerDto> {
-    return this.http.post<PartnerDto>(`${this.baseUrl}/partners`, this.partnerFormData(request, logo));
+  createPartner(request: CreatePartnerRequest, logo: File): Observable<AdminPartnerDto> {
+    return this.http.post<AdminPartnerDto>(`${this.baseUrl}/partners`, this.partnerFormData(request, logo));
   }
 
-  getPartnerBySlug(slug: string): Observable<PartnerDto> {
-    return this.http.get<PartnerDto>(`${this.baseUrl}/partners/by-slug/${slug}`);
+  getPartnerBySlug(slug: string): Observable<AdminPartnerDto> {
+    return this.http.get<AdminPartnerDto>(`${this.baseUrl}/partners/by-slug/${slug}`);
   }
 
-  updatePartner(id: string, request: CreatePartnerRequest, logo: File | null): Observable<PartnerDto> {
-    return this.http.put<PartnerDto>(`${this.baseUrl}/partners/${id}`, this.partnerFormData(request, logo));
+  updatePartner(id: string, request: CreatePartnerRequest, logo: File | null): Observable<AdminPartnerDto> {
+    return this.http.put<AdminPartnerDto>(`${this.baseUrl}/partners/${id}`, this.partnerFormData(request, logo));
   }
 
   deletePartner(id: string): Observable<void> {
@@ -278,16 +297,16 @@ export class AdminApi {
     return this.http.delete<void>(`${this.baseUrl}/discounts/${id}`);
   }
 
-  updateInfoStatus(id: string, status: number): Observable<InfoArticleDto> {
-    return this.http.patch<InfoArticleDto>(`${this.baseUrl}/info/${id}/status`, { status });
+  updateInfoStatus(id: string, status: number): Observable<AdminInfoArticleDto> {
+    return this.http.patch<AdminInfoArticleDto>(`${this.baseUrl}/info/${id}/status`, { status });
   }
 
-  getInfoArticle(id: string): Observable<InfoArticleDto> {
-    return this.http.get<InfoArticleDto>(`${this.baseUrl}/info/${id}`);
+  getInfoArticle(id: string): Observable<AdminInfoArticleDto> {
+    return this.http.get<AdminInfoArticleDto>(`${this.baseUrl}/info/${id}`);
   }
 
-  createInfo(request: CreateInfoArticleRequest, image: File | null): Observable<InfoArticleDto> {
-    return this.http.post<InfoArticleDto>(`${this.baseUrl}/info`, this.infoFormData(request, image));
+  createInfo(request: CreateInfoArticleRequest, image: File | null): Observable<AdminInfoArticleDto> {
+    return this.http.post<AdminInfoArticleDto>(`${this.baseUrl}/info`, this.infoFormData(request, image));
   }
 
   updateInfo(
@@ -295,10 +314,10 @@ export class AdminApi {
     request: CreateInfoArticleRequest,
     image: File | null,
     removeImage: boolean,
-  ): Observable<InfoArticleDto> {
+  ): Observable<AdminInfoArticleDto> {
     const formData = this.infoFormData(request, image);
     formData.append('removeImage', String(removeImage));
-    return this.http.put<InfoArticleDto>(`${this.baseUrl}/info/${id}`, formData);
+    return this.http.put<AdminInfoArticleDto>(`${this.baseUrl}/info/${id}`, formData);
   }
 
   private infoFormData(request: CreateInfoArticleRequest, image: File | null): FormData {
@@ -319,12 +338,12 @@ export class AdminApi {
     return this.http.delete<void>(`${this.baseUrl}/info/${id}`);
   }
 
-  reorderInfo(articleIds: string[]): Observable<InfoArticleDto[]> {
-    return this.http.put<InfoArticleDto[]>(`${this.baseUrl}/info/order`, { articleIds });
+  reorderInfo(articleIds: string[]): Observable<AdminInfoArticleDto[]> {
+    return this.http.put<AdminInfoArticleDto[]>(`${this.baseUrl}/info/order`, { articleIds });
   }
 
-  private getEventsPage(page: number): Observable<PagedResult<EventDetailsDto>> {
-    return this.http.get<PagedResult<EventDetailsDto>>(`${this.baseUrl}/events`, {
+  private getEventsPage(page: number): Observable<PagedResult<AdminEventDto>> {
+    return this.http.get<PagedResult<AdminEventDto>>(`${this.baseUrl}/events`, {
       params: { page: String(page), pageSize: '100' },
     });
   }
