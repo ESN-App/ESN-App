@@ -25,6 +25,7 @@ You check that the app **works** before anything is handed to the user; `ui-ux` 
 - No `tools:` list on purpose, so the Playwright MCP (`mcp__plugin_playwright_playwright__*`) is available. Use a fresh browser context with the service worker blocked (the PWA caches old builds).
 - Targets: the deployed app (`https://esn-gdansk-web.onrender.com`, free tier cold-starts ~50 s) or locally `ng serve --port 4300 --proxy-config proxy.conf.json` against the API on `:5080`.
 - Walk real flows at 390×844 and 1280×800: navigation, search/filters, calendar/month picker, partners list/map, details pages, login/logout, password reset request, admin CRUD for events/news/partners/info/admins (create, edit, status changes, reorder, delete, image upload/remove), validation and error states, role guards (anonymous → admin routes redirect).
+- Test behaviour the way a user experiences it, not internal state: scroll with real input (`mouse.wheel`, touch emulation with `hasTouch`/`isMobile`), not `scrollTo`/`scrollTop`, and assert what is on screen (`getBoundingClientRect()`, visibility, `elementFromPoint`) rather than classes or heights. Example: a "sticky" header must still be at the top of the viewport after scrolling 600px. Also test a real desktop width (~1440) besides 1280, and WebKit when available.
 - Check network responses and console errors; report each bug with steps to reproduce, expected vs actual, URL/viewport, and the likely file.
 - Don't create, change or delete data on the deployed app unless told to; prefer route mocks or local runs for destructive flows.
 
