@@ -74,6 +74,7 @@ export class EventsList {
   private readonly api = inject(EventsApi);
   private readonly calendar = viewChild<MatCalendar<Date>>(MatCalendar);
   private readonly dayStrip = viewChild<ElementRef<HTMLElement>>('dayStrip');
+  private readonly monthPicker = viewChild<ElementRef<HTMLDialogElement>>('monthPicker');
 
   // Emits once on start and again on every "Try again"; filters are kept.
   private readonly reload$ = new BehaviorSubject<void>(undefined);
@@ -316,15 +317,26 @@ export class EventsList {
   }
 
   toggleMonthPicker(): void {
-    if (!this.monthPickerOpen()) {
-      this.monthPickerYear.set(this.selectedMonth().getFullYear());
+    if (this.monthPickerOpen()) {
+      this.closeMonthPicker();
+      return;
     }
 
-    this.monthPickerOpen.update((isOpen) => !isOpen);
+    this.monthPickerYear.set(this.selectedMonth().getFullYear());
+    this.monthPicker()?.nativeElement.showModal();
+    this.monthPickerOpen.set(true);
   }
 
   closeMonthPicker(): void {
-    this.monthPickerOpen.set(false);
+    // The dialog's close event resets monthPickerOpen.
+    this.monthPicker()?.nativeElement.close();
+  }
+
+  onMonthPickerClick(event: MouseEvent): void {
+    // The body fills the dialog, so a click landing on the dialog itself hit the backdrop.
+    if (event.target === event.currentTarget) {
+      this.closeMonthPicker();
+    }
   }
 
   changeMonthPickerYear(offset: number): void {
@@ -349,7 +361,7 @@ export class EventsList {
       return;
     }
 
-    this.monthPickerOpen.set(false);
+    this.closeMonthPicker();
     this.selectedDateKey.set(null);
     this.router.navigate([], {
       relativeTo: this.route,

@@ -29,18 +29,18 @@
           Month
         </button>
 
-        @if (monthPickerOpen()) {
-          <button
-            class="month-picker-backdrop"
-            type="button"
-            aria-label="Close month picker"
-            (click)="closeMonthPicker()"
-          ></button>
-          <section
-            id="month-picker-popover"
-            class="month-picker-popover card"
-            aria-label="Choose month"
-          >
+        <!-- Modal dialog renders in the top layer, above the clipping header and the bottom nav. -->
+        <!-- Backdrop click is pointer-only; keyboard users close it with the native Escape. -->
+        <!-- eslint-disable-next-line @angular-eslint/template/click-events-have-key-events, @angular-eslint/template/interactive-supports-focus -->
+        <dialog
+          #monthPicker
+          id="month-picker-popover"
+          class="month-picker-popover card"
+          aria-label="Choose month"
+          (close)="monthPickerOpen.set(false)"
+          (click)="onMonthPickerClick($event)"
+        >
+          <div class="month-picker-body">
             <header>
               <button
                 class="round-button"
@@ -76,8 +76,8 @@
                 </button>
               }
             </div>
-          </section>
-        }
+          </div>
+        </dialog>
       </div>
 
       <div #dayStrip class="day-strip day-strip--scroll" role="group" aria-label="Filter events by day">
