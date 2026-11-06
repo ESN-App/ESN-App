@@ -14,6 +14,7 @@ import type { PartnerDto } from '../../../partners/data-access/partners.models';
 import { createPartnerSlug } from '../../../partners/utils/partner-url';
 import { AdminDisplayOrderModal } from '../../components/admin-display-order-modal/admin-display-order-modal';
 import { AdminApi, AdminUserDto } from '../../data-access/admin-api';
+import { compareArticleOrder } from '../../utils/article-order';
 
 type AdminSection = 'events' | 'news' | 'partners' | 'info' | 'admins';
 type SortField = 'title' | 'date' | 'status';
@@ -191,7 +192,7 @@ export class AdminPanel {
       title: (item) => item.title,
       date: (item) => Date.parse(item.createdAt),
       status: (item) => item.status,
-    }),
+    }, compareArticleOrder),
   );
   readonly sortedPartners = computed(() =>
     this.sortItems(this.filteredPartners(), {
@@ -205,7 +206,7 @@ export class AdminPanel {
       title: (item) => item.title,
       date: (item) => Date.parse(item.createdAt),
       status: (item) => item.status,
-    }),
+    }, compareArticleOrder),
   );
   readonly sortedAdmins = computed(() =>
     this.sortItems(this.filteredAdmins(), {
@@ -326,14 +327,10 @@ export class AdminPanel {
       .sort((a, b) => (a.displayOrder ?? 0) - (b.displayOrder ?? 0)),
   );
   readonly publishedInfoForReorder = computed(() =>
-    this.info()
-      .filter((item) => item.status === 1)
-      .sort((a, b) => (a.displayOrder ?? 0) - (b.displayOrder ?? 0)),
+    this.info().filter((item) => item.status === 1).sort(compareArticleOrder),
   );
   readonly publishedNewsForReorder = computed(() =>
-    this.news()
-      .filter((item) => item.status === 1)
-      .sort((a, b) => (a.displayOrder ?? 0) - (b.displayOrder ?? 0)),
+    this.news().filter((item) => item.status === 1).sort(compareArticleOrder),
   );
 
   constructor() {
@@ -365,7 +362,8 @@ export class AdminPanel {
   }
 
   private defaultSortField(section: AdminSection): ActiveSortField {
-    if (section === 'events') {
+    // News and Info keep the server order (manual reorder, then newest first).
+    if (section === 'events' || section === 'news' || section === 'info') {
       return 'default';
     }
 
@@ -496,9 +494,7 @@ export class AdminPanel {
       case 'news':
         this.api.getNews().subscribe({
           next: (news) => {
-            this.news.set(
-              [...news].sort((left, right) => Date.parse(right.createdAt) - Date.parse(left.createdAt)),
-            );
+            this.news.set(news);
             onLoaded();
           },
           error: onFailed,
@@ -516,7 +512,7 @@ export class AdminPanel {
       case 'info':
         this.api.getInfo().subscribe({
           next: (info) => {
-            this.info.set([...info].sort((left, right) => left.title.localeCompare(right.title)));
+            this.info.set(info);
             onLoaded();
           },
           error: onFailed,
@@ -1154,8 +1150,13 @@ export class AdminPanel {
   private sortItems<T>(
     items: T[],
     selectors: Record<SortField, (item: T) => string | number>,
+    defaultOrder?: (left: T, right: T) => number,
   ): T[] {
-    const selector = selectors[this.sortField() as SortField];
+    const field = this.sortField();
+    if (field === 'default') {
+      return defaultOrder ? [...items].sort(defaultOrder) : items;
+    }
+    const selector = selectors[field];
     const multiplier = this.sortDirection() === 'ascending' ? 1 : -1;
 
     return [...items].sort((left, right) => {

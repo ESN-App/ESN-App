@@ -125,7 +125,7 @@
                   <tr [class.draft-row]="item.status === 0">
                     <td class="selection"><input type="checkbox" [attr.aria-label]="'Select ' + item.title" [checked]="selectedIds().has(item.id)" (change)="toggleSelection(item.id)" /></td>
                     <td class="primary-column" data-label="News item"><a class="details-link" [routerLink]="['/news', item.id]" [title]="item.title">{{ item.title }}</a></td>
-                    <td data-label="Created">{{ item.createdAt | date: 'd MMM y' }}</td>
+                    <td data-label="Created">{{ item.createdAt | date: 'd MMM y, HH:mm' }}</td>
                     <td data-label="Status"><span class="status-badge" [class.draft-badge]="item.status === 0">{{ item.status === 0 ? 'Draft' : 'Published' }}</span></td>
                     <td class="row-tools"><div class="row-tools__buttons"><a class="icon-button icon-button--edit" [routerLink]="['/admin/news', item.id, 'edit']" [attr.aria-label]="'Edit ' + item.title" title="Edit"></a><button type="button" class="icon-button icon-button--delete" [attr.aria-label]="'Delete ' + item.title" title="Delete" (click)="requestNewsDelete(item)"></button></div></td>
                   </tr>
@@ -143,7 +143,7 @@
                     <td class="primary-column" data-label="Partner"><a class="details-link" [routerLink]="partnerDetailsLink(item)" [title]="item.name">{{ item.name }}</a></td>
                     <td data-label="Address">{{ item.address || '—' }}</td>
                     <td data-label="Website">@if (item.websiteUrl) { <a class="website-link" [href]="item.websiteUrl" target="_blank" rel="noopener noreferrer">{{ item.name }} website</a> } @else { — }</td>
-                    <td data-label="Created">{{ item.createdAt | date: 'd MMM y' }}</td>
+                    <td data-label="Created">{{ item.createdAt | date: 'd MMM y, HH:mm' }}</td>
                     <td data-label="Status"><span class="status-badge" [class.draft-badge]="item.status === 0" [class.inactive-badge]="item.status === 2">{{ partnerStatus(item.status) }}</span></td>
                     <td class="row-tools"><div class="row-tools__buttons"><a class="icon-button icon-button--edit" [routerLink]="['/admin/partners', partnerSlug(item.name), 'edit']" [attr.aria-label]="'Edit ' + item.name" title="Edit"></a><button type="button" class="icon-button icon-button--delete" [attr.aria-label]="'Delete ' + item.name" title="Delete" (click)="requestPartnerDelete(item)"></button></div></td>
                   </tr>
@@ -160,7 +160,7 @@
                     <td class="selection"><input type="checkbox" [attr.aria-label]="'Select ' + item.title" [checked]="selectedIds().has(item.id)" (change)="toggleSelection(item.id)" /></td>
                     <td class="primary-column" data-label="Article"><a class="details-link" [routerLink]="['/info', item.slug]" [title]="item.title">{{ item.title }}</a></td>
                     <td data-label="Category">{{ item.category }}</td>
-                    <td data-label="Created">{{ item.createdAt | date: 'd MMM y' }}</td>
+                    <td data-label="Created">{{ item.createdAt | date: 'd MMM y, HH:mm' }}</td>
                     <td data-label="Status"><span class="status-badge" [class.draft-badge]="item.status === 0">{{ item.status === 0 ? 'Draft' : 'Published' }}</span></td>
                     <td class="row-tools"><div class="row-tools__buttons"><a class="icon-button icon-button--edit" [routerLink]="['/admin/info', item.id, 'edit']" [attr.aria-label]="'Edit ' + item.title" title="Edit"></a><button type="button" class="icon-button icon-button--delete" [attr.aria-label]="'Delete ' + item.title" title="Delete" (click)="requestInfoDelete(item)"></button></div></td>
                   </tr>
@@ -176,7 +176,7 @@
                   <tr>
                     <td class="selection"><input type="checkbox" [attr.aria-label]="'Select ' + item.email" [checked]="selectedIds().has(item.id)" [disabled]="isCurrentAdmin(item)" (change)="toggleSelection(item.id)" /></td>
                     <td class="primary-column" data-label="Administrator"><strong [title]="item.email">{{ item.email }}@if (isCurrentAdmin(item)) { <small>(you)</small> }</strong></td>
-                    <td data-label="Created">{{ item.createdAt | date: 'd MMM y' }}</td>
+                    <td data-label="Created">{{ item.createdAt | date: 'd MMM y, HH:mm' }}</td>
                     <td class="row-tools"><div class="row-tools__buttons"><button type="button" class="icon-button icon-button--delete" [attr.aria-label]="'Delete ' + item.email" title="Delete" [disabled]="isCurrentAdmin(item)" (click)="requestAdminDelete(item)"></button><div class="row-menu"><button type="button" class="icon-button icon-button--menu" [attr.aria-label]="'Options for ' + item.email" title="Options" (click)="toggleOptionsMenu(item.id, menuTrigger)" #menuTrigger></button>@if (openOptionsMenuId() === item.id && optionsMenuPosition(); as position) {<div class="row-menu__dropdown" role="menu" [style.top.px]="position.top" [style.right.px]="position.right"><button type="button" role="menuitem" [disabled]="isCurrentAdmin(item)" [title]="isCurrentAdmin(item) ? 'You cannot reset your own password this way' : ''" (click)="requestAdminPasswordReset(item)">Reset password</button></div>}</div></div></td>
                   </tr>
                 }

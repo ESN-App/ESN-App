@@ -30,10 +30,8 @@ export class InfoList {
           map(
             (articles): InfoPageState => ({
               status: 'loaded',
-              articles: [...articles].sort(
-                (left, right) =>
-                  left.displayOrder - right.displayOrder || left.title.localeCompare(right.title),
-              ),
+              // Server order: manual DisplayOrder, then newest first.
+              articles,
             }),
           ),
           startWith<InfoPageState>({ status: 'loading', articles: [] }),
