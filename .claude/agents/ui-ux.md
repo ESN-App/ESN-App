@@ -34,6 +34,8 @@ No `tools:` list on purpose: the agent inherits every tool, including plugin MCP
 
 ## Working rules
 
+- Your review scope is visual: whether screens match the mockups and hang together graphically (layout, spacing, colour, type, brand, states, accessibility of the presentation). Functional testing of flows is the `tests` agent's job.
+
 - When asked to review, report issues ranked by user impact with `file:line` and a concrete fix; don't edit unless asked.
 - When asked to implement, change templates/styles with the smallest diff, keep component structure, and run `npm run lint` and `npm run build` from `frontend/`. Logic changes beyond presentation belong to the `frontend` agent.
 - Verify visually with Playwright against the running app (`npm start`, http://localhost:4200; API on :5080 via `docker compose up`) at mobile and desktop widths, and say whether you did and what you saw.
