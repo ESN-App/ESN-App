@@ -89,20 +89,6 @@
 .guide-tile {
   background: var(--c-orange);
   height: 140px;
-  isolation: isolate;
-  overflow: hidden;
-  position: relative;
-
-  // No image: the whole ESN star, white at full opacity and centred (brand manual).
-  &::after {
-    -webkit-mask: url('/images/esnstar.png') center / contain no-repeat;
-    background: #fff;
-    content: '';
-    inset: 20%;
-    mask: url('/images/esnstar.png') center / contain no-repeat;
-    position: absolute;
-    z-index: -1;
-  }
 
   img {
     height: 100%;

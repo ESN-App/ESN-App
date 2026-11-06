@@ -36,10 +36,9 @@
 }
 
 .image-fallback {
-  background: var(--app-raised);
+  background: var(--accent);
 }
 
-.news-card--draft .image-fallback,
 .news-card--draft img {
   // #f1f1f2 / #cfd1d4 are the shared draft colours used by the event, partner and info
   // list items, so a draft news card reads the same grey as every other section.
@@ -48,9 +47,9 @@
 }
 
 // With no image chosen there is no photo to keep a white title legible, so the
-// placeholder uses dark text on the flat grey instead.
+// fallback tile (section colour + star) uses the fixed ink instead.
 .news-card:has(.image-fallback) .news-overlay strong {
-  color: var(--app-muted);
+  color: var(--ink-fixed);
 }
 
 .news-overlay {
@@ -117,7 +116,7 @@
 
   // The darkening gradient only exists to keep the white title readable over a photo.
   // Scoping it to cards that actually have an image means the placeholder shows the same
-  // flat grey in Mobile as it does in Desktop, instead of a dark gradient.
+  // fallback tile in Mobile as it does in Desktop, instead of a dark gradient.
   .news-card:has(img) .news-overlay {
     background: linear-gradient(
       180deg,

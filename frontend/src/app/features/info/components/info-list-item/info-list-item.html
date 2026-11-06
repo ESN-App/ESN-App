@@ -5,7 +5,7 @@
   [class.guide--draft]="item.status === 0"
 >
   @if (featured()) {
-    <div class="guide-tile">
+    <div class="guide-tile star-fallback">
       @if (item.imagePath && !imageBroken()) {
         <img [src]="item.imagePath" alt="" loading="lazy" (error)="imageBroken.set(true)" />
       }

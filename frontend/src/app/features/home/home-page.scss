@@ -37,7 +37,8 @@
 
 .date-tile__star {
   -webkit-mask: url('/images/esnstar.png') center / contain no-repeat;
-  background: currentColor;
+  // A one-colour ESN star must be white, black or ESN dark blue, never ink.
+  background: #fff;
   height: 34px;
   mask: url('/images/esnstar.png') center / contain no-repeat;
   width: 34px;
@@ -135,25 +136,7 @@
   color: var(--ink-fixed);
   display: flex;
   height: 92px;
-  isolation: isolate;
   justify-content: center;
-  overflow: hidden;
-  position: relative;
-
-  // Corner piece of the star.
-  &::after {
-    -webkit-mask: url('/images/esnstar.png') center / contain no-repeat;
-    background: rgb(255 255 255 / 30%);
-    content: '';
-    height: 170px;
-    mask: url('/images/esnstar.png') center / contain no-repeat;
-    position: absolute;
-    right: -95px;
-    top: -75px;
-    transform: rotate(12deg);
-    width: 170px;
-    z-index: -1;
-  }
 
   mat-icon {
     font-size: 32px;
@@ -213,7 +196,7 @@
 }
 
 .install {
-  background: #4347a7;
+  background: var(--c-dark-blue);
   border-radius: 24px;
   color: #fff;
   padding: 20px;

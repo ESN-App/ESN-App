@@ -29,6 +29,8 @@ html {
   --c-orange: #f47b20;
   // Text that sits on a solid section colour is always this ink, regardless of theme.
   --ink-fixed: #16172b;
+  // ESN dark blue, the one-colour brand variant.
+  --c-dark-blue: #2e3192;
 
   --app-bg: light-dark(#f3f5fa, #0e0f1c);
   --app-card: light-dark(#ffffff, #1e2036);
@@ -428,24 +430,40 @@ app-root {
 // stay inside their box when reused in the admin live preview.
 // ---------------------------------------------------------------------------
 
-// Big translucent white ESN star in a corner of a section-colour block.
-@mixin esn-star($size, $top, $right) {
+// One white ESN star at full opacity (2015 brand manual). Paint it on an ::after.
+@mixin esn-star-paint($size: 100%) {
+  -webkit-mask: url('/images/esnstar.png') center / auto $size no-repeat;
+  background: #fff;
+  content: '';
+  mask: url('/images/esnstar.png') center / auto $size no-repeat;
+  pointer-events: none;
+  position: absolute;
+  z-index: -1;
+}
+
+// Cropped star: never rotated, cut exactly in half by the block's right edge.
+@mixin esn-half-star($size, $centre-top) {
   &::after {
-    -webkit-mask: url('/images/esnstar.png') center / contain no-repeat;
-    // A mask only paints the star; a filter on the multicolour PNG made some
-    // browsers composite (and wash out) the whole block.
-    background: rgb(255 255 255 / 30%);
-    content: '';
+    @include esn-star-paint;
     height: $size;
-    mask: url('/images/esnstar.png') center / contain no-repeat;
-    pointer-events: none;
-    position: absolute;
-    right: $right;
-    top: $top;
-    transform: rotate(12deg);
+    inset: calc(#{$centre-top} - #{$size} / 2) calc(#{$size} / -2) auto auto;
     width: $size;
-    z-index: -1;
   }
+}
+
+// No-image fallback: the whole star centred, 40% of the (shorter) height, 32-120px.
+@mixin esn-star-fallback {
+  &::after {
+    @include esn-star-paint(var(--star-size, clamp(32px, 40%, 120px)));
+    inset: 0;
+  }
+}
+
+.star-fallback {
+  isolation: isolate;
+  overflow: hidden;
+  position: relative;
+  @include esn-star-fallback;
 }
 
 .world-header,
@@ -464,7 +482,7 @@ app-root {
   border-radius: 0 0 32px 32px;
   margin-top: calc(-1 * var(--page-pad-top, 0px));
   padding: 24px var(--bleed, 20px) 28px;
-  @include esn-star(220px, -40px, -70px);
+  @include esn-half-star(96px, 52px);
 
   h1 {
     font-size: 44px;
@@ -503,7 +521,7 @@ app-root {
   color: #fff;
 
   .intro {
-    font-size: 18px;
+    font-size: 19px;
     font-weight: 700;
   }
 }
@@ -513,7 +531,8 @@ app-root {
 .detail-hero {
   min-height: 220px;
   padding: 16px var(--bleed, 16px) 66px;
-  @include esn-star(240px, -30px, -60px);
+  // Mobile hero stands in for the image: the whole star, centred.
+  @include esn-star-fallback;
 }
 
 .detail-sheet {
@@ -830,7 +849,7 @@ app-root {
   .world-header {
     border-radius: 0 0 48px 48px;
     padding: 56px var(--bleed, 40px) 64px;
-    @include esn-star(420px, -60px, -60px);
+    @include esn-half-star(140px, 100px);
 
     h1 {
       font-size: 64px;
@@ -841,7 +860,7 @@ app-root {
     border-radius: 0 0 48px 48px;
     min-height: 0;
     padding: 40px var(--bleed, 40px) 48px;
-    @include esn-star(420px, -60px, -60px);
+    @include esn-half-star(140px, 100px);
   }
 
   // Info / News: back button, title and meta sit inside the hero.

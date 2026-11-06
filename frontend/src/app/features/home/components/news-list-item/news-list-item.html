@@ -3,7 +3,7 @@
   @if (item.imagePath && !imageBroken()) {
     <img [src]="item.imagePath" [alt]="item.title" (error)="imageBroken.set(true)" />
   } @else {
-    <span class="image-fallback" aria-hidden="true"></span>
+    <span class="image-fallback star-fallback" aria-hidden="true"></span>
   }
   <span class="news-overlay">
     <span class="news-badge" [class.draft-badge]="item.status === 0">
