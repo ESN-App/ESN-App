@@ -68,8 +68,8 @@
   app-partners-map {
     border: 0;
     border-radius: 24px;
-    // Fit above the floating nav on a phone without scrolling.
-    height: max(300px, calc(100dvh - 480px));
+    // End ~30px above the floating nav on a phone without scrolling.
+    height: max(300px, calc(100dvh - 513px));
   }
 }
 

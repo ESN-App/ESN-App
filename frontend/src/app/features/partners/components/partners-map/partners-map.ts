@@ -12,10 +12,12 @@ import {
   ViewEncapsulation,
 } from '@angular/core';
 import {
+  AttributionControl,
   LngLatBounds,
   Map as MapLibreMap,
   Marker as MapLibreMarker,
   NavigationControl,
+  type StyleSpecification,
 } from 'maplibre-gl';
 import { PartnerView } from '../../data-access/partners.models';
 
@@ -44,6 +46,16 @@ export function hasValidPartnerCoordinates(
     partner.longitude <= 180
   );
 }
+
+// Liberty's road-shield layers compare `ref_length` as a number, but some roads have none and
+// MapLibre warns "found null". Defaulting above the `<= 6` cut-off keeps those roads unshielded, as before.
+const coalesceRefLength = (
+  _: StyleSpecification | undefined,
+  style: StyleSpecification,
+): StyleSpecification =>
+  JSON.parse(
+    JSON.stringify(style).replaceAll('["get","ref_length"]', '["coalesce",["get","ref_length"],99]'),
+  );
 
 @Component({
   selector: 'app-partners-map',
@@ -75,12 +87,21 @@ export class PartnersMap implements AfterViewInit, OnChanges, OnDestroy {
     }
 
     const map = new MapLibreMap({
+      attributionControl: false,
       container: this.mapCanvas.nativeElement,
       center: DEFAULT_CENTER,
-      style: MAP_STYLE_URL,
       zoom: DEFAULT_ZOOM,
     });
+    map.setStyle(MAP_STYLE_URL, { transformStyle: coalesceRefLength });
     this.map = map;
+
+    // Compact attribution starts expanded; collapse it to the (i) button so it doesn't cover pins.
+    map.addControl(new AttributionControl({ compact: true }));
+    map.once('load', () =>
+      this.mapCanvas?.nativeElement
+        .querySelector('.maplibregl-ctrl-attrib')
+        ?.classList.remove('maplibregl-compact-show'),
+    );
 
     map.addControl(
       new NavigationControl({
