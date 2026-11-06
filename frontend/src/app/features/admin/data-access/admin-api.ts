@@ -23,6 +23,12 @@ export interface CreateAdminRequest {
   lastName: string;
 }
 
+export interface FeatureFlagDto {
+  key: string;
+  enabled: boolean;
+  updatedAt: string;
+}
+
 /** Admin endpoints add who created the item; null for legacy rows. Already formatted, e.g. "Jan K.". */
 interface CreatedBy {
   createdBy: string | null;
@@ -112,6 +118,14 @@ export class AdminApi {
 
   getInfo(): Observable<AdminInfoArticleDto[]> {
     return this.http.get<AdminInfoArticleDto[]>(`${this.baseUrl}/info`);
+  }
+
+  getFeatures(): Observable<FeatureFlagDto[]> {
+    return this.http.get<FeatureFlagDto[]>(`${this.baseUrl}/features`);
+  }
+
+  updateFeature(key: string, enabled: boolean): Observable<FeatureFlagDto> {
+    return this.http.put<FeatureFlagDto>(`${this.baseUrl}/features/${encodeURIComponent(key)}`, { enabled });
   }
 
   getAdmins(): Observable<AdminUserDto[]> {

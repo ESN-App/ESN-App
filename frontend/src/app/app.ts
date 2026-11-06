@@ -4,7 +4,7 @@ import { MatToolbarModule } from '@angular/material/toolbar';
 import { Meta } from '@angular/platform-browser';
 import { NavigationEnd, Router, RouterLink, RouterOutlet } from '@angular/router';
 import { filter } from 'rxjs';
-import { AuthService, ThemeService } from './core';
+import { AuthService, FeatureFlags, ThemeService } from './core';
 import { NavItem, ThemeToggle } from './shared';
 
 @Component({
@@ -20,6 +20,8 @@ export class App {
   protected readonly auth = inject(AuthService);
   // Instantiated here so the stored theme is applied on every route.
   private readonly theme = inject(ThemeService);
+  // Instantiated at start so the server's feature flags load once, in the background.
+  private readonly featureFlags = inject(FeatureFlags);
   protected readonly hideMobileNavigation = signal(false);
   // News lives under Home in the navigation.
   protected readonly newsPage = signal(false);

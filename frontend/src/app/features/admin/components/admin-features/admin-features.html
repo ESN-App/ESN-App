@@ -1,0 +1,28 @@
+<section class="features" aria-labelledby="features-title">
+  <h2 id="features-title">Features</h2>
+  <p class="intro">Switch features on or off for everyone using the app.</p>
+
+  @if (error(); as message) {
+    <p class="error" role="alert">{{ message }}</p>
+  }
+
+  @if (flags(); as list) {
+    <ul>
+      @for (flag of list; track flag.key) {
+        <li>
+          <mat-slide-toggle
+            [checked]="flag.enabled"
+            [disabled]="savingKey() === flag.key"
+            (change)="toggle(flag, $event.checked)"
+            >{{ label(flag.key) }}</mat-slide-toggle
+          >
+          <small>Updated {{ flag.updatedAt | date: 'd MMM y, HH:mm' }}</small>
+        </li>
+      }
+    </ul>
+  } @else if (loadFailed()) {
+    <p class="error" role="alert">Couldn’t load the feature switches.</p>
+  } @else {
+    <span class="skeleton loading" role="status" aria-label="Loading"></span>
+  }
+</section>
