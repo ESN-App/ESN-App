@@ -2,7 +2,7 @@ using EsnApp.Domain.Common;
 
 namespace EsnApp.Domain.Events;
 
-public class Event : BaseEntity
+public class Event : CreatorTrackedEntity
 {
     public required string Title { get; set; }
 

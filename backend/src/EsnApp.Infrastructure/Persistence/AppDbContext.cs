@@ -32,9 +32,20 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
         builder.ApplyConfiguration(new InfoArticleConfiguration());
         builder.ApplyConfiguration(new NewsItemConfiguration());
 
-        builder.Entity<ApplicationUser>()
-            .Property(user => user.CreatedAt)
-            .HasDefaultValueSql("CURRENT_TIMESTAMP");
+        builder.Entity<ApplicationUser>(entity =>
+        {
+            entity.Property(user => user.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
+            entity.Property(user => user.FirstName).HasMaxLength(50);
+            entity.Property(user => user.LastName).HasMaxLength(50);
+        });
+
+        // No FK to AspNetUsers on purpose: the creator snapshot must survive admin deletion.
+        foreach (var entityType in builder.Model.GetEntityTypes()
+                     .Where(type => typeof(CreatorTrackedEntity).IsAssignableFrom(type.ClrType)))
+        {
+            builder.Entity(entityType.ClrType).Property(nameof(CreatorTrackedEntity.CreatedById)).HasMaxLength(450);
+            builder.Entity(entityType.ClrType).Property(nameof(CreatorTrackedEntity.CreatedByName)).HasMaxLength(120);
+        }
 
         builder.Entity<Discount>(entity =>
         {

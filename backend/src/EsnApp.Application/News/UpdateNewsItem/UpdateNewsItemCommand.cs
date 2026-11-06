@@ -8,4 +8,4 @@ public record UpdateNewsItemCommand(
     Guid Id,
     string Title,
     string Description,
-    string ImagePath) : IRequest<Result<NewsItemDto>>;
+    string ImagePath) : IRequest<Result<AdminNewsItemDto>>;

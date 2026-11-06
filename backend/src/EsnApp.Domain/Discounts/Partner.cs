@@ -2,7 +2,7 @@ using EsnApp.Domain.Common;
 
 namespace EsnApp.Domain.Discounts;
 
-public class Partner : BaseEntity
+public class Partner : CreatorTrackedEntity
 {
     public required string Name { get; set; }
 

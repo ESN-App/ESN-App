@@ -6,9 +6,9 @@ using MediatR;
 namespace EsnApp.Application.Events.GetAdminEvents;
 
 public class GetAdminEventsQueryHandler(IEventRepository repository)
-    : IRequestHandler<GetAdminEventsQuery, Result<PagedResult<EventDetailsDto>>>
+    : IRequestHandler<GetAdminEventsQuery, Result<PagedResult<AdminEventDetailsDto>>>
 {
-    public async Task<Result<PagedResult<EventDetailsDto>>> Handle(
+    public async Task<Result<PagedResult<AdminEventDetailsDto>>> Handle(
         GetAdminEventsQuery request,
         CancellationToken cancellationToken)
     {
@@ -19,8 +19,8 @@ public class GetAdminEventsQueryHandler(IEventRepository repository)
             request.PageSize,
             cancellationToken);
 
-        return Result.Success(new PagedResult<EventDetailsDto>(
-            events.Items.Select(entity => entity.ToDetailsDto()).ToList(),
+        return Result.Success(new PagedResult<AdminEventDetailsDto>(
+            events.Items.Select(entity => entity.ToAdminDto()).ToList(),
             request.Page,
             request.PageSize,
             events.TotalCount));

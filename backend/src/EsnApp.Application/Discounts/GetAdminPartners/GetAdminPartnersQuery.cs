@@ -6,4 +6,4 @@ using MediatR;
 namespace EsnApp.Application.Discounts.GetAdminPartners;
 
 public record GetAdminPartnersQuery(PartnerStatus? Status)
-    : IRequest<Result<IReadOnlyList<PartnerDto>>>;
+    : IRequest<Result<IReadOnlyList<AdminPartnerDto>>>;

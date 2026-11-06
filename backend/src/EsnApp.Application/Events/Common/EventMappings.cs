@@ -24,6 +24,9 @@ public static class EventMappings
         entity.CreatedAt,
         entity.UpdatedAt);
 
+    public static AdminEventDetailsDto ToAdminDto(this Event entity) =>
+        new(entity.ToDetailsDto(), entity.CreatedByName);
+
     public static EventListItemDto ToListItemDto(this Event entity) => new(
         entity.Id,
         entity.Title,

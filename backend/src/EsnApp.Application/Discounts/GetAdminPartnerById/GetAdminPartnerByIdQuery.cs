@@ -4,4 +4,4 @@ using MediatR;
 
 namespace EsnApp.Application.Discounts.GetAdminPartnerById;
 
-public record GetAdminPartnerByIdQuery(Guid Id) : IRequest<Result<PartnerDto>>;
+public record GetAdminPartnerByIdQuery(Guid Id) : IRequest<Result<AdminPartnerDto>>;

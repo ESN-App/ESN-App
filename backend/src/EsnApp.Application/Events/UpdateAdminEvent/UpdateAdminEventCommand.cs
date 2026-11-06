@@ -17,4 +17,4 @@ public record UpdateAdminEventCommand(
     string? RegistrationUrl,
     int? MinimumParticipants,
     int? MaximumParticipants,
-    decimal Price) : IRequest<Result<EventDetailsDto>>;
+    decimal Price) : IRequest<Result<AdminEventDetailsDto>>;

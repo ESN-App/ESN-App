@@ -6,7 +6,7 @@ using MediatR;
 namespace EsnApp.Application.Info;
 
 public record ReorderInfoArticlesCommand(IReadOnlyList<Guid> ArticleIds)
-    : IRequest<Result<IReadOnlyList<InfoArticleDto>>>;
+    : IRequest<Result<IReadOnlyList<AdminInfoArticleDto>>>;
 
 public class ReorderInfoArticlesCommandValidator : AbstractValidator<ReorderInfoArticlesCommand>
 {
@@ -21,9 +21,9 @@ public class ReorderInfoArticlesCommandValidator : AbstractValidator<ReorderInfo
 }
 
 public class ReorderInfoArticlesCommandHandler(IInfoArticleRepository repository)
-    : IRequestHandler<ReorderInfoArticlesCommand, Result<IReadOnlyList<InfoArticleDto>>>
+    : IRequestHandler<ReorderInfoArticlesCommand, Result<IReadOnlyList<AdminInfoArticleDto>>>
 {
-    public async Task<Result<IReadOnlyList<InfoArticleDto>>> Handle(
+    public async Task<Result<IReadOnlyList<AdminInfoArticleDto>>> Handle(
         ReorderInfoArticlesCommand request,
         CancellationToken cancellationToken)
     {
@@ -32,7 +32,7 @@ public class ReorderInfoArticlesCommandHandler(IInfoArticleRepository repository
         var requestedIds = request.ArticleIds.ToHashSet();
         var publishedIds = published.Select(item => item.Id).ToHashSet();
         if (requestedIds.Count != publishedIds.Count || !requestedIds.SetEquals(publishedIds))
-            return Result.Failure<IReadOnlyList<InfoArticleDto>>(
+            return Result.Failure<IReadOnlyList<AdminInfoArticleDto>>(
                 "ArticleIds must contain every published article exactly once.");
 
         var byId = published.ToDictionary(item => item.Id);
@@ -40,7 +40,7 @@ public class ReorderInfoArticlesCommandHandler(IInfoArticleRepository repository
             byId[request.ArticleIds[index]].DisplayOrder = index;
 
         await repository.UpdateRangeAsync(published, cancellationToken);
-        return Result.Success<IReadOnlyList<InfoArticleDto>>(
-            request.ArticleIds.Select(id => InfoArticleDto.FromEntity(byId[id])).ToList());
+        return Result.Success<IReadOnlyList<AdminInfoArticleDto>>(
+            request.ArticleIds.Select(id => AdminInfoArticleDto.FromEntity(byId[id])).ToList());
     }
 }

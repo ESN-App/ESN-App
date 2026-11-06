@@ -7,4 +7,4 @@ namespace EsnApp.Application.News.CreateNewsItem;
 public record CreateNewsItemCommand(
     string Title,
     string Description,
-    string ImagePath) : IRequest<Result<NewsItemDto>>;
+    string ImagePath) : IRequest<Result<AdminNewsItemDto>>;

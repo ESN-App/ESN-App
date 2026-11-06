@@ -6,16 +6,16 @@ using MediatR;
 namespace EsnApp.Application.News.GetAdminNewsItemById;
 
 public class GetAdminNewsItemByIdQueryHandler(INewsItemRepository repository)
-    : IRequestHandler<GetAdminNewsItemByIdQuery, Result<NewsItemDto>>
+    : IRequestHandler<GetAdminNewsItemByIdQuery, Result<AdminNewsItemDto>>
 {
-    public async Task<Result<NewsItemDto>> Handle(
+    public async Task<Result<AdminNewsItemDto>> Handle(
         GetAdminNewsItemByIdQuery request,
         CancellationToken cancellationToken)
     {
         var item = await repository.GetAdminByIdAsync(request.Id, cancellationToken);
 
         return item is null
-            ? Result.Failure<NewsItemDto>($"News item '{request.Id}' was not found.")
-            : Result.Success(NewsItemDto.FromEntity(item));
+            ? Result.Failure<AdminNewsItemDto>($"News item '{request.Id}' was not found.")
+            : Result.Success(AdminNewsItemDto.FromEntity(item));
     }
 }

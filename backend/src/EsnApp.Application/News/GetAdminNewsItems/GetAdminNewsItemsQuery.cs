@@ -6,4 +6,4 @@ using MediatR;
 namespace EsnApp.Application.News.GetAdminNewsItems;
 
 public record GetAdminNewsItemsQuery(NewsItemStatus? Status)
-    : IRequest<Result<IReadOnlyList<NewsItemDto>>>;
+    : IRequest<Result<IReadOnlyList<AdminNewsItemDto>>>;

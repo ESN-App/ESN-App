@@ -1,4 +1,5 @@
 using EsnApp.Application.Common;
+using EsnApp.Application.Identity;
 using EsnApp.Domain.Info;
 using FluentValidation;
 using MediatR;
@@ -11,7 +12,7 @@ public record CreateInfoArticleCommand(
     string Content,
     string Category,
     string ImagePath,
-    IReadOnlyList<string> ExternalLinks) : IRequest<Result<InfoArticleDto>>;
+    IReadOnlyList<string> ExternalLinks) : IRequest<Result<AdminInfoArticleDto>>;
 
 public class CreateInfoArticleCommandValidator : AbstractValidator<CreateInfoArticleCommand>
 {
@@ -37,16 +38,16 @@ public class CreateInfoArticleCommandValidator : AbstractValidator<CreateInfoArt
     }
 }
 
-public class CreateInfoArticleCommandHandler(IInfoArticleRepository repository)
-    : IRequestHandler<CreateInfoArticleCommand, Result<InfoArticleDto>>
+public class CreateInfoArticleCommandHandler(IInfoArticleRepository repository, ICurrentUser currentUser)
+    : IRequestHandler<CreateInfoArticleCommand, Result<AdminInfoArticleDto>>
 {
-    public async Task<Result<InfoArticleDto>> Handle(
+    public async Task<Result<AdminInfoArticleDto>> Handle(
         CreateInfoArticleCommand request,
         CancellationToken cancellationToken)
     {
         if (await repository.SlugExistsAsync(request.Slug, cancellationToken: cancellationToken))
         {
-            return Result.Failure<InfoArticleDto>($"Slug '{request.Slug}' is already in use.");
+            return Result.Failure<AdminInfoArticleDto>($"Slug '{request.Slug}' is already in use.");
         }
 
         var drafts = await repository.GetAdminListAsync(
@@ -59,12 +60,14 @@ public class CreateInfoArticleCommandHandler(IInfoArticleRepository repository)
             Category = request.Category.Trim(),
             ImagePath = request.ImagePath,
             ExternalLinks = [.. request.ExternalLinks],
+            CreatedById = currentUser.UserId,
+            CreatedByName = currentUser.DisplayName,
             // New articles start as drafts and go on top of the draft list.
             DisplayOrder = drafts.Count == 0 ? 0 : drafts.Min(draft => draft.DisplayOrder) - 1,
         };
 
         var created = await repository.AddAsync(entity, cancellationToken);
 
-        return Result.Success(InfoArticleDto.FromEntity(created));
+        return Result.Success(AdminInfoArticleDto.FromEntity(created));
     }
 }

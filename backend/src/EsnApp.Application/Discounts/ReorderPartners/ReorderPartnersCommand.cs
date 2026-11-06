@@ -5,4 +5,4 @@ using MediatR;
 namespace EsnApp.Application.Discounts.ReorderPartners;
 
 public record ReorderPartnersCommand(IReadOnlyList<Guid> PartnerIds)
-    : IRequest<Result<IReadOnlyList<PartnerDto>>>;
+    : IRequest<Result<IReadOnlyList<AdminPartnerDto>>>;

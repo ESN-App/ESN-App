@@ -1,6 +1,8 @@
 using EsnApp.Application.Events.Abstractions;
+using EsnApp.Application.Events.CreateEvent;
 using EsnApp.Application.Events.DeleteEvent;
 using EsnApp.Application.Events.UpdateEventStatus;
+using EsnApp.Application.Tests.Common;
 using EsnApp.Domain.Events;
 
 namespace EsnApp.Application.Tests.Events;
@@ -59,6 +61,25 @@ public class ManageEventCommandHandlerTests
         var result = await handler.Handle(new DeleteEventCommand(Guid.NewGuid()), CancellationToken.None);
 
         Assert.False(result.IsSuccess);
+    }
+
+    [Fact]
+    public async Task Create_Event_RecordsCreator()
+    {
+        var repository = new FakeEventRepository();
+        var handler = new CreateEventCommandHandler(repository, new FakeCurrentUser("admin-1", "Jan K."));
+
+        var result = await handler.Handle(
+            new CreateEventCommand(
+                "Event", "Summary", "Full description", "Gdańsk", null,
+                DateTimeOffset.UtcNow.AddDays(1), null, null, null, null, null, null, 0),
+            CancellationToken.None);
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal("Jan K.", result.Value!.CreatedBy);
+        var stored = Assert.Single(await repository.GetAllAsync());
+        Assert.Equal("admin-1", stored.CreatedById);
+        Assert.Equal("Jan K.", stored.CreatedByName);
     }
 
     private static Event CreateEvent() => new()

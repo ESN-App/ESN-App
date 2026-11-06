@@ -6,4 +6,4 @@ using MediatR;
 namespace EsnApp.Application.News.UpdateNewsItemStatus;
 
 public record UpdateNewsItemStatusCommand(Guid Id, NewsItemStatus Status)
-    : IRequest<Result<NewsItemDto>>;
+    : IRequest<Result<AdminNewsItemDto>>;

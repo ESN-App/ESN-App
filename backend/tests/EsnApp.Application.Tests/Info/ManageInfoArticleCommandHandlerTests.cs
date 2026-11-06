@@ -1,6 +1,8 @@
 using EsnApp.Application.Info;
 using EsnApp.Domain.Info;
 
+using EsnApp.Application.Tests.Common;
+
 namespace EsnApp.Application.Tests.Info;
 
 public class ManageInfoArticleCommandHandlerTests
@@ -46,7 +48,7 @@ public class ManageInfoArticleCommandHandlerTests
         var olderDraft = CreateArticle(InfoArticleStatus.Draft, 2);
         var published = CreateArticle(InfoArticleStatus.Published, -5);
         var handler = new CreateInfoArticleCommandHandler(
-            new FakeInfoArticleRepository(olderDraft, published));
+            new FakeInfoArticleRepository(olderDraft, published), new FakeCurrentUser());
 
         var result = await handler.Handle(
             new CreateInfoArticleCommand(
@@ -60,6 +62,7 @@ public class ManageInfoArticleCommandHandlerTests
 
         Assert.True(result.IsSuccess);
         Assert.Equal(1, result.Value!.DisplayOrder);
+        Assert.Equal("Jan K.", result.Value.CreatedBy);
     }
 
     [Fact]
@@ -67,7 +70,7 @@ public class ManageInfoArticleCommandHandlerTests
     {
         var existing = CreateArticle(InfoArticleStatus.Draft, 0);
         var handler = new CreateInfoArticleCommandHandler(
-            new FakeInfoArticleRepository(existing));
+            new FakeInfoArticleRepository(existing), new FakeCurrentUser());
 
         var result = await handler.Handle(
             new CreateInfoArticleCommand(

@@ -44,6 +44,10 @@ services:
         sync: false
       - key: Seed__AdminPassword
         sync: false
+      - key: Seed__AdminFirstName
+        value: ESN
+      - key: Seed__AdminLastName
+        value: Admin
       # shortcut: free web services can't send on ports 25/465/587, so SMTP won't work on
       # the free plan — leave Email__SmtpHost empty (reset emails are logged instead) until
       # the API moves to a paid plan or an HTTP email API.

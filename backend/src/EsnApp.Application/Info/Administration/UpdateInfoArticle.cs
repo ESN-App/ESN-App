@@ -11,7 +11,7 @@ public record UpdateInfoArticleCommand(
     string Content,
     string Category,
     string ImagePath,
-    IReadOnlyList<string> ExternalLinks) : IRequest<Result<InfoArticleDto>>;
+    IReadOnlyList<string> ExternalLinks) : IRequest<Result<AdminInfoArticleDto>>;
 
 public class UpdateInfoArticleCommandValidator : AbstractValidator<UpdateInfoArticleCommand>
 {
@@ -39,18 +39,18 @@ public class UpdateInfoArticleCommandValidator : AbstractValidator<UpdateInfoArt
 }
 
 public class UpdateInfoArticleCommandHandler(IInfoArticleRepository repository)
-    : IRequestHandler<UpdateInfoArticleCommand, Result<InfoArticleDto>>
+    : IRequestHandler<UpdateInfoArticleCommand, Result<AdminInfoArticleDto>>
 {
-    public async Task<Result<InfoArticleDto>> Handle(
+    public async Task<Result<AdminInfoArticleDto>> Handle(
         UpdateInfoArticleCommand request,
         CancellationToken cancellationToken)
     {
         var article = await repository.GetAdminByIdAsync(request.Id, cancellationToken);
         if (article is null)
-            return Result.Failure<InfoArticleDto>($"Info article '{request.Id}' was not found.");
+            return Result.Failure<AdminInfoArticleDto>($"Info article '{request.Id}' was not found.");
 
         if (await repository.SlugExistsAsync(request.Slug, request.Id, cancellationToken))
-            return Result.Failure<InfoArticleDto>($"Slug '{request.Slug}' is already in use.");
+            return Result.Failure<AdminInfoArticleDto>($"Slug '{request.Slug}' is already in use.");
 
         article.Title = request.Title.Trim();
         article.Slug = request.Slug;
@@ -59,7 +59,7 @@ public class UpdateInfoArticleCommandHandler(IInfoArticleRepository repository)
         article.ImagePath = request.ImagePath;
         article.ExternalLinks = [.. request.ExternalLinks];
 
-        return Result.Success(InfoArticleDto.FromEntity(
+        return Result.Success(AdminInfoArticleDto.FromEntity(
             await repository.UpdateAsync(article, cancellationToken)));
     }
 }

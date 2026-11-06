@@ -1,4 +1,5 @@
 using EsnApp.Application.Common;
+using EsnApp.Application.Identity;
 using EsnApp.Application.Discounts.Abstractions;
 using EsnApp.Application.Discounts.Common;
 using EsnApp.Domain.Discounts;
@@ -6,10 +7,10 @@ using MediatR;
 
 namespace EsnApp.Application.Discounts.CreatePartner;
 
-public class CreatePartnerCommandHandler(IPartnerRepository repository)
-    : IRequestHandler<CreatePartnerCommand, Result<PartnerDto>>
+public class CreatePartnerCommandHandler(IPartnerRepository repository, ICurrentUser currentUser)
+    : IRequestHandler<CreatePartnerCommand, Result<AdminPartnerDto>>
 {
-    public async Task<Result<PartnerDto>> Handle(
+    public async Task<Result<AdminPartnerDto>> Handle(
         CreatePartnerCommand request,
         CancellationToken cancellationToken)
     {
@@ -24,10 +25,12 @@ public class CreatePartnerCommandHandler(IPartnerRepository repository)
             GoogleMapsUrl = request.GoogleMapsUrl,
             Latitude = request.Latitude,
             Longitude = request.Longitude,
+            CreatedById = currentUser.UserId,
+            CreatedByName = currentUser.DisplayName,
         };
 
         var created = await repository.AddAsync(entity, cancellationToken);
 
-        return Result.Success(created.ToDto());
+        return Result.Success(created.ToAdminDto());
     }
 }

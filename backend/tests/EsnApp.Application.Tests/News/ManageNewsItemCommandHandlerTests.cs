@@ -6,6 +6,8 @@ using EsnApp.Application.News.UpdateNewsItem;
 using EsnApp.Application.News.UpdateNewsItemStatus;
 using EsnApp.Domain.News;
 
+using EsnApp.Application.Tests.Common;
+
 namespace EsnApp.Application.Tests.News;
 
 public class ManageNewsItemCommandHandlerTests
@@ -92,7 +94,7 @@ public class ManageNewsItemCommandHandlerTests
     [Fact]
     public async Task Create_NewsItem_TrimsTextAndStartsAsDraft()
     {
-        var handler = new CreateNewsItemCommandHandler(new FakeNewsItemRepository());
+        var handler = new CreateNewsItemCommandHandler(new FakeNewsItemRepository(), new FakeCurrentUser());
 
         var result = await handler.Handle(
             new CreateNewsItemCommand(
@@ -106,6 +108,7 @@ public class ManageNewsItemCommandHandlerTests
         Assert.Equal("Everything you need to know.", result.Value.Description);
         Assert.Equal("/api/images/uploads/news/image.jpg", result.Value.ImagePath);
         Assert.Equal(NewsItemStatus.Draft, result.Value.Status);
+        Assert.Equal("Jan K.", result.Value.CreatedBy);
     }
 
     [Fact]
@@ -114,7 +117,7 @@ public class ManageNewsItemCommandHandlerTests
         var olderDraft = CreateNewsItem(NewsItemStatus.Draft, 2);
         var published = CreateNewsItem(NewsItemStatus.Published, -5);
         var handler = new CreateNewsItemCommandHandler(
-            new FakeNewsItemRepository(olderDraft, published));
+            new FakeNewsItemRepository(olderDraft, published), new FakeCurrentUser());
 
         var result = await handler.Handle(
             new CreateNewsItemCommand("Title", "Description", "/api/images/uploads/news/image.jpg"),

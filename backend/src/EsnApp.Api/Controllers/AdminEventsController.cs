@@ -23,7 +23,7 @@ public class AdminEventsController(
 {
     /// <summary>Lists events for administration, including drafts and archived events.</summary>
     [HttpGet]
-    [ProducesResponseType(typeof(PagedResult<EventDetailsDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(PagedResult<AdminEventDetailsDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
@@ -42,7 +42,7 @@ public class AdminEventsController(
 
     /// <summary>Changes an event workflow status.</summary>
     [HttpPatch("{id:guid}")]
-    [ProducesResponseType(typeof(EventDetailsDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(AdminEventDetailsDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Patch(
@@ -67,7 +67,7 @@ public class AdminEventsController(
 
     /// <summary>Gets an event for administration, including non-public statuses.</summary>
     [HttpGet("{id:guid}")]
-    [ProducesResponseType(typeof(EventDetailsDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(AdminEventDetailsDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetById(Guid id, CancellationToken cancellationToken)
     {
@@ -79,7 +79,7 @@ public class AdminEventsController(
     [HttpPost]
     [Consumes("multipart/form-data")]
     [RequestSizeLimit(EventImageStorage.MaximumBytes + 1024 * 1024)]
-    [ProducesResponseType(typeof(EventDetailsDto), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(AdminEventDetailsDto), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
@@ -131,7 +131,7 @@ public class AdminEventsController(
     [HttpPut("{id:guid}")]
     [Consumes("multipart/form-data")]
     [RequestSizeLimit(EventImageStorage.MaximumBytes + 1024 * 1024)]
-    [ProducesResponseType(typeof(EventDetailsDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(AdminEventDetailsDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Update(
         Guid id,

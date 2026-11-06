@@ -7,9 +7,9 @@ using MediatR;
 namespace EsnApp.Application.News.ReorderNewsItems;
 
 public class ReorderNewsItemsCommandHandler(INewsItemRepository repository)
-    : IRequestHandler<ReorderNewsItemsCommand, Result<IReadOnlyList<NewsItemDto>>>
+    : IRequestHandler<ReorderNewsItemsCommand, Result<IReadOnlyList<AdminNewsItemDto>>>
 {
-    public async Task<Result<IReadOnlyList<NewsItemDto>>> Handle(
+    public async Task<Result<IReadOnlyList<AdminNewsItemDto>>> Handle(
         ReorderNewsItemsCommand request,
         CancellationToken cancellationToken)
     {
@@ -21,7 +21,7 @@ public class ReorderNewsItemsCommandHandler(INewsItemRepository repository)
 
         if (requestedIds.Count != publishedIds.Count || !requestedIds.SetEquals(publishedIds))
         {
-            return Result.Failure<IReadOnlyList<NewsItemDto>>(
+            return Result.Failure<IReadOnlyList<AdminNewsItemDto>>(
                 "NewsItemIds must contain every published news item exactly once.");
         }
 
@@ -32,7 +32,7 @@ public class ReorderNewsItemsCommandHandler(INewsItemRepository repository)
 
         await repository.UpdateRangeAsync(published, cancellationToken);
 
-        return Result.Success<IReadOnlyList<NewsItemDto>>(
-            request.NewsItemIds.Select(id => NewsItemDto.FromEntity(byId[id])).ToList());
+        return Result.Success<IReadOnlyList<AdminNewsItemDto>>(
+            request.NewsItemIds.Select(id => AdminNewsItemDto.FromEntity(byId[id])).ToList());
     }
 }

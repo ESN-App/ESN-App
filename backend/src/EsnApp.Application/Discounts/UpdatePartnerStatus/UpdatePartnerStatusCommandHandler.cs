@@ -7,9 +7,9 @@ using MediatR;
 namespace EsnApp.Application.Discounts.UpdatePartnerStatus;
 
 public class UpdatePartnerStatusCommandHandler(IPartnerRepository repository)
-    : IRequestHandler<UpdatePartnerStatusCommand, Result<PartnerDto>>
+    : IRequestHandler<UpdatePartnerStatusCommand, Result<AdminPartnerDto>>
 {
-    public async Task<Result<PartnerDto>> Handle(
+    public async Task<Result<AdminPartnerDto>> Handle(
         UpdatePartnerStatusCommand request,
         CancellationToken cancellationToken)
     {
@@ -17,7 +17,7 @@ public class UpdatePartnerStatusCommandHandler(IPartnerRepository repository)
 
         if (partner is null)
         {
-            return Result.Failure<PartnerDto>($"Partner '{request.Id}' was not found.");
+            return Result.Failure<AdminPartnerDto>($"Partner '{request.Id}' was not found.");
         }
 
         if (partner.Status != PartnerStatus.Active && request.Status == PartnerStatus.Active)
@@ -34,6 +34,6 @@ public class UpdatePartnerStatusCommandHandler(IPartnerRepository repository)
         partner.Status = request.Status;
         var updated = await repository.UpdateAsync(partner, cancellationToken);
 
-        return Result.Success(updated.ToDto());
+        return Result.Success(updated.ToAdminDto());
     }
 }

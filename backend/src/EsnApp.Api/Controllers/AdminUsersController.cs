@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using EsnApp.Application.Identity;
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -8,7 +9,7 @@ namespace EsnApp.Api.Controllers;
 [ApiController]
 [Route("api/admin/admins")]
 [Authorize(Roles = "Admin")]
-public class AdminUsersController(IIdentityService identityService) : ControllerBase
+public class AdminUsersController(IIdentityService identityService, ISender sender) : ControllerBase
 {
     /// <summary>Lists users with the administrator role.</summary>
     [HttpGet]
@@ -29,7 +30,7 @@ public class AdminUsersController(IIdentityService identityService) : Controller
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     public async Task<IActionResult> Create(CreateAdminRequest request, CancellationToken cancellationToken)
     {
-        var result = await identityService.CreateAdminAsync(request, cancellationToken);
+        var result = await sender.Send(request, cancellationToken);
         return result.IsSuccess ? Ok(result.Value) : BadRequest(new { error = result.Error });
     }
 

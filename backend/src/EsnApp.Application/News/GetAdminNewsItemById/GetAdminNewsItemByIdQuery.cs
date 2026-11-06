@@ -4,4 +4,4 @@ using MediatR;
 
 namespace EsnApp.Application.News.GetAdminNewsItemById;
 
-public record GetAdminNewsItemByIdQuery(Guid Id) : IRequest<Result<NewsItemDto>>;
+public record GetAdminNewsItemByIdQuery(Guid Id) : IRequest<Result<AdminNewsItemDto>>;

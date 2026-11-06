@@ -6,4 +6,4 @@ using MediatR;
 namespace EsnApp.Application.Events.UpdateEventStatus;
 
 public record UpdateEventStatusCommand(Guid Id, EventStatus Status)
-    : IRequest<Result<EventDetailsDto>>;
+    : IRequest<Result<AdminEventDetailsDto>>;

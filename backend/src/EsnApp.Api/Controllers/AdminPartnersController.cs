@@ -26,7 +26,7 @@ public class AdminPartnersController(
 {
     /// <summary>Lists all partners for administration, optionally filtered by status.</summary>
     [HttpGet]
-    [ProducesResponseType(typeof(IReadOnlyList<PartnerDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(IReadOnlyList<AdminPartnerDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     public async Task<IActionResult> GetList(
@@ -42,7 +42,7 @@ public class AdminPartnersController(
 
     /// <summary>Gets a partner for administration by slug, including non-public statuses.</summary>
     [HttpGet("by-slug/{slug}")]
-    [ProducesResponseType(typeof(PartnerDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(AdminPartnerDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -54,7 +54,7 @@ public class AdminPartnersController(
 
     /// <summary>Gets a partner for administration, including non-public statuses.</summary>
     [HttpGet("{id:guid}")]
-    [ProducesResponseType(typeof(PartnerDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(AdminPartnerDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -80,7 +80,7 @@ public class AdminPartnersController(
     [HttpPost]
     [Consumes("multipart/form-data")]
     [RequestSizeLimit(PartnerImageStorage.MaximumBytes + 1024 * 1024)]
-    [ProducesResponseType(typeof(PartnerDto), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(AdminPartnerDto), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
@@ -129,7 +129,7 @@ public class AdminPartnersController(
     [HttpPut("{id:guid}")]
     [Consumes("multipart/form-data")]
     [RequestSizeLimit(PartnerImageStorage.MaximumBytes + 1024 * 1024)]
-    [ProducesResponseType(typeof(PartnerDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(AdminPartnerDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
@@ -198,7 +198,7 @@ public class AdminPartnersController(
 
     /// <summary>Changes a partner's publication status.</summary>
     [HttpPatch("{id:guid}/status")]
-    [ProducesResponseType(typeof(PartnerDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(AdminPartnerDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
@@ -236,7 +236,7 @@ public class AdminPartnersController(
 
     /// <summary>Sets the display order of all active partners.</summary>
     [HttpPut("order")]
-    [ProducesResponseType(typeof(IReadOnlyList<PartnerDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(IReadOnlyList<AdminPartnerDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]

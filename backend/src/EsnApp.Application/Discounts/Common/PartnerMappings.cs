@@ -18,4 +18,7 @@ public static class PartnerMappings
         entity.Status,
         entity.DisplayOrder,
         entity.CreatedAt);
+
+    public static AdminPartnerDto ToAdminDto(this Partner entity) =>
+        new(entity.ToDto(), entity.CreatedByName);
 }

@@ -17,7 +17,7 @@ public class AdminInfoController(
 {
     /// <summary>Lists all info articles for administration.</summary>
     [HttpGet]
-    [ProducesResponseType(typeof(IReadOnlyList<InfoArticleDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(IReadOnlyList<AdminInfoArticleDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     public async Task<IActionResult> GetList(
@@ -32,7 +32,7 @@ public class AdminInfoController(
 
     /// <summary>Gets any info article, including a draft, for administration.</summary>
     [HttpGet("{id:guid}")]
-    [ProducesResponseType(typeof(InfoArticleDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(AdminInfoArticleDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetById(Guid id, CancellationToken cancellationToken)
     {
@@ -45,7 +45,7 @@ public class AdminInfoController(
     [HttpPost]
     [Consumes("multipart/form-data")]
     [RequestSizeLimit(InfoImageStorage.MaximumBytes + 1024 * 1024)]
-    [ProducesResponseType(typeof(InfoArticleDto), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(AdminInfoArticleDto), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> Create(
         [FromForm] CreateInfoArticleRequest request,
@@ -90,7 +90,7 @@ public class AdminInfoController(
     [HttpPut("{id:guid}")]
     [Consumes("multipart/form-data")]
     [RequestSizeLimit(InfoImageStorage.MaximumBytes + 1024 * 1024)]
-    [ProducesResponseType(typeof(InfoArticleDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(AdminInfoArticleDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Update(

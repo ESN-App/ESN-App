@@ -6,7 +6,7 @@ using MediatR;
 namespace EsnApp.Application.Info;
 
 public record UpdateInfoArticleStatusCommand(Guid Id, InfoArticleStatus Status)
-    : IRequest<Result<InfoArticleDto>>;
+    : IRequest<Result<AdminInfoArticleDto>>;
 
 public class UpdateInfoArticleStatusCommandValidator
     : AbstractValidator<UpdateInfoArticleStatusCommand>
@@ -19,15 +19,15 @@ public class UpdateInfoArticleStatusCommandValidator
 }
 
 public class UpdateInfoArticleStatusCommandHandler(IInfoArticleRepository repository)
-    : IRequestHandler<UpdateInfoArticleStatusCommand, Result<InfoArticleDto>>
+    : IRequestHandler<UpdateInfoArticleStatusCommand, Result<AdminInfoArticleDto>>
 {
-    public async Task<Result<InfoArticleDto>> Handle(
+    public async Task<Result<AdminInfoArticleDto>> Handle(
         UpdateInfoArticleStatusCommand request,
         CancellationToken cancellationToken)
     {
         var article = await repository.GetAdminByIdAsync(request.Id, cancellationToken);
         if (article is null)
-            return Result.Failure<InfoArticleDto>($"Info article '{request.Id}' was not found.");
+            return Result.Failure<AdminInfoArticleDto>($"Info article '{request.Id}' was not found.");
 
         if (article.Status != InfoArticleStatus.Published
             && request.Status == InfoArticleStatus.Published)
@@ -41,7 +41,7 @@ public class UpdateInfoArticleStatusCommandHandler(IInfoArticleRepository reposi
         }
 
         article.Status = request.Status;
-        return Result.Success(InfoArticleDto.FromEntity(
+        return Result.Success(AdminInfoArticleDto.FromEntity(
             await repository.UpdateAsync(article, cancellationToken)));
     }
 }

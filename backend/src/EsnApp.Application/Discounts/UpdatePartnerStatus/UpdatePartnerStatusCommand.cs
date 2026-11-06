@@ -6,4 +6,4 @@ using MediatR;
 namespace EsnApp.Application.Discounts.UpdatePartnerStatus;
 
 public record UpdatePartnerStatusCommand(Guid Id, PartnerStatus Status)
-    : IRequest<Result<PartnerDto>>;
+    : IRequest<Result<AdminPartnerDto>>;

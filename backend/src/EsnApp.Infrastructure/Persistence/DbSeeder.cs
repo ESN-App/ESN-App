@@ -70,15 +70,32 @@ public static class DbSeeder
 
         var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
 
-        if (await userManager.FindByEmailAsync(adminEmail) is null)
+        var firstName = configuration["Seed:AdminFirstName"] is { Length: > 0 } first ? first : "ESN";
+        var lastName = configuration["Seed:AdminLastName"] is { Length: > 0 } last ? last : "Admin";
+        var existing = await userManager.FindByEmailAsync(adminEmail);
+
+        if (existing is null)
         {
-            var admin = new ApplicationUser { UserName = adminEmail, Email = adminEmail };
+            var admin = new ApplicationUser
+            {
+                UserName = adminEmail,
+                Email = adminEmail,
+                FirstName = firstName,
+                LastName = lastName,
+            };
             var result = await userManager.CreateAsync(admin, adminPassword);
 
             if (result.Succeeded)
             {
                 await userManager.AddToRoleAsync(admin, AdminRole);
             }
+        }
+        else if (string.IsNullOrWhiteSpace(existing.FirstName) && string.IsNullOrWhiteSpace(existing.LastName))
+        {
+            // Backfill the seed admin created before admins had names.
+            existing.FirstName = firstName;
+            existing.LastName = lastName;
+            await userManager.UpdateAsync(existing);
         }
     }
 

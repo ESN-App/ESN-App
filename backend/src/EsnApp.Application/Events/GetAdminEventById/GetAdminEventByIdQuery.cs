@@ -4,4 +4,4 @@ using MediatR;
 
 namespace EsnApp.Application.Events.GetAdminEventById;
 
-public record GetAdminEventByIdQuery(Guid Id) : IRequest<Result<EventDetailsDto>>;
+public record GetAdminEventByIdQuery(Guid Id) : IRequest<Result<AdminEventDetailsDto>>;

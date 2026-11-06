@@ -24,7 +24,7 @@ public class AdminNewsController(
 {
     /// <summary>Lists all news items for administration.</summary>
     [HttpGet]
-    [ProducesResponseType(typeof(IReadOnlyList<NewsItemDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(IReadOnlyList<AdminNewsItemDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     public async Task<IActionResult> GetList(
@@ -37,7 +37,7 @@ public class AdminNewsController(
 
     /// <summary>Gets any news item, including a draft, for administration.</summary>
     [HttpGet("{id:guid}")]
-    [ProducesResponseType(typeof(NewsItemDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(AdminNewsItemDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetById(Guid id, CancellationToken cancellationToken)
     {
@@ -49,7 +49,7 @@ public class AdminNewsController(
     [HttpPost]
     [Consumes("multipart/form-data")]
     [RequestSizeLimit(NewsImageStorage.MaximumBytes + 1024 * 1024)]
-    [ProducesResponseType(typeof(NewsItemDto), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(AdminNewsItemDto), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> Create(
         [FromForm] CreateNewsItemRequest request,
@@ -94,7 +94,7 @@ public class AdminNewsController(
     [HttpPut("{id:guid}")]
     [Consumes("multipart/form-data")]
     [RequestSizeLimit(NewsImageStorage.MaximumBytes + 1024 * 1024)]
-    [ProducesResponseType(typeof(NewsItemDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(AdminNewsItemDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Update(
@@ -150,7 +150,7 @@ public class AdminNewsController(
 
     /// <summary>Publishes or hides a news item.</summary>
     [HttpPatch("{id:guid}/status")]
-    [ProducesResponseType(typeof(NewsItemDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(AdminNewsItemDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> UpdateStatus(
         Guid id,
@@ -166,7 +166,7 @@ public class AdminNewsController(
 
     /// <summary>Sets the display order of all published news items.</summary>
     [HttpPut("order")]
-    [ProducesResponseType(typeof(IReadOnlyList<NewsItemDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(IReadOnlyList<AdminNewsItemDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> Reorder(
         ReorderNewsItemsRequest request,

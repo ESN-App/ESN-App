@@ -17,4 +17,4 @@ public record CreateEventCommand(
     int? MinimumParticipants,
     int? MaximumParticipants,
     int? CurrentParticipants,
-    decimal Price) : IRequest<Result<EventDetailsDto>>;
+    decimal Price) : IRequest<Result<AdminEventDetailsDto>>;

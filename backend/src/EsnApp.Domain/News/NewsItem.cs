@@ -2,7 +2,7 @@ using EsnApp.Domain.Common;
 
 namespace EsnApp.Domain.News;
 
-public class NewsItem : BaseEntity
+public class NewsItem : CreatorTrackedEntity
 {
     public required string Title { get; set; }
 

@@ -7,16 +7,16 @@ using MediatR;
 namespace EsnApp.Application.Events.UpdateEventStatus;
 
 public class UpdateEventStatusCommandHandler(IEventRepository repository)
-    : IRequestHandler<UpdateEventStatusCommand, Result<EventDetailsDto>>
+    : IRequestHandler<UpdateEventStatusCommand, Result<AdminEventDetailsDto>>
 {
-    public async Task<Result<EventDetailsDto>> Handle(
+    public async Task<Result<AdminEventDetailsDto>> Handle(
         UpdateEventStatusCommand request,
         CancellationToken cancellationToken)
     {
         var entity = await repository.GetByIdAsync(request.Id, cancellationToken);
         if (entity is null)
         {
-            return Result.Failure<EventDetailsDto>($"Event '{request.Id}' was not found.");
+            return Result.Failure<AdminEventDetailsDto>($"Event '{request.Id}' was not found.");
         }
 
         entity.Status = request.Status;
@@ -26,6 +26,6 @@ public class UpdateEventStatusCommandHandler(IEventRepository repository)
         }
 
         var updated = await repository.UpdateAsync(entity, cancellationToken);
-        return Result.Success(updated.ToDetailsDto());
+        return Result.Success(updated.ToAdminDto());
     }
 }

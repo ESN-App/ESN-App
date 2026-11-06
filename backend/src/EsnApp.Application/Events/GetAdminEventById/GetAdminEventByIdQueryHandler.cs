@@ -6,16 +6,16 @@ using MediatR;
 namespace EsnApp.Application.Events.GetAdminEventById;
 
 public class GetAdminEventByIdQueryHandler(IEventRepository repository)
-    : IRequestHandler<GetAdminEventByIdQuery, Result<EventDetailsDto>>
+    : IRequestHandler<GetAdminEventByIdQuery, Result<AdminEventDetailsDto>>
 {
-    public async Task<Result<EventDetailsDto>> Handle(
+    public async Task<Result<AdminEventDetailsDto>> Handle(
         GetAdminEventByIdQuery request,
         CancellationToken cancellationToken)
     {
         var entity = await repository.GetByIdAsync(request.Id, cancellationToken);
 
         return entity is null
-            ? Result.Failure<EventDetailsDto>($"Event '{request.Id}' was not found.")
-            : Result.Success(entity.ToDetailsDto());
+            ? Result.Failure<AdminEventDetailsDto>($"Event '{request.Id}' was not found.")
+            : Result.Success(entity.ToAdminDto());
     }
 }

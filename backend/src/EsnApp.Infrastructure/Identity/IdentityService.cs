@@ -35,10 +35,7 @@ public class IdentityService(
         return Result.Success<IReadOnlyList<AdminUserDto>>(
             admins
                 .OrderByDescending(user => user.CreatedAt)
-                .Select(user => new AdminUserDto(
-                    user.Id,
-                    user.Email ?? string.Empty,
-                    user.CreatedAt))
+                .Select(ToAdminDto)
                 .ToList());
     }
 
@@ -57,6 +54,8 @@ public class IdentityService(
         {
             UserName = request.Email,
             Email = request.Email,
+            FirstName = request.FirstName.Trim(),
+            LastName = request.LastName.Trim(),
         };
 
         var createResult = await userManager.CreateAsync(user, request.Password);
@@ -75,7 +74,7 @@ public class IdentityService(
                 string.Join(" ", roleResult.Errors.Select(e => e.Description)));
         }
 
-        return Result.Success(new AdminUserDto(user.Id, user.Email ?? string.Empty, user.CreatedAt));
+        return Result.Success(ToAdminDto(user));
     }
 
     public async Task<Result> DeleteAdminAsync(
@@ -167,6 +166,9 @@ public class IdentityService(
 
         return Result.Success();
     }
+
+    private static AdminUserDto ToAdminDto(ApplicationUser user) =>
+        new(user.Id, user.Email ?? string.Empty, user.FirstName, user.LastName, user.CreatedAt);
 
     private async Task<Result<AuthResponse>> BuildAuthResponseAsync(ApplicationUser user)
     {

@@ -15,6 +15,8 @@ builder.Services.AddScoped<EventImageStorage>();
 builder.Services.AddScoped<PartnerImageStorage>();
 builder.Services.AddScoped<InfoImageStorage>();
 builder.Services.AddScoped<NewsImageStorage>();
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<EsnApp.Application.Identity.ICurrentUser, HttpContextCurrentUser>();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {

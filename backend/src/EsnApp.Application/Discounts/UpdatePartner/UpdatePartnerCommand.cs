@@ -15,4 +15,4 @@ public record UpdatePartnerCommand(
     Uri? GoogleMapsUrl,
     decimal? Latitude,
     decimal? Longitude,
-    int? displayOrder = null) : IRequest<Result<PartnerDto>>;
+    int? displayOrder = null) : IRequest<Result<AdminPartnerDto>>;

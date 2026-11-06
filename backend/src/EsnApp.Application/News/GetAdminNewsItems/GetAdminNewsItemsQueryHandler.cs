@@ -6,15 +6,15 @@ using MediatR;
 namespace EsnApp.Application.News.GetAdminNewsItems;
 
 public class GetAdminNewsItemsQueryHandler(INewsItemRepository repository)
-    : IRequestHandler<GetAdminNewsItemsQuery, Result<IReadOnlyList<NewsItemDto>>>
+    : IRequestHandler<GetAdminNewsItemsQuery, Result<IReadOnlyList<AdminNewsItemDto>>>
 {
-    public async Task<Result<IReadOnlyList<NewsItemDto>>> Handle(
+    public async Task<Result<IReadOnlyList<AdminNewsItemDto>>> Handle(
         GetAdminNewsItemsQuery request,
         CancellationToken cancellationToken)
     {
         var items = await repository.GetAdminListAsync(request.Status, cancellationToken);
 
-        return Result.Success<IReadOnlyList<NewsItemDto>>(
-            items.Select(NewsItemDto.FromEntity).ToList());
+        return Result.Success<IReadOnlyList<AdminNewsItemDto>>(
+            items.Select(AdminNewsItemDto.FromEntity).ToList());
     }
 }

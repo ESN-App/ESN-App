@@ -7,16 +7,16 @@ using MediatR;
 namespace EsnApp.Application.Events.UpdateAdminEvent;
 
 public class UpdateAdminEventCommandHandler(IEventRepository repository)
-    : IRequestHandler<UpdateAdminEventCommand, Result<EventDetailsDto>>
+    : IRequestHandler<UpdateAdminEventCommand, Result<AdminEventDetailsDto>>
 {
-    public async Task<Result<EventDetailsDto>> Handle(
+    public async Task<Result<AdminEventDetailsDto>> Handle(
         UpdateAdminEventCommand request,
         CancellationToken cancellationToken)
     {
         var entity = await repository.GetByIdAsync(request.Id, cancellationToken);
         if (entity is null)
         {
-            return Result.Failure<EventDetailsDto>($"Event '{request.Id}' was not found.");
+            return Result.Failure<AdminEventDetailsDto>($"Event '{request.Id}' was not found.");
         }
 
         entity.Title = request.Title;
@@ -41,6 +41,6 @@ public class UpdateAdminEventCommandHandler(IEventRepository repository)
         }
 
         var updated = await repository.UpdateAsync(entity, cancellationToken);
-        return Result.Success(updated.ToDetailsDto());
+        return Result.Success(updated.ToAdminDto());
     }
 }

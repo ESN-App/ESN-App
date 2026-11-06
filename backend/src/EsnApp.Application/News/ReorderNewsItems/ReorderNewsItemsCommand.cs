@@ -5,4 +5,4 @@ using MediatR;
 namespace EsnApp.Application.News.ReorderNewsItems;
 
 public record ReorderNewsItemsCommand(IReadOnlyList<Guid> NewsItemIds)
-    : IRequest<Result<IReadOnlyList<NewsItemDto>>>;
+    : IRequest<Result<IReadOnlyList<AdminNewsItemDto>>>;

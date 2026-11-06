@@ -1,6 +1,8 @@
 using EsnApp.Application.Discounts.Abstractions;
+using EsnApp.Application.Discounts.CreatePartner;
 using EsnApp.Application.Discounts.ReorderPartners;
 using EsnApp.Application.Discounts.UpdatePartnerStatus;
+using EsnApp.Application.Tests.Common;
 using EsnApp.Domain.Discounts;
 
 namespace EsnApp.Application.Tests.Discounts;
@@ -55,6 +57,24 @@ public class ManagePartnerCommandHandlerTests
             CancellationToken.None);
 
         Assert.False(result.IsSuccess);
+    }
+
+    [Fact]
+    public async Task Create_Partner_RecordsCreator()
+    {
+        var repository = new FakePartnerRepository();
+        var handler = new CreatePartnerCommandHandler(repository, new FakeCurrentUser("admin-1", "Jan K."));
+
+        var result = await handler.Handle(
+            new CreatePartnerCommand(
+                "Partner", "/api/images/partners/logo.png", "Summary", "Description",
+                null, null, null, null, null),
+            CancellationToken.None);
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal("Jan K.", result.Value!.CreatedBy);
+        var stored = Assert.Single(await repository.GetAdminListAsync(null));
+        Assert.Equal("admin-1", stored.CreatedById);
     }
 
     private static Partner CreatePartner(PartnerStatus status, int displayOrder) => new()

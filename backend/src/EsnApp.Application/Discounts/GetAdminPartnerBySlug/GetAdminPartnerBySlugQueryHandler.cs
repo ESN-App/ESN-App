@@ -6,16 +6,16 @@ using MediatR;
 namespace EsnApp.Application.Discounts.GetAdminPartnerBySlug;
 
 public class GetAdminPartnerBySlugQueryHandler(IPartnerRepository repository)
-    : IRequestHandler<GetAdminPartnerBySlugQuery, Result<PartnerDto>>
+    : IRequestHandler<GetAdminPartnerBySlugQuery, Result<AdminPartnerDto>>
 {
-    public async Task<Result<PartnerDto>> Handle(
+    public async Task<Result<AdminPartnerDto>> Handle(
         GetAdminPartnerBySlugQuery request,
         CancellationToken cancellationToken)
     {
         var entity = await repository.GetAdminBySlugAsync(request.Slug, cancellationToken);
 
         return entity is null
-            ? Result.Failure<PartnerDto>($"Partner '{request.Slug}' was not found.")
-            : Result.Success(entity.ToDto());
+            ? Result.Failure<AdminPartnerDto>($"Partner '{request.Slug}' was not found.")
+            : Result.Success(entity.ToAdminDto());
     }
 }

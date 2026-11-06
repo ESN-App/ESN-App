@@ -8,4 +8,4 @@ public record GetAdminEventsQuery(
     DateTimeOffset? From,
     DateTimeOffset? To,
     int Page,
-    int PageSize) : IRequest<Result<PagedResult<EventDetailsDto>>>;
+    int PageSize) : IRequest<Result<PagedResult<AdminEventDetailsDto>>>;

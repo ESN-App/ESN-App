@@ -7,16 +7,16 @@ using MediatR;
 namespace EsnApp.Application.News.UpdateNewsItemStatus;
 
 public class UpdateNewsItemStatusCommandHandler(INewsItemRepository repository)
-    : IRequestHandler<UpdateNewsItemStatusCommand, Result<NewsItemDto>>
+    : IRequestHandler<UpdateNewsItemStatusCommand, Result<AdminNewsItemDto>>
 {
-    public async Task<Result<NewsItemDto>> Handle(
+    public async Task<Result<AdminNewsItemDto>> Handle(
         UpdateNewsItemStatusCommand request,
         CancellationToken cancellationToken)
     {
         var item = await repository.GetAdminByIdAsync(request.Id, cancellationToken);
 
         if (item is null)
-            return Result.Failure<NewsItemDto>($"News item '{request.Id}' was not found.");
+            return Result.Failure<AdminNewsItemDto>($"News item '{request.Id}' was not found.");
 
         if (item.Status != NewsItemStatus.Published
             && request.Status == NewsItemStatus.Published)
@@ -32,7 +32,7 @@ public class UpdateNewsItemStatusCommandHandler(INewsItemRepository repository)
 
         item.Status = request.Status;
 
-        return Result.Success(NewsItemDto.FromEntity(
+        return Result.Success(AdminNewsItemDto.FromEntity(
             await repository.UpdateAsync(item, cancellationToken)));
     }
 }

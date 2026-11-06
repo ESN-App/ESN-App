@@ -6,16 +6,16 @@ using MediatR;
 namespace EsnApp.Application.Discounts.GetAdminPartnerById;
 
 public class GetAdminPartnerByIdQueryHandler(IPartnerRepository repository)
-    : IRequestHandler<GetAdminPartnerByIdQuery, Result<PartnerDto>>
+    : IRequestHandler<GetAdminPartnerByIdQuery, Result<AdminPartnerDto>>
 {
-    public async Task<Result<PartnerDto>> Handle(
+    public async Task<Result<AdminPartnerDto>> Handle(
         GetAdminPartnerByIdQuery request,
         CancellationToken cancellationToken)
     {
         var entity = await repository.GetAdminByIdAsync(request.Id, cancellationToken);
 
         return entity is null
-            ? Result.Failure<PartnerDto>($"Partner '{request.Id}' was not found.")
-            : Result.Success(entity.ToDto());
+            ? Result.Failure<AdminPartnerDto>($"Partner '{request.Id}' was not found.")
+            : Result.Success(entity.ToAdminDto());
     }
 }

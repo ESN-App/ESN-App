@@ -1,4 +1,5 @@
 using EsnApp.Application.Common;
+using EsnApp.Application.Identity;
 using EsnApp.Application.Events.Abstractions;
 using EsnApp.Application.Events.Common;
 using EsnApp.Domain.Events;
@@ -6,10 +7,10 @@ using MediatR;
 
 namespace EsnApp.Application.Events.CreateEvent;
 
-public class CreateEventCommandHandler(IEventRepository repository)
-    : IRequestHandler<CreateEventCommand, Result<EventDetailsDto>>
+public class CreateEventCommandHandler(IEventRepository repository, ICurrentUser currentUser)
+    : IRequestHandler<CreateEventCommand, Result<AdminEventDetailsDto>>
 {
-    public async Task<Result<EventDetailsDto>> Handle(
+    public async Task<Result<AdminEventDetailsDto>> Handle(
         CreateEventCommand request,
         CancellationToken cancellationToken)
     {
@@ -28,10 +29,12 @@ public class CreateEventCommandHandler(IEventRepository repository)
             MaximumParticipants = request.MaximumParticipants,
             CurrentParticipants = request.CurrentParticipants,
             Price = request.Price,
+            CreatedById = currentUser.UserId,
+            CreatedByName = currentUser.DisplayName,
         };
 
         var created = await repository.AddAsync(entity, cancellationToken);
 
-        return Result.Success(created.ToDetailsDto());
+        return Result.Success(created.ToAdminDto());
     }
 }

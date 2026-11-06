@@ -13,4 +13,4 @@ public record CreatePartnerCommand(
     Uri? WebsiteUrl,
     Uri? GoogleMapsUrl,
     decimal? Latitude,
-    decimal? Longitude) : IRequest<Result<PartnerDto>>;
+    decimal? Longitude) : IRequest<Result<AdminPartnerDto>>;
