@@ -1,15 +1,4 @@
-import {
-  afterNextRender,
-  Component,
-  computed,
-  DestroyRef,
-  ElementRef,
-  inject,
-  QueryList,
-  signal,
-  viewChild,
-  ViewChildren,
-} from '@angular/core';
+import { Component, computed, ElementRef, inject, QueryList, signal, ViewChildren } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { BreakpointObserver } from '@angular/cdk/layout';
 import { ActivatedRoute, RouterLink } from '@angular/router';
@@ -93,37 +82,6 @@ export class PartnersList {
         ),
     );
   });
-  private readonly worldHeader = viewChild.required<ElementRef<HTMLElement>>('worldHeader');
-  // True once the big header has scrolled fully out of view; false again only when it is
-  // fully back (top of the page), so the bar doesn't flicker around the threshold.
-  private readonly scrolledPastHeader = signal(false);
-  protected readonly mapMode = computed(() => !this.isDesktop() && this.mobileView() === 'map');
-  protected readonly collapsed = computed(() => this.mapMode() || this.scrolledPastHeader());
-
-  constructor() {
-    const destroyRef = inject(DestroyRef);
-
-    afterNextRender(() => {
-      const observer = new IntersectionObserver(
-        ([entry]) => {
-          if (!entry.isIntersecting) {
-            this.scrolledPastHeader.set(true);
-          } else if (entry.intersectionRatio >= 0.99) {
-            this.scrolledPastHeader.set(false);
-          }
-        },
-        // The header counts as gone once it is under the sticky desktop top bar.
-        // shortcut: read once, so resizing across 701px is off by the bar height until reload.
-        {
-          rootMargin: `-${getComputedStyle(document.documentElement).getPropertyValue('--top-bar-height').trim() || '0px'} 0px 0px 0px`,
-          threshold: [0, 1],
-        },
-      );
-      observer.observe(this.worldHeader().nativeElement);
-      destroyRef.onDestroy(() => observer.disconnect());
-    });
-  }
-
   protected readonly selectedPartner = computed(() => {
     const selectedId = this.selectedPartnerId();
     return this.state().partners.find((partner) => partner.id === selectedId) ?? null;
@@ -157,8 +115,6 @@ export class PartnersList {
 
   protected setMobileView(view: MobilePartnersView): void {
     this.mobileView.set(view);
-    // Start each view at the top: the map fills the screen, the list opens expanded.
-    this.worldHeader().nativeElement.scrollIntoView({ block: 'start' });
   }
 
   protected clearSelection(): void {
