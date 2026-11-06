@@ -161,28 +161,46 @@
     margin-top: 0;
   }
 
-  // Map on the left, list on the right, both visible.
+  // Map on the left, list on the right in a panel of the same height that scrolls on its
+  // own. The height leaves room for the top bar, search (16 above it), count row and the
+  // 80 page padding, so search, count and both panels fit once the header has scrolled away.
   .partners-split {
-    align-items: start;
+    --panel-height: clamp(360px, calc(100dvh - var(--top-bar-height) - 240px), 560px);
     display: grid;
     gap: 24px;
-    grid-template-columns: minmax(0, 560px) minmax(280px, 1fr);
+    grid-template-columns: minmax(0, var(--panel-height)) minmax(280px, 1fr);
+    height: var(--panel-height);
   }
 
   .partners-map-region {
     grid-column: 1;
     grid-row: 1;
-    position: sticky;
-    top: calc(var(--top-bar-height) + 24px);
 
     app-partners-map {
-      aspect-ratio: 1;
-      height: auto;
+      height: 100%;
     }
   }
 
   .partner-list-region {
     grid-column: 2;
     grid-row: 1;
+    overflow-y: auto;
+    // Room for the offer badges, card focus rings and the scrollbar inside the clipped panel.
+    padding: 14px 8px 4px 4px;
+
+    // Always-visible thin scrollbar (macOS overlay scrollbars hide it otherwise).
+    &::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background: var(--app-muted);
+      border-radius: 999px;
+    }
+
+    @supports not selector(::-webkit-scrollbar) {
+      scrollbar-color: var(--app-muted) transparent;
+      scrollbar-width: thin;
+    }
   }
 }
