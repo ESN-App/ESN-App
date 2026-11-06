@@ -20,7 +20,7 @@ services:
     runtime: docker
     plan: free
     region: frankfurt
-    branch: feature/new-gui
+    branch: main
     autoDeployTrigger: commit
     dockerfilePath: ./docker/backend.Dockerfile
     dockerContext: .
@@ -74,7 +74,7 @@ services:
     runtime: docker
     plan: free
     region: frankfurt
-    branch: feature/new-gui
+    branch: main
     autoDeployTrigger: commit
     dockerfilePath: ./docker/frontend.Dockerfile
     dockerContext: .

@@ -91,9 +91,9 @@ Never edit the database schema directly — always add an EF Core migration and 
 
 ## Deploy to Render
 
-[`render.yaml`](render.yaml) is a Render Blueprint. It defines a free Postgres database (`esn-gdansk-db`), the API as a Docker web service (`esn-gdansk-api`), and the frontend as a Docker web service (`esn-gdansk-web`, nginx). Everything runs in Frankfurt and auto-deploys from `feature/new-gui`.
+[`render.yaml`](render.yaml) is a Render Blueprint. It defines a free Postgres database (`esn-gdansk-db`), the API as a Docker web service (`esn-gdansk-api`), and the frontend as a Docker web service (`esn-gdansk-web`, nginx). Everything runs in Frankfurt and auto-deploys from `main`.
 
-1. In the Render dashboard: **New → Blueprint**, connect the `ESN-App/ESN-App` repo, pick branch `feature/new-gui`.
+1. In the Render dashboard: **New → Blueprint**, connect the `ESN-App/ESN-App` repo, pick branch `main`.
 2. Fill in the prompted secrets:
    - `Seed__AdminEmail` and `Seed__AdminPassword`: the first admin account, created on startup. The password needs at least 8 characters, with upper case, lower case and a digit.
    - `Email__SmtpHost`: leave it empty on the free plan (see limits below). Reset emails are then written to the API logs.
