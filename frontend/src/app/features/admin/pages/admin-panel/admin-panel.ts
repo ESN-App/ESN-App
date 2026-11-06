@@ -1,4 +1,4 @@
-import { CurrencyPipe, DatePipe } from '@angular/common';
+import { DatePipe, DecimalPipe } from '@angular/common';
 import { Component, computed, ElementRef, HostListener, inject, signal, ViewChild, WritableSignal } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
@@ -56,7 +56,7 @@ interface SectionOption {
 
 @Component({
   selector: 'app-admin-panel',
-  imports: [CurrencyPipe, DatePipe, MatButtonModule, RouterLink, AdminDisplayOrderModal, CancelledBadge, DraftBadge, PublishedBadge, LoadingSpinner],
+  imports: [DatePipe, DecimalPipe, MatButtonModule, RouterLink, AdminDisplayOrderModal, CancelledBadge, DraftBadge, PublishedBadge, LoadingSpinner],
   templateUrl: './admin-panel.html',
   styleUrl: './admin-panel.scss',
 })

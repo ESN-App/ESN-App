@@ -104,7 +104,7 @@
                     <td class="primary-column" data-label="Event"><a class="details-link" [routerLink]="eventDetailsLink(item)" [title]="item.title">{{ item.title }}</a><small class="created-meta">Created {{ item.createdAt | date: 'd MMM y, HH:mm' }}@if (item.createdBy) { by {{ item.createdBy }}}</small></td>
                     <td data-label="Date"><time [attr.datetime]="item.startsAt">{{ item.startsAt | date: 'd MMM y' }}</time></td>
                     <td data-label="Location">{{ item.location }}</td>
-                    <td data-label="Price">{{ item.price === 0 ? 'Free' : (item.price | currency: 'PLN') }}</td>
+                    <td data-label="Price">{{ item.price === 0 ? 'Free' : (item.price | number: '1.0-2') + ' zł' }}</td>
                     <td class="created-column" data-label="Created"><time [attr.datetime]="item.createdAt">{{ item.createdAt | date: 'd MMM y, HH:mm' }}</time><small>@if (item.createdBy) {<span class="visually-hidden">Created </span>by {{ item.createdBy }}} @else {<span class="visually-hidden">Creator unknown</span><span aria-hidden="true">—</span>}</small></td>
                     <td data-label="Status">@if (item.status === 0) { <app-draft-badge /> } @else if (item.status === 1) { <app-published-badge /> } @else if (item.status === 2) { <app-cancelled-badge /> } @else { <span class="status-badge">{{ eventStatus(item.status) }}</span> }</td>
                     <td class="row-tools">
