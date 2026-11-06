@@ -9,6 +9,10 @@ COPY frontend/ .
 RUN npm run build
 
 FROM nginx:alpine AS runtime
-COPY docker/nginx.conf /etc/nginx/conf.d/default.conf
+# The nginx image renders /etc/nginx/templates/*.template with envsubst on start.
+COPY docker/nginx.conf.template /etc/nginx/templates/default.conf.template
 COPY --from=build /app/dist/esn-app/browser /usr/share/nginx/html
+# Defaults suit docker compose; Render overrides both (see render.yaml).
+ENV PORT=80 \
+    API_UPSTREAM=http://backend:8080
 EXPOSE 80

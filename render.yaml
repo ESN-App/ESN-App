@@ -1,0 +1,82 @@
+# Render Blueprint (https://render.com/docs/blueprint-spec).
+# Dashboard -> New -> Blueprint -> pick this repo/branch; values marked `sync: false`
+# are prompted once when the Blueprint is first created.
+#
+# shortcut: everything runs on the free plan — Postgres expires 30 days after creation,
+# web services sleep after 15 min idle, and uploaded images live on the backend's
+# ephemeral container disk (lost on every deploy/restart; seed images ship in the image).
+# Upgrade the plans and move uploads to object storage before real production use.
+
+databases:
+  - name: esn-gdansk-db
+    plan: free
+    region: frankfurt
+    databaseName: esn_gdansk
+    user: esn
+
+services:
+  - type: web
+    name: esn-gdansk-api
+    runtime: docker
+    plan: free
+    region: frankfurt
+    branch: feature/new-gui
+    autoDeployTrigger: commit
+    dockerfilePath: ./docker/backend.Dockerfile
+    dockerContext: .
+    healthCheckPath: /health
+    envVars:
+      - key: ASPNETCORE_ENVIRONMENT
+        value: Production
+      # The aspnet image already listens on 8080 (ASPNETCORE_HTTP_PORTS); PORT tells Render.
+      - key: PORT
+        value: "8080"
+      # Render hands out a postgresql:// URI; the backend converts it for Npgsql.
+      - key: ConnectionStrings__DefaultConnection
+        fromDatabase:
+          name: esn-gdansk-db
+          property: connectionString
+      - key: Jwt__Key
+        generateValue: true
+      - key: Database__ApplyMigrationsOnStartup
+        value: "true"
+      - key: Seed__AdminEmail
+        sync: false
+      - key: Seed__AdminPassword
+        sync: false
+      # shortcut: free web services can't send on ports 25/465/587, so SMTP won't work on
+      # the free plan — leave Email__SmtpHost empty (reset emails are logged instead) until
+      # the API moves to a paid plan or an HTTP email API.
+      - key: Email__SmtpHost
+        sync: false
+      - key: Email__SmtpPort
+        value: "587"
+      - key: Email__SmtpUsername
+        sync: false
+      - key: Email__SmtpPassword
+        sync: false
+      - key: Email__FromAddress
+        sync: false
+      - key: Email__FromName
+        value: ESN Gdańsk
+      - key: Email__FrontendBaseUrl
+        value: https://esn-gdansk-web.onrender.com
+
+  # nginx serves the Angular build and proxies /api, /health and /swagger to the API
+  # same-origin (ADR-002). Free web services can't receive private-network traffic,
+  # so the upstream is the API's public URL.
+  - type: web
+    name: esn-gdansk-web
+    runtime: docker
+    plan: free
+    region: frankfurt
+    branch: feature/new-gui
+    autoDeployTrigger: commit
+    dockerfilePath: ./docker/frontend.Dockerfile
+    dockerContext: .
+    healthCheckPath: /
+    envVars:
+      - key: PORT
+        value: "10000"
+      - key: API_UPSTREAM
+        value: https://esn-gdansk-api.onrender.com

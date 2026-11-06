@@ -1,0 +1,46 @@
+# Rendered by the nginx image's envsubst step at container start
+# (/etc/nginx/templates/*.template -> /etc/nginx/conf.d/). ${PORT} and ${API_UPSTREAM}
+# come from the environment; defaults live in docker/frontend.Dockerfile.
+server {
+    listen ${PORT};
+    server_name _;
+
+    root /usr/share/nginx/html;
+    index index.html;
+
+    # Proxy API, health checks and Swagger to the backend so the production build can
+    # call the API same-origin (no CORS needed). Host is the upstream's own host so an
+    # https upstream behind a shared edge (Render) routes correctly; SNI likewise.
+    # shortcut: the upstream hostname is resolved once at startup; add a resolver + variable proxy_pass if its IPs change under a long-running container.
+    proxy_set_header Host $proxy_host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_ssl_server_name on;
+
+    location /api/ {
+        proxy_pass ${API_UPSTREAM};
+    }
+
+    location /health {
+        proxy_pass ${API_UPSTREAM};
+    }
+
+    location /swagger {
+        proxy_pass ${API_UPSTREAM};
+    }
+
+    # The app shell and service worker must be revalidated so new deploys reach users.
+    location = /index.html {
+        add_header Cache-Control "no-cache";
+    }
+
+    location ~ ^/(ngsw-worker\.js|ngsw\.json|safety-worker\.js|manifest\.webmanifest)$ {
+        add_header Cache-Control "no-cache";
+    }
+
+    # SPA fallback: let the Angular router handle everything else.
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+}
