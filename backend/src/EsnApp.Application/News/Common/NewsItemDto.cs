@@ -6,7 +6,7 @@ public record NewsItemDto(
     Guid Id,
     string Title,
     string Description,
-    string ImagePath,
+    string? ImagePath,
     int DisplayOrder,
     NewsItemStatus Status,
     DateTimeOffset CreatedAt,

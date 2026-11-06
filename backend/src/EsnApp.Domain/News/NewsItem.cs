@@ -8,7 +8,7 @@ public class NewsItem : CreatorTrackedEntity
 
     public required string Description { get; set; }
 
-    public required string ImagePath { get; set; }
+    public string? ImagePath { get; set; }
 
     public int DisplayOrder { get; set; }
 

@@ -82,6 +82,21 @@ public class ManageEventCommandHandlerTests
         Assert.Equal("Jan K.", stored.CreatedByName);
     }
 
+    [Fact]
+    public async Task Create_EventWithoutImage_PassesValidationAndSucceeds()
+    {
+        var command = new CreateEventCommand(
+            "Event", "Summary", "Full description", "Gdańsk", null,
+            DateTimeOffset.UtcNow.AddDays(1), null, null, null, null, null, null, 0);
+        var handler = new CreateEventCommandHandler(new FakeEventRepository(), new FakeCurrentUser("admin-1", "Jan K."));
+
+        Assert.True(new CreateEventCommandValidator().Validate(command).IsValid);
+        var result = await handler.Handle(command, CancellationToken.None);
+
+        Assert.True(result.IsSuccess);
+        Assert.Null(result.Value!.ImagePath);
+    }
+
     private static Event CreateEvent() => new()
     {
         Id = Guid.NewGuid(),

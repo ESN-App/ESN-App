@@ -12,7 +12,8 @@ public class CreateInfoArticleRequest
     public required string Slug { get; init; }
     public required string Content { get; init; }
     public required string Category { get; init; }
-    public required IFormFile Image { get; init; }
+    public IFormFile? Image { get; init; }
+    public bool RemoveImage { get; init; }
     // List<string>, not IReadOnlyList<string>: the form collection binder cannot
     // construct read-only interfaces, so links would silently bind as empty.
     public List<string> ExternalLinks { get; init; } = [];
@@ -25,6 +26,7 @@ public class UpdateInfoArticleRequest
     public required string Content { get; init; }
     public required string Category { get; init; }
     public IFormFile? Image { get; init; }
+    public bool RemoveImage { get; init; }
     // List<string>, not IReadOnlyList<string>: the form collection binder cannot
     // construct read-only interfaces, so links would silently bind as empty.
     public List<string> ExternalLinks { get; init; } = [];

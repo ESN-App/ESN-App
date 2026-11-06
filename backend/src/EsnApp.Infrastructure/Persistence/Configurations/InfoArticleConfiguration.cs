@@ -13,7 +13,6 @@ public class InfoArticleConfiguration : IEntityTypeConfiguration<InfoArticle>
         builder.Property(article => article.Content).IsRequired();
         builder.Property(article => article.Category).IsRequired().HasMaxLength(100);
         builder.Property(article => article.ImagePath)
-            .IsRequired()
             .HasMaxLength(2000);
         builder.Property(article => article.ExternalLinks).IsRequired();
         builder.Property(article => article.Status).IsRequired();

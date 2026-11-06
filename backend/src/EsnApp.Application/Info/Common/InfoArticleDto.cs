@@ -8,7 +8,7 @@ public record InfoArticleDto(
     string Slug,
     string Content,
     string Category,
-    string ImagePath,
+    string? ImagePath,
     IReadOnlyList<string> ExternalLinks,
     int DisplayOrder,
     InfoArticleStatus Status,

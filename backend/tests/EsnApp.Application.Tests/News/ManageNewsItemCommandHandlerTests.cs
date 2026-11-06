@@ -128,6 +128,47 @@ public class ManageNewsItemCommandHandlerTests
     }
 
     [Fact]
+    public async Task Create_NewsItemWithoutImage_PassesValidationAndSucceeds()
+    {
+        var command = new CreateNewsItemCommand("Title", "Description", null);
+        var handler = new CreateNewsItemCommandHandler(new FakeNewsItemRepository(), new FakeCurrentUser());
+
+        Assert.True(new CreateNewsItemCommandValidator().Validate(command).IsValid);
+        var result = await handler.Handle(command, CancellationToken.None);
+
+        Assert.True(result.IsSuccess);
+        Assert.Null(result.Value!.ImagePath);
+    }
+
+    [Fact]
+    public async Task Update_NewsItemWithExistingImagePath_KeepsImage()
+    {
+        var item = CreateNewsItem(NewsItemStatus.Published, 0);
+        var handler = new UpdateNewsItemCommandHandler(new FakeNewsItemRepository(item));
+
+        var result = await handler.Handle(
+            new UpdateNewsItemCommand(item.Id, "Title", "Description", item.ImagePath),
+            CancellationToken.None);
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal("/api/images/uploads/news/image.jpg", result.Value!.ImagePath);
+    }
+
+    [Fact]
+    public async Task Update_NewsItemWithNullImage_PassesValidationAndClearsImage()
+    {
+        var item = CreateNewsItem(NewsItemStatus.Published, 0);
+        var command = new UpdateNewsItemCommand(item.Id, "Title", "Description", null);
+        var handler = new UpdateNewsItemCommandHandler(new FakeNewsItemRepository(item));
+
+        Assert.True(new UpdateNewsItemCommandValidator().Validate(command).IsValid);
+        var result = await handler.Handle(command, CancellationToken.None);
+
+        Assert.True(result.IsSuccess);
+        Assert.Null(item.ImagePath);
+    }
+
+    [Fact]
     public async Task Update_MissingNewsItem_ReturnsFailure()
     {
         var handler = new UpdateNewsItemCommandHandler(new FakeNewsItemRepository());

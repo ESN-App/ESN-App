@@ -10,7 +10,7 @@ public record UpdateInfoArticleCommand(
     string Slug,
     string Content,
     string Category,
-    string ImagePath,
+    string? ImagePath,
     IReadOnlyList<string> ExternalLinks) : IRequest<Result<AdminInfoArticleDto>>;
 
 public class UpdateInfoArticleCommandValidator : AbstractValidator<UpdateInfoArticleCommand>
@@ -25,7 +25,7 @@ public class UpdateInfoArticleCommandValidator : AbstractValidator<UpdateInfoArt
             .Matches("^[a-z0-9]+(?:-[a-z0-9]+)*$");
         RuleFor(command => command.Content).NotEmpty().MaximumLength(50_000);
         RuleFor(command => command.Category).NotEmpty().MaximumLength(100);
-        RuleFor(command => command.ImagePath).NotEmpty().MaximumLength(2000);
+        RuleFor(command => command.ImagePath).MaximumLength(2000);
         RuleFor(command => command.ExternalLinks)
             .NotNull()
             .Must(links => links is not null && links.Count <= 20);

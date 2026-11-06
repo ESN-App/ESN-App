@@ -41,7 +41,7 @@ public class AdminInfoController(
         return result.IsSuccess ? Ok(result.Value) : NotFound(new { error = result.Error });
     }
 
-    /// <summary>Creates a draft info article and stores its uploaded image.</summary>
+    /// <summary>Creates a draft info article and stores its optional uploaded image.</summary>
     [HttpPost]
     [Consumes("multipart/form-data")]
     [RequestSizeLimit(InfoImageStorage.MaximumBytes + 1024 * 1024)]
@@ -62,7 +62,7 @@ public class AdminInfoController(
                     request.Slug,
                     request.Content,
                     request.Category,
-                    imagePath!,
+                    imagePath,
                     request.ExternalLinks),
                 cancellationToken);
 
@@ -86,7 +86,7 @@ public class AdminInfoController(
         }
     }
 
-    /// <summary>Edits an info article, replacing its image only when a new one is uploaded.</summary>
+    /// <summary>Edits an info article, replacing its image when a new one is uploaded or clearing it when removeImage is true.</summary>
     [HttpPut("{id:guid}")]
     [Consumes("multipart/form-data")]
     [RequestSizeLimit(InfoImageStorage.MaximumBytes + 1024 * 1024)]
@@ -111,6 +111,7 @@ public class AdminInfoController(
         try
         {
             newImagePath = await imageStorage.SaveAsync(request.Image, cancellationToken);
+            var imagePath = newImagePath ?? (request.RemoveImage ? null : existing.ImagePath);
             var result = await sender.Send(
                 new UpdateInfoArticleCommand(
                     id,
@@ -118,7 +119,7 @@ public class AdminInfoController(
                     request.Slug,
                     request.Content,
                     request.Category,
-                    newImagePath ?? existing.ImagePath,
+                    imagePath,
                     request.ExternalLinks),
                 cancellationToken);
 
@@ -128,7 +129,7 @@ public class AdminInfoController(
                 return NotFound(new { error = result.Error });
             }
 
-            if (newImagePath is not null)
+            if ((newImagePath is not null || request.RemoveImage) && existing.ImagePath != imagePath)
             {
                 imageStorage.Delete(existing.ImagePath);
             }

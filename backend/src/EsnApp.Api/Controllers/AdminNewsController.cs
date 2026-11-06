@@ -45,7 +45,7 @@ public class AdminNewsController(
         return result.IsSuccess ? Ok(result.Value) : NotFound(new { error = result.Error });
     }
 
-    /// <summary>Creates a draft news item and stores its uploaded image.</summary>
+    /// <summary>Creates a draft news item and stores its optional uploaded image.</summary>
     [HttpPost]
     [Consumes("multipart/form-data")]
     [RequestSizeLimit(NewsImageStorage.MaximumBytes + 1024 * 1024)]
@@ -64,7 +64,7 @@ public class AdminNewsController(
                 new CreateNewsItemCommand(
                     request.Title,
                     request.Description,
-                    imagePath!),
+                    imagePath),
                 cancellationToken);
 
             if (!result.IsSuccess)
@@ -90,7 +90,7 @@ public class AdminNewsController(
         }
     }
 
-    /// <summary>Edits a news item, replacing its image only when a new one is uploaded.</summary>
+    /// <summary>Edits a news item, replacing its image when a new one is uploaded or clearing it when removeImage is true.</summary>
     [HttpPut("{id:guid}")]
     [Consumes("multipart/form-data")]
     [RequestSizeLimit(NewsImageStorage.MaximumBytes + 1024 * 1024)]
@@ -115,12 +115,13 @@ public class AdminNewsController(
         try
         {
             newImagePath = await imageStorage.SaveAsync(request.Image, cancellationToken);
+            var imagePath = newImagePath ?? (request.RemoveImage ? null : existing.ImagePath);
             var result = await sender.Send(
                 new UpdateNewsItemCommand(
                     id,
                     request.Title,
                     request.Description,
-                    newImagePath ?? existing.ImagePath),
+                    imagePath),
                 cancellationToken);
 
             if (!result.IsSuccess)
@@ -129,7 +130,7 @@ public class AdminNewsController(
                 return NotFound(new { error = result.Error });
             }
 
-            if (newImagePath is not null)
+            if ((newImagePath is not null || request.RemoveImage) && existing.ImagePath != imagePath)
             {
                 imageStorage.Delete(existing.ImagePath);
             }

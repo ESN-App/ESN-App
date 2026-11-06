@@ -85,6 +85,51 @@ public class ManageInfoArticleCommandHandlerTests
         Assert.False(result.IsSuccess);
     }
 
+    [Fact]
+    public async Task Create_ArticleWithoutImage_PassesValidationAndSucceeds()
+    {
+        var command = new CreateInfoArticleCommand(
+            "New article", "new-article", "Content", "General", null, []);
+        var handler = new CreateInfoArticleCommandHandler(
+            new FakeInfoArticleRepository(), new FakeCurrentUser());
+
+        Assert.True(new CreateInfoArticleCommandValidator().Validate(command).IsValid);
+        var result = await handler.Handle(command, CancellationToken.None);
+
+        Assert.True(result.IsSuccess);
+        Assert.Null(result.Value!.ImagePath);
+    }
+
+    [Fact]
+    public async Task Update_ArticleWithExistingImagePath_KeepsImage()
+    {
+        var article = CreateArticle(InfoArticleStatus.Published, 0);
+        var handler = new UpdateInfoArticleCommandHandler(new FakeInfoArticleRepository(article));
+
+        var result = await handler.Handle(
+            new UpdateInfoArticleCommand(
+                article.Id, "Article", article.Slug, "Content", "General", article.ImagePath, []),
+            CancellationToken.None);
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal("/api/images/uploads/info/image.jpg", result.Value!.ImagePath);
+    }
+
+    [Fact]
+    public async Task Update_ArticleWithNullImage_PassesValidationAndClearsImage()
+    {
+        var article = CreateArticle(InfoArticleStatus.Published, 0);
+        var command = new UpdateInfoArticleCommand(
+            article.Id, "Article", article.Slug, "Content", "General", null, []);
+        var handler = new UpdateInfoArticleCommandHandler(new FakeInfoArticleRepository(article));
+
+        Assert.True(new UpdateInfoArticleCommandValidator().Validate(command).IsValid);
+        var result = await handler.Handle(command, CancellationToken.None);
+
+        Assert.True(result.IsSuccess);
+        Assert.Null(article.ImagePath);
+    }
+
     private static InfoArticle CreateArticle(InfoArticleStatus status, int displayOrder) => new()
     {
         Id = Guid.NewGuid(),

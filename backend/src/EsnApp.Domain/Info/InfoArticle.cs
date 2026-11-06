@@ -12,7 +12,7 @@ public class InfoArticle : CreatorTrackedEntity
 
     public required string Category { get; set; }
 
-    public required string ImagePath { get; set; }
+    public string? ImagePath { get; set; }
 
     public List<string> ExternalLinks { get; set; } = [];
 

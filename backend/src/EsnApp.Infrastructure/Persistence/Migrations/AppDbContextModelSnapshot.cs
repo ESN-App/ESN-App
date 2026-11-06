@@ -243,7 +243,6 @@ namespace EsnApp.Infrastructure.Persistence.Migrations
                         .HasColumnType("text[]");
 
                     b.Property<string>("ImagePath")
-                        .IsRequired()
                         .HasMaxLength(2000)
                         .HasColumnType("character varying(2000)");
 
@@ -299,7 +298,6 @@ namespace EsnApp.Infrastructure.Persistence.Migrations
                         .HasColumnType("integer");
 
                     b.Property<string>("ImagePath")
-                        .IsRequired()
                         .HasMaxLength(2000)
                         .HasColumnType("character varying(2000)");
 

@@ -19,7 +19,7 @@ public class CreateNewsItemCommandHandler(INewsItemRepository repository, ICurre
         {
             Title = request.Title.Trim(),
             Description = request.Description.Trim(),
-            ImagePath = request.ImagePath.Trim(),
+            ImagePath = request.ImagePath?.Trim(),
             CreatedById = currentUser.UserId,
             CreatedByName = currentUser.DisplayName,
             // New items start as drafts and go on top of the draft list.

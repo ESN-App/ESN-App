@@ -19,7 +19,7 @@ public class UpdateNewsItemCommandHandler(INewsItemRepository repository)
 
         item.Title = request.Title.Trim();
         item.Description = request.Description.Trim();
-        item.ImagePath = request.ImagePath.Trim();
+        item.ImagePath = request.ImagePath?.Trim();
 
         return Result.Success(AdminNewsItemDto.FromEntity(
             await repository.UpdateAsync(item, cancellationToken)));
