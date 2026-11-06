@@ -18,6 +18,6 @@
   .guides {
     align-items: start;
     gap: 32px;
-    grid-template-columns: minmax(0, 544px) minmax(0, 1fr);
+    grid-template-columns: minmax(0, 544px) minmax(280px, 1fr);
   }
 }

@@ -166,7 +166,7 @@
     align-items: start;
     display: grid;
     gap: 24px;
-    grid-template-columns: minmax(0, 560px) minmax(0, 1fr);
+    grid-template-columns: minmax(0, 560px) minmax(280px, 1fr);
   }
 
   .partners-map-region {
