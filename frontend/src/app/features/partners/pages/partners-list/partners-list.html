@@ -22,7 +22,11 @@
       />
     </label>
 
-    @if (state().status === 'loaded' && state().partners.length > 0 && !isDesktop()) {
+    <!-- Shown (disabled) while loading too, so the bar keeps its height when partners arrive. -->
+    @if (
+      (state().status === 'loading' || (state().status === 'loaded' && state().partners.length > 0)) &&
+      !isDesktop()
+    ) {
       <div class="view-switch" role="tablist" aria-label="Partners view">
         <button
           id="partners-list-tab"
@@ -30,6 +34,7 @@
           role="tab"
           [attr.aria-selected]="mobileView() === 'list'"
           aria-controls="partners-list-panel"
+          [disabled]="state().status === 'loading'"
           (click)="setMobileView('list')"
         >
           <mat-icon aria-hidden="true">list</mat-icon>
@@ -41,6 +46,7 @@
           role="tab"
           [attr.aria-selected]="mobileView() === 'map'"
           aria-controls="partners-map-panel"
+          [disabled]="state().status === 'loading'"
           (click)="setMobileView('map')"
         >
           <mat-icon aria-hidden="true">map</mat-icon>

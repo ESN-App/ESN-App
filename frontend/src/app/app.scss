@@ -206,8 +206,8 @@
   .content {
     --page-pad-x: max(1rem, env(safe-area-inset-left));
     --page-pad-top: 0px;
-    // Room for the floating navigation pill: 24 gap + ~68 pill + 16 breathing space.
-    --nav-clearance: calc(108px + env(safe-area-inset-bottom));
+    // Room for the floating navigation pill: 24 gap + 78 pill + 16 breathing space.
+    --nav-clearance: calc(118px + env(safe-area-inset-bottom));
     flex: 1 1 auto;
     min-height: 0;
     overflow-y: auto;

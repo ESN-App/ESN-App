@@ -105,6 +105,17 @@
           </button>
         }
       </div>
+    } @else if (!loadError()) {
+      <!-- Same height as the month row + day strip, so the header doesn't grow when months load. -->
+      <div class="month-row" aria-hidden="true">
+        <span class="skeleton month-label-skeleton"></span>
+        <span class="skeleton month-pill-skeleton"></span>
+      </div>
+      <div class="day-strip day-strip--scroll" aria-hidden="true">
+        @for (tile of [1, 2, 3, 4, 5, 6, 7]; track tile) {
+          <span class="skeleton day-tile-skeleton"></span>
+        }
+      </div>
     }
   </header>
 
