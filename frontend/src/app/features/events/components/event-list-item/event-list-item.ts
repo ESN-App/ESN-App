@@ -1,8 +1,9 @@
 import { DatePipe, DecimalPipe } from '@angular/common';
-import { Component, input, signal } from '@angular/core';
+import { Component, computed, inject, input, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
-import { isSameCalendarDay } from '../../utils/event-date';
+import { FeatureFlags } from '../../../../core';
+import { hasEventEnded, isSameCalendarDay } from '../../utils/event-date';
 import { createEventSlug } from '../../utils/event-url';
 
 export interface EventListItemView {
@@ -36,6 +37,10 @@ export class EventListItem {
   readonly showDate = input(true);
 
   protected readonly isSameDay = isSameCalendarDay;
+  private readonly flags = inject(FeatureFlags);
+  protected readonly ended = computed(
+    () => this.flags.pastEventTag() && hasEventEnded(this.event()),
+  );
 
   protected eventLink(): string[] {
     const event = this.event();

@@ -1,8 +1,9 @@
 import { DatePipe, DecimalPipe } from '@angular/common';
-import { Component, input, signal } from '@angular/core';
+import { Component, computed, inject, input, signal } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import { DraftPreviewBanner } from '../../../../shared';
-import { isSameCalendarDay } from '../../utils/event-date';
+import { FeatureFlags } from '../../../../core';
+import { hasEventEnded, isSameCalendarDay } from '../../utils/event-date';
 import { eventMapUrl } from '../../utils/event-map';
 import type { EventListItemView } from '../event-list-item/event-list-item';
 
@@ -26,6 +27,10 @@ export class EventDetailsView {
   readonly imageBroken = signal(false);
 
   protected readonly isSameDay = isSameCalendarDay;
+  private readonly flags = inject(FeatureFlags);
+  protected readonly ended = computed(
+    () => this.flags.pastEventTag() && hasEventEnded(this.event()),
+  );
 
   /** Share of spots taken, 0–100, for the progress bar. */
   protected filledPercent(item: EventDetailsViewModel): number {

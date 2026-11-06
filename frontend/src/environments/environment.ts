@@ -3,4 +3,8 @@
 export const environment = {
   production: true,
   apiBaseUrl: '',
+  features: {
+    // shortcut: temporary feature flag for #33; remove the flag (keep the behaviour) once the team confirms it.
+    pastEventTag: true,
+  },
 };

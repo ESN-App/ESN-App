@@ -57,6 +57,9 @@
     }
 
     <div class="event-chips">
+      @if (ended()) {
+        <span class="chip"><mat-icon aria-hidden="true">check</mat-icon>This event has ended</span>
+      }
       @if (item.status === 0) {
         <span class="chip chip--orange">Draft</span>
       }

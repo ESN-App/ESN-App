@@ -114,6 +114,12 @@
   &:empty {
     display: none;
   }
+
+  mat-icon {
+    font-size: 14px;
+    height: 14px;
+    width: 14px;
+  }
 }
 
 @media (min-width: 701px) {

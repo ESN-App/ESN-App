@@ -87,6 +87,25 @@
   min-height: 56px;
 }
 
+.ended-chip mat-icon {
+  font-size: 14px;
+  height: 14px;
+  width: 14px;
+}
+
+// Replaces the Register button once the event is over: a neutral block, not a button.
+.thanks {
+  align-items: center;
+  background: var(--tint-neutral);
+  border-radius: 999px;
+  display: flex;
+  font-size: 15px;
+  font-weight: 700;
+  gap: 8px;
+  justify-content: center;
+  margin: 0;
+}
+
 .info-row {
   align-items: center;
   display: flex;

@@ -20,6 +20,11 @@
       @if (item.status === 2) {
         <span class="chip chip--red">Cancelled</span>
       }
+      @if (ended()) {
+        <span class="chip ended-chip"
+          ><mat-icon aria-hidden="true">check</mat-icon>This event has ended</span
+        >
+      }
       @if (item.price === 0 && item.status !== 2) {
         <span class="sticker sticker--magenta free-sticker">Free!</span>
       }
@@ -120,7 +125,12 @@
         }
       </section>
 
-      @if (item.registrationUrl) {
+      @if (ended()) {
+        <p class="thanks register">
+          <mat-icon aria-hidden="true">celebration</mat-icon>
+          Thank you for coming
+        </p>
+      } @else if (item.registrationUrl) {
         @if (interactive()) {
           <a
             class="pill-button pill-button--primary pill-button--block register"
