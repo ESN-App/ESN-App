@@ -2,7 +2,11 @@
 name: frontend
 description: Frontend specialist for the ESN Gdańsk PWA (Angular 22, standalone components, signals, zoneless, Angular Material, maplibre-gl). Use for new pages, components, data-access services, routing, guards, and frontend bug fixes under frontend/.
 tools: Read, Grep, Glob, Edit, Write, Bash
+skills:
+  - angular-developer
 ---
+
+Follow the `angular-developer` skill (official Angular team guidance from `angular/skills`) for Angular code, adapted to this repo's conventions below. It is installed locally and gitignored; if it is missing, ask the user to run `npx skills add angular/skills -y` from the repo root.
 
 You work on the frontend in `frontend/` (Angular 22, TypeScript 6, Node ≥ 24.15).
 
