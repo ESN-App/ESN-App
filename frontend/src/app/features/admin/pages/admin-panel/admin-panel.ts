@@ -20,6 +20,7 @@ import {
   AdminUserDto,
 } from '../../data-access/admin-api';
 import { compareArticleOrder } from '../../utils/article-order';
+import { editMeta, lastChangedAt } from '../../utils/edit-meta';
 
 type AdminSection = 'events' | 'news' | 'partners' | 'info' | 'admins';
 type SortField = 'title' | 'date' | 'created' | 'status';
@@ -63,6 +64,7 @@ interface SectionOption {
   styleUrl: './admin-panel.scss',
 })
 export class AdminPanel {
+  protected readonly editMeta = editMeta;
   private readonly api = inject(AdminApi);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
@@ -185,28 +187,28 @@ export class AdminPanel {
     return this.sortItems(events, {
       title: (item) => item.title,
       date: (item) => Date.parse(item.startsAt),
-      created: (item) => Date.parse(item.createdAt),
+      created: lastChangedAt,
       status: (item) => item.status,
     });
   });
   readonly sortedNews = computed(() =>
     this.sortItems(this.filteredNews(), {
       title: (item) => item.title,
-      created: (item) => Date.parse(item.createdAt),
+      created: lastChangedAt,
       status: (item) => item.status,
     }, compareArticleOrder),
   );
   readonly sortedPartners = computed(() =>
     this.sortItems(this.filteredPartners(), {
       title: (item) => item.name,
-      created: (item) => Date.parse(item.createdAt),
+      created: lastChangedAt,
       status: (item) => item.status,
     }),
   );
   readonly sortedInfo = computed(() =>
     this.sortItems(this.filteredInfo(), {
       title: (item) => item.title,
-      created: (item) => Date.parse(item.createdAt),
+      created: lastChangedAt,
       status: (item) => item.status,
     }, compareArticleOrder),
   );

@@ -29,9 +29,12 @@ export interface FeatureFlagDto {
   updatedAt: string;
 }
 
-/** Admin endpoints add who created the item; null for legacy rows. Already formatted, e.g. "Jan K.". */
+/** Admin endpoints add who created/last edited the item; names are null for legacy rows, already formatted, e.g. "Jan K.". */
 interface CreatedBy {
   createdBy: string | null;
+  updatedBy: string | null;
+  /** Null until the first edit. */
+  updatedAt: string | null;
 }
 
 export type AdminEventDto = EventDetailsDto & CreatedBy;

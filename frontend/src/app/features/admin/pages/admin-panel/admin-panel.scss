@@ -486,15 +486,23 @@ td.created-column time,
   font-weight: 400;
 }
 
+td.created-column {
+  white-space: normal;
+}
+
 td.created-column time {
   display: block;
-  overflow: hidden;
-  text-overflow: ellipsis;
+}
+
+// Prefer wrapping between date and author; inside them only when a chunk alone is too wide.
+td.created-column time span {
+  display: inline-block;
 }
 
 td.created-column small {
   font-size: 0.75rem;
   margin-top: 2px;
+  white-space: normal;
 }
 
 .admins-table strong {
@@ -786,6 +794,7 @@ th.row-tools {
 
   td small.created-meta {
     display: block;
+    white-space: normal;
     font-size: 0.75rem;
     font-weight: 400;
   }
