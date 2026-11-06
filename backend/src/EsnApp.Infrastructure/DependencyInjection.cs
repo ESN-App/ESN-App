@@ -1,6 +1,7 @@
 using System.Text;
 using EsnApp.Application.Discounts.Abstractions;
 using EsnApp.Application.Events.Abstractions;
+using EsnApp.Application.Features;
 using EsnApp.Application.Identity;
 using EsnApp.Application.Info;
 using EsnApp.Application.News.Abstractions;
@@ -74,6 +75,7 @@ public static class DependencyInjection
         services.AddScoped<IPartnerRepository, PartnerRepository>();
         services.AddScoped<IInfoArticleRepository, InfoArticleRepository>();
         services.AddScoped<INewsItemRepository, NewsItemRepository>();
+        services.AddScoped<IFeatureFlagRepository, FeatureFlagRepository>();
 
         return services;
     }

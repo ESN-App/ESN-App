@@ -209,6 +209,23 @@ namespace EsnApp.Infrastructure.Persistence.Migrations
                     b.ToTable("Events");
                 });
 
+            modelBuilder.Entity("EsnApp.Domain.Features.FeatureFlag", b =>
+                {
+                    b.Property<string>("Key")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<bool>("Enabled")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Key");
+
+                    b.ToTable("FeatureFlags");
+                });
+
             modelBuilder.Entity("EsnApp.Domain.Info.InfoArticle", b =>
                 {
                     b.Property<Guid>("Id")

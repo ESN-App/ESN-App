@@ -1,3 +1,4 @@
+using System.Net.Http.Json;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 
@@ -34,5 +35,15 @@ public class HealthCheckTests(WebApplicationFactory<Program> factory)
         var response = await client.GetAsync("/swagger/v1/swagger.json");
 
         response.EnsureSuccessStatusCode();
+    }
+
+    [Fact]
+    public async Task AdminFeatureUpdate_Anonymous_ReturnsUnauthorized()
+    {
+        var client = Factory.CreateClient();
+
+        var response = await client.PutAsJsonAsync("/api/admin/features/x", new { enabled = true });
+
+        Assert.Equal(System.Net.HttpStatusCode.Unauthorized, response.StatusCode);
     }
 }

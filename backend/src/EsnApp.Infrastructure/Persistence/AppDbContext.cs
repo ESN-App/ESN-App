@@ -1,6 +1,7 @@
 using EsnApp.Domain.Common;
 using EsnApp.Domain.Discounts;
 using EsnApp.Domain.Events;
+using EsnApp.Domain.Features;
 using EsnApp.Domain.Info;
 using EsnApp.Domain.News;
 using EsnApp.Infrastructure.Identity;
@@ -22,6 +23,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
     public DbSet<InfoArticle> InfoArticles => Set<InfoArticle>();
 
     public DbSet<NewsItem> NewsItems => Set<NewsItem>();
+
+    public DbSet<FeatureFlag> FeatureFlags => Set<FeatureFlag>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -46,6 +49,12 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
             builder.Entity(entityType.ClrType).Property(nameof(CreatorTrackedEntity.CreatedById)).HasMaxLength(450);
             builder.Entity(entityType.ClrType).Property(nameof(CreatorTrackedEntity.CreatedByName)).HasMaxLength(120);
         }
+
+        builder.Entity<FeatureFlag>(entity =>
+        {
+            entity.HasKey(flag => flag.Key);
+            entity.Property(flag => flag.Key).HasMaxLength(100);
+        });
 
         builder.Entity<Discount>(entity =>
         {
