@@ -97,7 +97,10 @@ export class EventsList {
     shareReplay({ bufferSize: 1, refCount: true }),
   );
   private readonly monthKey$ = combineLatest([
-    this.route.queryParamMap.pipe(map((params) => params.get('month'))),
+    // A shared ?day= link without ?month= opens that day's month.
+    this.route.queryParamMap.pipe(
+      map((params) => params.get('month') ?? params.get('day')?.slice(0, 7) ?? null),
+    ),
     this.availableMonths$,
   ]).pipe(
     map(([requestedValue, availableMonths]) => {
@@ -254,16 +257,21 @@ export class EventsList {
       (event) => dayKey(new Date(event.startsAt)) === this.selectedDateKey(),
     ),
   );
+  // While searching, fetch more so the search isn't limited to the next 5 events.
+  private readonly upcomingPageSize = computed(() => (this.searchTerm().trim() ? 50 : 5));
   readonly upcoming = rxResource({
-    params: () => this.selectedDateKey() ?? undefined,
+    params: () => {
+      const day = this.selectedDateKey();
+      return day ? { day, pageSize: this.upcomingPageSize() } : undefined;
+    },
     stream: ({ params }) => {
-      const from = upcomingFrom(params);
+      const from = upcomingFrom(params.day);
       // shortcut: looks 6 months ahead (the API defaults to one month); widen if events
       // get announced further out.
       const to = new Date(from.getFullYear(), from.getMonth() + 6, from.getDate());
 
       return this.api
-        .getAll({ from: from.toISOString(), to: to.toISOString(), page: 1, pageSize: 5 })
+        .getAll({ from: from.toISOString(), to: to.toISOString(), page: 1, pageSize: params.pageSize })
         .pipe(map((result) => result.items));
     },
   });

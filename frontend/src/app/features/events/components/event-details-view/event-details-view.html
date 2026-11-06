@@ -130,7 +130,7 @@
           <mat-icon aria-hidden="true">celebration</mat-icon>
           Thank you for coming
         </p>
-      } @else if (item.registrationUrl) {
+      } @else if (item.registrationUrl && item.status !== 2) {
         @if (interactive()) {
           <a
             class="pill-button pill-button--primary pill-button--block register"

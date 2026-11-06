@@ -97,13 +97,16 @@
 .thanks {
   align-items: center;
   background: var(--tint-neutral);
-  border-radius: 999px;
+  // Card shape, not a pill, so it reads as a message rather than a disabled button.
+  border-radius: 24px;
   display: flex;
   font-size: 15px;
   font-weight: 700;
   gap: 8px;
   justify-content: center;
   margin: 0;
+  min-height: 48px;
+  padding: 0 16px;
 }
 
 .info-row {

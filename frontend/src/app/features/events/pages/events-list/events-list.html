@@ -182,9 +182,11 @@
             </button>
             <div class="section-row">
               <h2 class="section-title">{{ day | date: 'EEEE, d MMMM' }}</h2>
-              <span class="meta">
-                {{ dayEvents().length }} {{ dayEvents().length === 1 ? 'event' : 'events' }}
-              </span>
+              @if (dayEvents().length > 0) {
+                <span class="meta">
+                  {{ dayEvents().length }} {{ dayEvents().length === 1 ? 'event' : 'events' }}
+                </span>
+              }
             </div>
 
             @if (dayEvents().length > 0) {
