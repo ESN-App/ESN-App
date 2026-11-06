@@ -1,11 +1,11 @@
-import { Component, input } from '@angular/core';
+import { Component, computed, inject, input } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
-import { RouterLink, RouterLinkActive } from '@angular/router';
+import { isActive, Router, RouterLink } from '@angular/router';
 
 /** One main-navigation destination; `stacked` for the mobile bottom bar, `inline` for the desktop top bar. */
 @Component({
   selector: 'app-nav-item',
-  imports: [RouterLink, RouterLinkActive, MatIconModule],
+  imports: [RouterLink, MatIconModule],
   templateUrl: './nav-item.html',
   styleUrl: './nav-item.scss',
   host: {
@@ -19,5 +19,14 @@ export class NavItem {
   readonly icon = input.required<string>();
   readonly colour = input.required<string>();
   readonly exact = input(false);
+  /** Forces the active state for routes that belong here but live outside `link`. */
+  readonly alsoActive = input(false);
   readonly layout = input<'stacked' | 'inline'>('stacked');
+
+  private readonly router = inject(Router);
+  protected readonly active = computed(
+    () =>
+      this.alsoActive() ||
+      isActive(this.link(), this.router, this.exact() ? { paths: 'exact', queryParams: 'exact' } : {})(),
+  );
 }

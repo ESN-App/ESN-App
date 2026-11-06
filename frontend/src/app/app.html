@@ -14,6 +14,8 @@
         [icon]="item.icon"
         [colour]="item.colour"
         [exact]="item.link === '/'"
+        [alsoActive]="item.link === '/' && newsPage()"
+      [alsoActive]="item.link === '/' && newsPage()"
       />
     }
   </nav>
@@ -50,6 +52,7 @@
       [icon]="item.icon"
       [colour]="item.colour"
       [exact]="item.link === '/'"
+      [alsoActive]="item.link === '/' && newsPage()"
     />
   }
 </nav>

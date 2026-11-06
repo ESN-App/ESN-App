@@ -21,6 +21,8 @@ export class App {
   // Instantiated here so the stored theme is applied on every route.
   private readonly theme = inject(ThemeService);
   protected readonly hideMobileNavigation = signal(false);
+  // News lives under Home in the navigation.
+  protected readonly newsPage = signal(false);
   // Public screens use the full-bleed layout; admin and auth keep the boxed one.
   protected readonly publicPage = signal(true);
   protected readonly navItems = [
@@ -56,6 +58,7 @@ export class App {
         }
 
         this.meta.updateTag({ name: 'theme-color', content: themeColor });
+        this.newsPage.set(path.startsWith('/news/'));
         this.publicPage.set(!/^\/(admin|auth)(\/|$)/.test(path));
         this.hideMobileNavigation.set(activeRoute.snapshot.data['hideMobileNavigation'] === true);
       });
