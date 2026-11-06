@@ -1,3 +1,4 @@
+using EsnApp.Application.Identity;
 using EsnApp.Domain.Common;
 using EsnApp.Domain.Discounts;
 using EsnApp.Domain.Events;
@@ -11,7 +12,8 @@ using Microsoft.EntityFrameworkCore;
 
 namespace EsnApp.Infrastructure.Persistence;
 
-public class AppDbContext(DbContextOptions<AppDbContext> options)
+// currentUser is optional so the design-time factory and the seeder (no request) still work.
+public class AppDbContext(DbContextOptions<AppDbContext> options, ICurrentUser? currentUser = null)
     : IdentityDbContext<ApplicationUser>(options)
 {
     public DbSet<Event> Events => Set<Event>();
@@ -48,6 +50,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
         {
             builder.Entity(entityType.ClrType).Property(nameof(CreatorTrackedEntity.CreatedById)).HasMaxLength(450);
             builder.Entity(entityType.ClrType).Property(nameof(CreatorTrackedEntity.CreatedByName)).HasMaxLength(120);
+            builder.Entity(entityType.ClrType).Property(nameof(CreatorTrackedEntity.UpdatedById)).HasMaxLength(450);
+            builder.Entity(entityType.ClrType).Property(nameof(CreatorTrackedEntity.UpdatedByName)).HasMaxLength(120);
         }
 
         builder.Entity<FeatureFlag>(entity =>
@@ -65,6 +69,13 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
 
     public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
+        ApplyAuditFields();
+        return base.SaveChangesAsync(cancellationToken);
+    }
+
+    /// <summary>Sets Id/CreatedAt on new rows and UpdatedAt/UpdatedBy on edited ones.</summary>
+    public void ApplyAuditFields()
+    {
         var now = DateTimeOffset.UtcNow;
 
         foreach (var entry in ChangeTracker.Entries<BaseEntity>())
@@ -78,14 +89,25 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
                     }
 
                     entry.Entity.CreatedAt = now;
+                    if (entry.Entity is CreatorTrackedEntity created)
+                    {
+                        created.UpdatedById = created.CreatedById;
+                        created.UpdatedByName = created.CreatedByName;
+                    }
                     break;
 
-                case EntityState.Modified:
+                // A reorder only touches DisplayOrder; that is not an edit of the item itself.
+                case EntityState.Modified when entry.Properties.Any(
+                    property => property.IsModified && property.Metadata.Name != "DisplayOrder"):
                     entry.Entity.UpdatedAt = now;
+                    // No user (seeder, background work) keeps the last real editor.
+                    if (entry.Entity is CreatorTrackedEntity edited && currentUser?.UserId is not null)
+                    {
+                        edited.UpdatedById = currentUser.UserId;
+                        edited.UpdatedByName = currentUser.DisplayName;
+                    }
                     break;
             }
         }
-
-        return base.SaveChangesAsync(cancellationToken);
     }
 }

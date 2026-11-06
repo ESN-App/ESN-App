@@ -20,5 +20,5 @@ public static class PartnerMappings
         entity.CreatedAt);
 
     public static AdminPartnerDto ToAdminDto(this Partner entity) =>
-        new(entity.ToDto(), entity.CreatedByName);
+        new(entity.ToDto(), entity.CreatedByName, entity.UpdatedByName, entity.UpdatedAt);
 }

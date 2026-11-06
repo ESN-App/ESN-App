@@ -67,7 +67,12 @@ public class PartnerRepository(AppDbContext context)
         IReadOnlyCollection<Partner> partners,
         CancellationToken cancellationToken = default)
     {
-        Context.Partners.UpdateRange(partners);
+        // Only DisplayOrder is written, so a reorder is not stamped as an edit (see AppDbContext).
+        foreach (var entity in partners)
+        {
+            Context.Attach(entity).Property(item => item.DisplayOrder).IsModified = true;
+        }
+
         await Context.SaveChangesAsync(cancellationToken);
     }
 

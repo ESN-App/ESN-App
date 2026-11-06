@@ -76,7 +76,12 @@ public class InfoArticleRepository(AppDbContext context)
         IReadOnlyCollection<InfoArticle> entities,
         CancellationToken cancellationToken = default)
     {
-        Context.InfoArticles.UpdateRange(entities);
+        // Only DisplayOrder is written, so a reorder is not stamped as an edit (see AppDbContext).
+        foreach (var entity in entities)
+        {
+            Context.Attach(entity).Property(item => item.DisplayOrder).IsModified = true;
+        }
+
         await Context.SaveChangesAsync(cancellationToken);
     }
 }
