@@ -31,3 +31,8 @@ backend/src/EsnApp.Api/wwwroot/images/uploads/
 # Claude AI
 .claude/*
 !.claude/agents/
+
+# Local tooling output (Playwright MCP screenshots/scripts, Neon CLI, skills lock)
+.playwright-mcp/
+stack-deploy/
+skills-lock.json
