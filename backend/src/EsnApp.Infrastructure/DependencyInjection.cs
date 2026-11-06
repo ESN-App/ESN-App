@@ -23,7 +23,7 @@ public static class DependencyInjection
         IConfiguration configuration)
     {
         services.AddDbContext<AppDbContext>(options =>
-            options.UseNpgsql(configuration.GetConnectionString("DefaultConnection")));
+            options.UseNpgsql(PostgresConnectionString.Normalize(configuration.GetConnectionString("DefaultConnection"))));
 
         services.AddIdentityCore<ApplicationUser>(options =>
             {
