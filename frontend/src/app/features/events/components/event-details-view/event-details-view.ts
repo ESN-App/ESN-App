@@ -1,4 +1,4 @@
-import { DatePipe, DecimalPipe } from '@angular/common';
+import { DatePipe, DecimalPipe, NgTemplateOutlet } from '@angular/common';
 import { Component, computed, inject, input, signal } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import { DraftPreviewBanner } from '../../../../shared';
@@ -16,7 +16,7 @@ export interface EventDetailsViewModel extends EventListItemView {
 
 @Component({
   selector: 'app-event-details-view',
-  imports: [DatePipe, DecimalPipe, DraftPreviewBanner, MatIconModule],
+  imports: [DatePipe, DecimalPipe, DraftPreviewBanner, MatIconModule, NgTemplateOutlet],
   templateUrl: './event-details-view.html',
   styleUrl: './event-details-view.scss',
 })

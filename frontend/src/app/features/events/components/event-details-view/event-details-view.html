@@ -125,29 +125,8 @@
         }
       </section>
 
-      @if (ended()) {
-        <p class="thanks">
-          <mat-icon aria-hidden="true">celebration</mat-icon>
-          Thank you for coming
-        </p>
-      } @else if (item.registrationUrl && item.status !== 2) {
-        @if (interactive()) {
-          <a
-            class="pill-button pill-button--primary pill-button--block register"
-            [href]="item.registrationUrl"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <mat-icon aria-hidden="true">open_in_new</mat-icon>
-            Register on the event page
-          </a>
-        } @else {
-          <div class="pill-button pill-button--primary pill-button--block register">
-            <mat-icon aria-hidden="true">open_in_new</mat-icon>
-            Register on the event page
-          </div>
-        }
-      }
+      <!-- On desktop in the side card, on a phone after About: reading order matches the screen. -->
+      <div class="cta cta--side"><ng-container [ngTemplateOutlet]="cta" /></div>
     </div>
 
     <section class="about" aria-labelledby="about-title">
@@ -157,5 +136,33 @@
       <h2 id="about-title" class="section-title">About</h2>
       <p>{{ item.description }}</p>
     </section>
+
+    <div class="cta cta--after-about"><ng-container [ngTemplateOutlet]="cta" /></div>
   </div>
 </article>
+
+<ng-template #cta>
+  @if (ended()) {
+    <p class="thanks">
+      <mat-icon aria-hidden="true">celebration</mat-icon>
+      Thank you for coming
+    </p>
+  } @else if (item.registrationUrl && item.status !== 2) {
+    @if (interactive()) {
+      <a
+        class="pill-button pill-button--primary pill-button--block register"
+        [href]="item.registrationUrl"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        <mat-icon aria-hidden="true">open_in_new</mat-icon>
+        Register on the event page
+      </a>
+    } @else {
+      <div class="pill-button pill-button--primary pill-button--block register">
+        <mat-icon aria-hidden="true">open_in_new</mat-icon>
+        Register on the event page
+      </div>
+    }
+  }
+</ng-template>
