@@ -80,7 +80,7 @@
         }
       </div>
 
-      <div class="day-strip day-strip--scroll" role="group" aria-label="Filter events by day">
+      <div #dayStrip class="day-strip day-strip--scroll" role="group" aria-label="Filter events by day">
         @for (day of mobileCalendarDays(); track day.dateKey) {
           <button
             type="button"

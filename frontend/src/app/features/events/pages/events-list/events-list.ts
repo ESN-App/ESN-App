@@ -1,5 +1,15 @@
 import { DatePipe } from '@angular/common';
-import { Component, computed, effect, inject, signal, viewChild } from '@angular/core';
+import {
+  afterRenderEffect,
+  Component,
+  computed,
+  effect,
+  ElementRef,
+  inject,
+  linkedSignal,
+  signal,
+  viewChild,
+} from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { MAT_DATE_LOCALE, provideNativeDateAdapter } from '@angular/material/core';
 import {
@@ -62,6 +72,7 @@ export class EventsList {
   private readonly router = inject(Router);
   private readonly api = inject(EventsApi);
   private readonly calendar = viewChild<MatCalendar<Date>>(MatCalendar);
+  private readonly dayStrip = viewChild<ElementRef<HTMLElement>>('dayStrip');
 
   // Emits once on start and again on every "Try again"; filters are kept.
   private readonly reload$ = new BehaviorSubject<void>(undefined);
@@ -141,8 +152,11 @@ export class EventsList {
   );
 
   readonly searchTerm = signal('');
-  readonly selectedDateKey = signal<string | null>(null);
   readonly selectedMonthKey = computed(() => monthKey(this.selectedMonth()));
+  // Opens on today when today is in the shown month; any other month starts unfiltered.
+  readonly selectedDateKey = linkedSignal<string | null>(() =>
+    this.selectedMonthKey() === monthKey(new Date()) ? this.dateKey(new Date()) : null,
+  );
   readonly monthPickerOpen = signal(false);
   readonly monthPickerYear = signal(this.selectedMonth().getFullYear());
 
@@ -248,6 +262,19 @@ export class EventsList {
 
     if (calendar) {
       calendar.activeDate = selectedMonth;
+    }
+  });
+
+  // Keeps the selected day in view in the mobile strip (no-op while the strip is hidden).
+  private readonly scrollStripToSelection = afterRenderEffect(() => {
+    const strip = this.dayStrip()?.nativeElement;
+    this.selectedDateKey();
+    const tile = strip?.querySelector('.day-tile--active');
+
+    if (strip && tile) {
+      const stripBox = strip.getBoundingClientRect();
+      const tileBox = tile.getBoundingClientRect();
+      strip.scrollLeft += tileBox.left - stripBox.left - (stripBox.width - tileBox.width) / 2;
     }
   });
 
