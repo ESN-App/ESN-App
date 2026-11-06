@@ -93,17 +93,14 @@
   overflow: hidden;
   position: relative;
 
+  // No image: the whole ESN star, white at full opacity and centred (brand manual).
   &::after {
     -webkit-mask: url('/images/esnstar.png') center / contain no-repeat;
-    background: rgb(255 255 255 / 30%);
+    background: #fff;
     content: '';
-    height: 180px;
+    inset: 20%;
     mask: url('/images/esnstar.png') center / contain no-repeat;
     position: absolute;
-    right: -40px;
-    top: -30px;
-    transform: rotate(12deg);
-    width: 180px;
     z-index: -1;
   }
 

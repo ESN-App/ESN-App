@@ -65,12 +65,12 @@
       </label>
 
       <div class="field">
-        <span>Image *</span>
+        <span>Image</span>
         <div class="upload-control">
           <input #imageInput class="file-input" type="file" accept="image/jpeg,image/png,image/webp" (change)="chooseImage($event)" />
           @if (imagePreviewUrl()) { <button type="button" (click)="removeImage(imageInput)">Remove image</button> }
         </div>
-        <span class="field-hint">JPEG, PNG, or WebP, up to 8 MB.</span>
+        <span class="field-hint">Optional. JPEG, PNG, or WebP, up to 8 MB.</span>
         @if (imageError(); as message) { <small>{{ message }}</small> }
       </div>
 

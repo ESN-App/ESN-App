@@ -149,11 +149,8 @@ export class AdminInfoCreate implements OnDestroy {
   }
 
   submit(): void {
-    if (this.form.invalid || this.submitting() || !this.selectedImage()) {
+    if (this.form.invalid || this.submitting()) {
       this.form.markAllAsTouched();
-      if (!this.selectedImage()) {
-        this.imageError.set('Choose an image for this article.');
-      }
       return;
     }
 
@@ -165,7 +162,7 @@ export class AdminInfoCreate implements OnDestroy {
   }
 
   confirmSubmit(): void {
-    if (this.form.invalid || this.submitting() || !this.selectedImage()) {
+    if (this.form.invalid || this.submitting()) {
       this.confirmationOpen.set(false);
       return;
     }
@@ -190,7 +187,7 @@ export class AdminInfoCreate implements OnDestroy {
     // exists — remember its id so retrying finishes the job instead of creating a duplicate.
     const create$ = this.createdId !== null
       ? of(this.createdId)
-      : this.api.createInfo(request, this.selectedImage()!).pipe(
+      : this.api.createInfo(request, this.selectedImage()).pipe(
           map((created) => {
             this.createdId = created.id;
             return created.id;

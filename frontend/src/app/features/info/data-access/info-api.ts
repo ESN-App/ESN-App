@@ -11,7 +11,7 @@ export interface InfoArticleDto {
   slug: string;
   content: string;
   category: string;
-  imagePath: string;
+  imagePath: string | null;
   externalLinks: string[];
   displayOrder: number;
   status: InfoArticleStatus;

@@ -112,11 +112,8 @@ export class AdminNewsCreate implements OnDestroy {
   }
 
   submit(): void {
-    if (this.form.invalid || this.submitting() || !this.selectedImage()) {
+    if (this.form.invalid || this.submitting()) {
       this.form.markAllAsTouched();
-      if (!this.selectedImage()) {
-        this.imageError.set('Choose an image for this news article.');
-      }
       return;
     }
 
@@ -128,7 +125,7 @@ export class AdminNewsCreate implements OnDestroy {
   }
 
   confirmSubmit(): void {
-    if (this.form.invalid || this.submitting() || !this.selectedImage()) {
+    if (this.form.invalid || this.submitting()) {
       this.confirmationOpen.set(false);
       return;
     }
@@ -148,7 +145,7 @@ export class AdminNewsCreate implements OnDestroy {
     // exists — remember its id so retrying finishes the job instead of creating a duplicate.
     const create$ = this.createdId !== null
       ? of(this.createdId)
-      : this.api.createNews(request, this.selectedImage()!).pipe(
+      : this.api.createNews(request, this.selectedImage()).pipe(
           map((created) => {
             this.createdId = created.id;
             return created.id;

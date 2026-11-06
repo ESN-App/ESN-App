@@ -7,7 +7,7 @@ export interface NewsItemDto {
   id: string;
   title: string;
   description: string;
-  imagePath: string;
+  imagePath: string | null;
   displayOrder: number;
   status: NewsItemStatus;
   createdAt: string;

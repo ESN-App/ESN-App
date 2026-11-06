@@ -175,7 +175,7 @@ export class AdminApi {
     return this.http.get<NewsItemDto>(`${this.baseUrl}/news/${id}`);
   }
 
-  createNews(request: CreateNewsItemRequest, image: File): Observable<NewsItemDto> {
+  createNews(request: CreateNewsItemRequest, image: File | null): Observable<NewsItemDto> {
     return this.http.post<NewsItemDto>(`${this.baseUrl}/news`, this.newsFormData(request, image));
   }
 
@@ -183,8 +183,11 @@ export class AdminApi {
     id: string,
     request: CreateNewsItemRequest,
     image: File | null,
+    removeImage: boolean,
   ): Observable<NewsItemDto> {
-    return this.http.put<NewsItemDto>(`${this.baseUrl}/news/${id}`, this.newsFormData(request, image));
+    const formData = this.newsFormData(request, image);
+    formData.append('removeImage', String(removeImage));
+    return this.http.put<NewsItemDto>(`${this.baseUrl}/news/${id}`, formData);
   }
 
   deleteNews(id: string): Observable<void> {
@@ -283,7 +286,7 @@ export class AdminApi {
     return this.http.get<InfoArticleDto>(`${this.baseUrl}/info/${id}`);
   }
 
-  createInfo(request: CreateInfoArticleRequest, image: File): Observable<InfoArticleDto> {
+  createInfo(request: CreateInfoArticleRequest, image: File | null): Observable<InfoArticleDto> {
     return this.http.post<InfoArticleDto>(`${this.baseUrl}/info`, this.infoFormData(request, image));
   }
 
@@ -291,8 +294,11 @@ export class AdminApi {
     id: string,
     request: CreateInfoArticleRequest,
     image: File | null,
+    removeImage: boolean,
   ): Observable<InfoArticleDto> {
-    return this.http.put<InfoArticleDto>(`${this.baseUrl}/info/${id}`, this.infoFormData(request, image));
+    const formData = this.infoFormData(request, image);
+    formData.append('removeImage', String(removeImage));
+    return this.http.put<InfoArticleDto>(`${this.baseUrl}/info/${id}`, formData);
   }
 
   private infoFormData(request: CreateInfoArticleRequest, image: File | null): FormData {

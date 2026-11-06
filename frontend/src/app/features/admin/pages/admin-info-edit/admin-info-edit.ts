@@ -39,6 +39,7 @@ export class AdminInfoEdit implements OnDestroy {
   readonly previewVisible = signal(true);
   readonly selectedImage = signal<File | null>(null);
   readonly currentImagePath = signal<string | null>(null);
+  readonly imageRemoved = signal(false);
   readonly imagePreviewUrl = signal<string | null>(null);
   readonly imageError = signal<string | null>(null);
 
@@ -57,7 +58,9 @@ export class AdminInfoEdit implements OnDestroy {
       .map((link) => link?.trim() ?? '')
       .filter((link) => link.length > 0),
   );
-  readonly displayedImagePath = computed(() => this.imagePreviewUrl() ?? this.currentImagePath());
+  readonly displayedImagePath = computed(
+    () => this.imagePreviewUrl() ?? (this.imageRemoved() ? null : this.currentImagePath()),
+  );
   readonly previewListItem = computed<InfoListItemView>(() => ({
     id: this.infoId,
     title: this.previewTitle(),
@@ -75,7 +78,7 @@ export class AdminInfoEdit implements OnDestroy {
     status: this.infoStatus(),
   }));
   readonly hasChanges = computed(() => {
-    if (this.selectedImage() !== null) {
+    if (this.selectedImage() !== null || this.imageRemoved()) {
       return true;
     }
     const currentState = this.serializeForm(this.preview());
@@ -156,6 +159,10 @@ export class AdminInfoEdit implements OnDestroy {
     input.value = '';
   }
 
+  removeCurrentImage(): void {
+    this.imageRemoved.set(true);
+  }
+
   ngOnDestroy(): void {
     this.revokeImagePreview();
   }
@@ -195,7 +202,7 @@ export class AdminInfoEdit implements OnDestroy {
     this.submitting.set(true);
     this.error.set(null);
 
-    this.api.updateInfo(this.infoId, request, this.selectedImage()).pipe(
+    this.api.updateInfo(this.infoId, request, this.selectedImage(), this.imageRemoved()).pipe(
       switchMap((updated) =>
         value.status !== this.initialInfoStatus()
           ? this.api.updateInfoStatus(this.infoId, value.status!)

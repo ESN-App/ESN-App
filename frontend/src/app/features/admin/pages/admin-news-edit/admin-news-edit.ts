@@ -39,6 +39,7 @@ export class AdminNewsEdit implements OnDestroy {
   readonly previewVisible = signal(true);
   readonly selectedImage = signal<File | null>(null);
   readonly currentImagePath = signal<string | null>(null);
+  readonly imageRemoved = signal(false);
   readonly createdAt = signal<string | null>(null);
   readonly imagePreviewUrl = signal<string | null>(null);
   readonly imageError = signal<string | null>(null);
@@ -53,7 +54,9 @@ export class AdminNewsEdit implements OnDestroy {
   readonly previewDescription = computed(
     () => this.preview().description?.trim() || 'The news article description will appear here as you type.',
   );
-  readonly displayedImagePath = computed(() => this.imagePreviewUrl() ?? this.currentImagePath());
+  readonly displayedImagePath = computed(
+    () => this.imagePreviewUrl() ?? (this.imageRemoved() ? null : this.currentImagePath()),
+  );
   readonly previewListItem = computed<NewsListItemView>(() => ({
     id: this.newsId,
     title: this.previewTitle(),
@@ -69,7 +72,7 @@ export class AdminNewsEdit implements OnDestroy {
     status: this.newsStatus(),
   }));
   readonly hasChanges = computed(() => {
-    if (this.selectedImage() !== null) {
+    if (this.selectedImage() !== null || this.imageRemoved()) {
       return true;
     }
     const currentState = this.serializeForm(this.preview());
@@ -130,6 +133,10 @@ export class AdminNewsEdit implements OnDestroy {
     input.value = '';
   }
 
+  removeCurrentImage(): void {
+    this.imageRemoved.set(true);
+  }
+
   ngOnDestroy(): void {
     this.revokeImagePreview();
   }
@@ -164,7 +171,7 @@ export class AdminNewsEdit implements OnDestroy {
     this.submitting.set(true);
     this.error.set(null);
 
-    this.api.updateNews(this.newsId, request, this.selectedImage()).pipe(
+    this.api.updateNews(this.newsId, request, this.selectedImage(), this.imageRemoved()).pipe(
       switchMap((updated) =>
         value.status !== this.initialNewsStatus()
           ? this.api.updateNewsStatus(this.newsId, value.status!)
