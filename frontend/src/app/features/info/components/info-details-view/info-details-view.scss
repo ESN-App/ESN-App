@@ -2,11 +2,6 @@
   display: block;
 }
 
-// Read time only shows in the desktop hero, as in the mockup.
-.read-time {
-  display: none;
-}
-
 .links {
   display: grid;
   gap: 12px;
@@ -52,23 +47,8 @@
     inset: 0;
     position: absolute;
   }
-
-  span:not(.visually-hidden) {
-    color: var(--app-muted);
-    font-size: 13px;
-    font-weight: 500;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
 }
 
 .external {
   color: var(--app-muted);
-}
-
-@media (min-width: 701px) {
-  .read-time {
-    display: block;
-  }
 }
