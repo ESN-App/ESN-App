@@ -146,7 +146,7 @@
 
 // Narrow desktop: keep the bar on one line by dropping the wordmark and using the
 // round theme toggle.
-@media (min-width: 701px) and (max-width: 1023px) {
+@media (min-width: 701px) and (max-width: 1099px) {
   .toolbar {
     gap: 12px;
     padding-inline: max(16px, env(safe-area-inset-left)) max(16px, env(safe-area-inset-right));
