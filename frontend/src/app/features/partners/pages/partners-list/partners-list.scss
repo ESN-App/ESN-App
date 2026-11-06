@@ -30,7 +30,7 @@
   margin-top: -8px;
   padding-inline: var(--bleed, 0px);
   position: sticky;
-  top: 0;
+  top: var(--top-bar-height);
   transition:
     background-color 200ms ease,
     border-radius 200ms ease,
@@ -267,8 +267,9 @@
     grid-column: 1;
     grid-row: 1;
     position: sticky;
-    // Centred in the viewport below the 64px compact bar, at least 24px under it.
-    top: max(88px, calc(50vh - 248px));
+    // Centred in the viewport below the top bar and the 64px compact bar, at least 24px
+    // under them (the map is at most 560 high).
+    top: max(calc(var(--top-bar-height) + 88px), calc(50vh + var(--top-bar-height) / 2 - 248px));
 
     app-partners-map {
       aspect-ratio: 1;

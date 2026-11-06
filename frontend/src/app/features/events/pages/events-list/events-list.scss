@@ -279,7 +279,7 @@
     display: block;
     padding: 24px;
     position: sticky;
-    top: 24px;
+    top: calc(var(--top-bar-height) + 24px);
   }
 
   .month-switcher {

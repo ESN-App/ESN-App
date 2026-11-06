@@ -16,7 +16,7 @@
   min-width: 0;
   overflow: hidden;
   position: sticky;
-  top: 1rem;
+  top: calc(var(--top-bar-height) + 1rem);
 }
 
 .preview-header {

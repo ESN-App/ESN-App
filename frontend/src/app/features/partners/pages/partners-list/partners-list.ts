@@ -112,7 +112,12 @@ export class PartnersList {
             this.scrolledPastHeader.set(false);
           }
         },
-        { threshold: [0, 1] },
+        // The header counts as gone once it is under the sticky desktop top bar.
+        // shortcut: read once, so resizing across 701px is off by the bar height until reload.
+        {
+          rootMargin: `-${getComputedStyle(document.documentElement).getPropertyValue('--top-bar-height').trim() || '0px'} 0px 0px 0px`,
+          threshold: [0, 1],
+        },
       );
       observer.observe(this.worldHeader().nativeElement);
       destroyRef.onDestroy(() => observer.disconnect());

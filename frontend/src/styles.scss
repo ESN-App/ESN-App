@@ -86,8 +86,16 @@ html[data-theme='dark'] {
   color-scheme: dark;
 }
 
+html {
+  // Height of the sticky desktop top bar; sticky elements and anchor scrolling sit under it.
+  // On a phone the bar is outside the scrolling area, so it is 0.
+  --top-bar-height: 0px;
+  scroll-padding-top: var(--top-bar-height);
+}
+
 @media (min-width: 701px) {
   html {
+    --top-bar-height: 68px;
     scrollbar-gutter: stable;
   }
 }
