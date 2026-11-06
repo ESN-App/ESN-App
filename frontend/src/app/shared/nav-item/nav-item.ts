@@ -1,3 +1,4 @@
+import { CdkMonitorFocus } from '@angular/cdk/a11y';
 import { Component, computed, inject, input } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import { isActive, Router, RouterLink } from '@angular/router';
@@ -5,7 +6,7 @@ import { isActive, Router, RouterLink } from '@angular/router';
 /** One main-navigation destination; `stacked` for the mobile bottom bar, `inline` for the desktop top bar. */
 @Component({
   selector: 'app-nav-item',
-  imports: [RouterLink, MatIconModule],
+  imports: [CdkMonitorFocus, RouterLink, MatIconModule],
   templateUrl: './nav-item.html',
   styleUrl: './nav-item.scss',
   host: {

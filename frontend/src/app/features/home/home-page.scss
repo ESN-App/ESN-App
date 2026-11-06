@@ -27,6 +27,22 @@
   position: relative;
 }
 
+.up-next--loading > * {
+  visibility: hidden;
+}
+
+.date-tile--soon {
+  gap: 6px;
+}
+
+.date-tile__star {
+  -webkit-mask: url('/images/esnstar.png') center / contain no-repeat;
+  background: currentColor;
+  height: 34px;
+  mask: url('/images/esnstar.png') center / contain no-repeat;
+  width: 34px;
+}
+
 .up-next__main {
   align-items: center;
   display: flex;

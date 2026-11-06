@@ -26,7 +26,8 @@
       </div>
     </header>
 
-    @if (upNext(); as event) {
+    @let event = upNext();
+    @if (event) {
       <article class="card up-next" aria-labelledby="up-next-title">
         @if (event.price === 0) {
           <span class="sticker sticker--magenta sticker--corner">Free!</span>
@@ -71,6 +72,29 @@
               {{ event.maximumParticipants }} spots left
             </span>
           }
+        </div>
+      </article>
+    } @else {
+      <!-- Same shell while loading (contents hidden) and when nothing is scheduled, so the hero never jumps. -->
+      <article
+        class="card up-next"
+        [class.up-next--loading]="event === undefined"
+        [attr.aria-busy]="event === undefined"
+        aria-labelledby="up-next-title"
+      >
+        <div class="up-next__main">
+          <div class="date-tile date-tile--soon" aria-hidden="true">
+            <span class="date-tile__star"></span>
+            <span>Soon</span>
+          </div>
+          <div class="up-next__copy">
+            <p class="up-next__label">Up next</p>
+            <h2 id="up-next-title">More events soon</h2>
+            <p class="up-next__meta">Stay tuned — new trips and parties are on the way.</p>
+          </div>
+        </div>
+        <div class="up-next__actions">
+          <a class="pill-button" routerLink="/events">See all events</a>
         </div>
       </article>
     }

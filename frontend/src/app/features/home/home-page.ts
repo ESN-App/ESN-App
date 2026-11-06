@@ -52,7 +52,10 @@ export class HomePage {
   protected readonly week = computed(() => weekDays(this.now, this.weekEvents()));
   protected readonly weekEventCount = computed(() => this.weekEvents().length);
 
-  /** Nearest upcoming event, loaded in full for its registration link. */
+  /**
+   * Nearest upcoming event, loaded in full for its registration link.
+   * `undefined` while loading, `null` when there is none (or the request failed).
+   */
   protected readonly upNext = toSignal(
     this.eventsApi
       .getAll({
@@ -66,7 +69,7 @@ export class HomePage {
         switchMap((event) => (event ? this.eventsApi.getById(event.id) : of(null))),
         catchError(() => of(null)),
       ),
-    { initialValue: null },
+    { initialValue: undefined },
   );
 
   protected readonly discountCount = toSignal(
