@@ -83,7 +83,7 @@
     }
 
     @if (loading()) {
-      <app-loading-spinner />
+      <app-skeleton variant="table" [count]="6" />
     } @else if (activeCount() === 0) {
       <div class="empty-results">
         <span class="empty-results__icon" aria-hidden="true"></span>

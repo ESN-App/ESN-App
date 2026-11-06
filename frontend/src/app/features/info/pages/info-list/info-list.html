@@ -16,7 +16,7 @@
 
   @switch (state().status) {
     @case ('loading') {
-      <app-loading-spinner />
+      <app-skeleton variant="guides" [count]="4" />
     }
     @case ('error') {
       <app-error-state title="We couldn’t load the guides" (retry)="retry()" />
@@ -34,7 +34,7 @@
           <div class="guides">
             <app-info-list-item [article]="filteredArticles()[0]" [featured]="true" />
             @if (filteredArticles().length > 1) {
-              <div class="guide-rows">
+              <div class="guide-rows" appStaggerIn>
                 @for (
                   article of filteredArticles().slice(1);
                   track article.id;

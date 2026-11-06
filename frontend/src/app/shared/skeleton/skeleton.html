@@ -1,0 +1,108 @@
+@switch (variant()) {
+  @case ('events') {
+    @for (item of items(); track item) {
+      <div class="sk-card sk-event">
+        <span class="skeleton sk-event__tile"></span>
+        <span class="sk-lines">
+          <span class="skeleton sk-line" style="width: 35%"></span>
+          <span class="skeleton sk-line sk-line--title" style="width: 75%"></span>
+          <span class="skeleton sk-line" style="width: 50%"></span>
+          <span class="skeleton sk-chip"></span>
+        </span>
+      </div>
+    }
+  }
+  @case ('news') {
+    @for (item of items(); track item) {
+      <div class="sk-card sk-news">
+        <span class="skeleton sk-news__image"></span>
+        <span class="sk-lines sk-news__body">
+          <span class="skeleton sk-line sk-line--title" style="width: 90%"></span>
+          <span class="skeleton sk-line sk-line--title" style="width: 60%"></span>
+          <span class="skeleton sk-line" style="width: 30%"></span>
+        </span>
+      </div>
+    }
+  }
+  @case ('guides') {
+    <span class="skeleton sk-heading"></span>
+    <div class="sk-guides">
+      <div class="sk-card sk-featured">
+        <span class="skeleton sk-featured__tile"></span>
+        <span class="sk-lines sk-featured__body">
+          <span class="skeleton sk-line sk-line--title" style="width: 70%"></span>
+          <span class="skeleton sk-line" style="width: 95%"></span>
+          <span class="skeleton sk-line" style="width: 80%"></span>
+        </span>
+      </div>
+      <div class="sk-rows">
+        @for (item of items(); track item) {
+          <div class="sk-card sk-row sk-row--guide">
+            <span class="skeleton sk-square"></span>
+            <span class="sk-lines">
+              <span class="skeleton sk-line sk-line--title" style="width: 65%"></span>
+              <span class="skeleton sk-line" style="width: 30%"></span>
+            </span>
+          </div>
+        }
+      </div>
+    </div>
+  }
+  @case ('partners') {
+    <span class="skeleton sk-heading"></span>
+    <div class="sk-partners">
+      <span class="skeleton sk-map"></span>
+      <div class="sk-rows">
+        @for (item of items(); track item) {
+          <div class="sk-card sk-row sk-row--partner">
+            <span class="skeleton sk-square"></span>
+            <span class="sk-lines">
+              <span class="skeleton sk-line sk-line--title" style="width: 55%"></span>
+              <span class="skeleton sk-line" style="width: 85%"></span>
+              <span class="skeleton sk-line" style="width: 25%"></span>
+            </span>
+          </div>
+        }
+      </div>
+    </div>
+  }
+  @case ('event-detail') {
+    <div class="sk-detail-title">
+      <span class="skeleton sk-date-tile"></span>
+      <span class="sk-lines">
+        <span class="skeleton sk-line sk-line--big" style="width: 85%"></span>
+        <span class="skeleton sk-line sk-line--big" style="width: 55%"></span>
+      </span>
+    </div>
+    <div class="sk-detail-body">
+      <div class="sk-card sk-info-card">
+        @for (item of [0, 1, 2]; track item) {
+          <div class="sk-info-row">
+            <span class="skeleton sk-icon"></span>
+            <span class="sk-lines">
+              <span class="skeleton sk-line" style="width: 55%"></span>
+              <span class="skeleton sk-line" style="width: 35%"></span>
+            </span>
+          </div>
+        }
+      </div>
+      <div class="sk-lines sk-about">
+        <span class="skeleton sk-heading"></span>
+        <span class="skeleton sk-line" style="width: 100%"></span>
+        <span class="skeleton sk-line" style="width: 95%"></span>
+        <span class="skeleton sk-line" style="width: 70%"></span>
+      </div>
+    </div>
+  }
+  @case ('table') {
+    @for (item of items(); track item) {
+      <div class="sk-table-row">
+        <span class="skeleton sk-box"></span>
+        <span class="skeleton sk-line" style="width: 30%"></span>
+        <span class="skeleton sk-line" style="width: 15%"></span>
+        <span class="skeleton sk-line" style="width: 15%"></span>
+        <span class="skeleton sk-chip"></span>
+      </div>
+    }
+  }
+}

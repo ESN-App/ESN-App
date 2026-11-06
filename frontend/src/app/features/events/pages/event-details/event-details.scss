@@ -17,3 +17,22 @@
     margin: 0 0 16px;
   }
 }
+
+// Desktop hero while loading: about as tall as the loaded one (date tile + title).
+@media (min-width: 701px) {
+  .loading-hero {
+    min-height: 218px;
+  }
+
+  app-skeleton {
+    padding-top: 48px;
+  }
+}
+
+@media (min-width: 701px) {
+  .loading-hero > .back-button {
+    // Where the loaded hero puts it: right of the 120px date tile, 32px gap.
+    left: calc(var(--bleed, 40px) + 152px);
+    top: 46px;
+  }
+}

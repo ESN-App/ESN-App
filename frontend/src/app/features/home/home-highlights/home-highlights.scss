@@ -6,6 +6,13 @@
   align-items: center;
 }
 
+// Keep the row as tall as the carousel buttons so the skeleton swap doesn't shift it.
+@media (max-width: 700px) {
+  .news-header {
+    min-height: 44px;
+  }
+}
+
 .news-buttons {
   display: flex;
   gap: 8px;

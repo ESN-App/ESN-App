@@ -5,7 +5,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { forkJoin, Observable, of } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 import { AuthService } from '../../../../core';
-import { CancelledBadge, DraftBadge, LoadingSpinner, PublishedBadge } from '../../../../shared';
+import { CancelledBadge, DraftBadge, PublishedBadge, Skeleton } from '../../../../shared';
 import { createEventSlug } from '../../../events/utils/event-url';
 import { createPartnerSlug } from '../../../partners/utils/partner-url';
 import { AdminDisplayOrderModal } from '../../components/admin-display-order-modal/admin-display-order-modal';
@@ -56,7 +56,7 @@ interface SectionOption {
 
 @Component({
   selector: 'app-admin-panel',
-  imports: [DatePipe, DecimalPipe, MatButtonModule, RouterLink, AdminDisplayOrderModal, CancelledBadge, DraftBadge, PublishedBadge, LoadingSpinner],
+  imports: [DatePipe, DecimalPipe, MatButtonModule, RouterLink, AdminDisplayOrderModal, CancelledBadge, DraftBadge, PublishedBadge, Skeleton],
   templateUrl: './admin-panel.html',
   styleUrl: './admin-panel.scss',
 })

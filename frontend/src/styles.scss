@@ -944,4 +944,143 @@ app-root {
   }
 }
 
+// ---------------------------------------------------------------------------
+// Loading skeletons and motion (#30). Everything here switches off under
+// prefers-reduced-motion: reduce (see the block at the end).
+// ---------------------------------------------------------------------------
+
+// One skeleton style: a neutral tint block with a soft shimmer. Shapes live in
+// shared/skeleton; any element can use the class.
+.skeleton {
+  animation: skeleton-shimmer 1.4s ease-in-out infinite;
+  background: var(--tint-neutral)
+    linear-gradient(
+      90deg,
+      transparent 0%,
+      light-dark(rgb(255 255 255 / 55%), rgb(255 255 255 / 6%)) 50%,
+      transparent 100%
+    )
+    0 0 / 200% 100% no-repeat;
+  border-radius: 8px;
+  display: block;
+}
+
+// Stand-in for a section heading (20/800) above a skeleton list.
+.skeleton-heading {
+  height: 24px;
+  margin: 0 0 14px;
+  width: 180px;
+}
+
+@keyframes skeleton-shimmer {
+  from {
+    background-position: 150% 0;
+  }
+
+  to {
+    background-position: -50% 0;
+  }
+}
+
+// Route change: a short cross-fade (router withViewTransitions()).
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 180ms;
+}
+
+// Native dialogs (month picker, admin modals): scale + fade, 200 ms in, 150 ms out.
+dialog {
+  opacity: 0;
+  transform: scale(0.96);
+  transition:
+    opacity 150ms ease-in,
+    transform 150ms ease-in,
+    overlay 150ms allow-discrete,
+    display 150ms allow-discrete;
+}
+
+dialog[open] {
+  opacity: 1;
+  transform: none;
+  transition-duration: 200ms;
+  transition-timing-function: ease-out;
+
+  @starting-style {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+}
+
+.confirmation-dialog {
+  animation: dialog-in 200ms ease-out;
+}
+
+@keyframes dialog-in {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+}
+
+// First render of a list: items fade up one after another (StaggerIn directive).
+.stagger-in > * {
+  animation: stagger-in 220ms ease-out backwards;
+}
+
+@for $i from 2 through 8 {
+  .stagger-in > :nth-child(#{$i}) {
+    animation-delay: #{($i - 1) * 40}ms;
+  }
+}
+
+.stagger-in > :nth-child(n + 9) {
+  animation-delay: 320ms;
+}
+
+@keyframes stagger-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+// Button press feedback.
+.pill-button,
+.day-tile,
+.back-button {
+  transition: transform 100ms ease-out;
+
+  &:active {
+    transform: scale(0.97);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton,
+  .stagger-in > *,
+  .confirmation-dialog {
+    animation: none;
+  }
+
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+
+  dialog,
+  dialog[open],
+  .pill-button,
+  .day-tile,
+  .back-button {
+    transition: none;
+  }
+
+  .pill-button:active,
+  .day-tile:active,
+  .back-button:active {
+    transform: none;
+  }
+}
+
 /* You can add global styles to this file, and also import other style files */

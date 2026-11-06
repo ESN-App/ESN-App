@@ -1,4 +1,11 @@
-@if (newsItems().length > 0) {
+@if (!loaded()) {
+  <section class="news-section" aria-labelledby="news-title">
+    <div class="section-row news-header">
+      <h2 id="news-title" class="section-title">From ESN Gdańsk</h2>
+    </div>
+    <app-skeleton variant="news" />
+  </section>
+} @else if (newsItems().length > 0) {
   <section class="news-section" aria-labelledby="news-title">
     <div class="section-row news-header">
       <h2 id="news-title" class="section-title">From ESN Gdańsk</h2>
@@ -27,6 +34,7 @@
     <div
       #newsCarousel
       class="news-carousel"
+      appStaggerIn
       role="region"
       aria-label="Latest ESN stories"
       (scroll)="updateActiveCard($event)"

@@ -33,7 +33,7 @@ import {
   switchMap,
   tap,
 } from 'rxjs';
-import { ErrorState, LoadingSpinner } from '../../../../shared';
+import { ErrorState, Skeleton, StaggerIn } from '../../../../shared';
 import { EventListItem } from '../../components/event-list-item/event-list-item';
 import { EventsApi } from '../../data-access/events-api';
 import type { EventListItemDto } from '../../data-access/events.models';
@@ -63,7 +63,7 @@ interface MonthOption {
 
 @Component({
   selector: 'app-events-list',
-  imports: [DatePipe, ErrorState, EventListItem, LoadingSpinner, MatDatepickerModule, MatIconModule],
+  imports: [DatePipe, ErrorState, EventListItem, MatDatepickerModule, MatIconModule, Skeleton, StaggerIn],
   providers: [provideNativeDateAdapter(), { provide: MAT_DATE_LOCALE, useValue: 'en-GB' }],
   templateUrl: './events-list.html',
   styleUrl: './events-list.scss',

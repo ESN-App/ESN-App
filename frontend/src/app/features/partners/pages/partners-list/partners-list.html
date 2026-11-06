@@ -46,7 +46,7 @@
 
   @switch (state().status) {
     @case ('loading') {
-      <app-loading-spinner />
+      <app-skeleton variant="partners" [count]="4" />
     }
     @case ('error') {
       <app-error-state title="We couldn’t load partners" (retry)="retry()" />
@@ -75,7 +75,7 @@
               @if (filteredPartners().length === 0) {
                 <app-empty-state message="No partners match your search." />
               } @else {
-                <div class="partner-list">
+                <div class="partner-list" appStaggerIn>
                   @for (partner of filteredPartners(); track partner.id; let index = $index) {
                     <app-partner-list-item
                       #partnerCard

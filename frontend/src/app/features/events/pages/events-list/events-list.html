@@ -114,7 +114,7 @@
       message="Check your connection and try again. Your filters stay as they were."
       (retry)="retry()"
     />
-  } @else if (events(); as loaded) {
+  } @else {
     <div class="events-layout">
       <aside class="calendar-panel card" aria-label="Event calendar">
         <nav
@@ -159,6 +159,7 @@
       </aside>
 
       <section class="events-results" aria-labelledby="events-heading">
+        @if (events(); as loaded) {
         <div class="section-row">
           <h2 id="events-heading" class="section-title">
             @if (selectedCalendarDate(); as day) {
@@ -173,7 +174,7 @@
         </div>
 
         @if (filteredEvents().length > 0) {
-          <div class="event-list">
+          <div class="event-list" appStaggerIn>
             @for (event of filteredEvents(); track event.id) {
               <app-event-list-item [event]="event" [showDate]="!selectedDateKey()" />
             }
@@ -192,9 +193,11 @@
             </button>
           </div>
         }
+        } @else {
+          <span class="skeleton skeleton-heading"></span>
+          <app-skeleton variant="events" />
+        }
       </section>
     </div>
-  } @else {
-    <app-loading-spinner />
   }
 </section>

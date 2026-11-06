@@ -18,6 +18,11 @@
       <a class="pill-button" routerLink="/events">Back to events</a>
     </section>
   } @else {
-    <app-loading-spinner />
+    <div class="detail-hero detail-hero--events loading-hero">
+      <a class="back-button" routerLink="/events" queryParamsHandling="preserve" aria-label="Back to events">
+        <mat-icon aria-hidden="true">chevron_left</mat-icon>
+      </a>
+    </div>
+    <app-skeleton variant="event-detail" />
   }
 </main>

@@ -13,12 +13,13 @@ import {
 import { MatIconModule } from '@angular/material/icon';
 import { RouterLink } from '@angular/router';
 import { Subscription } from 'rxjs';
+import { Skeleton, StaggerIn } from '../../../shared';
 import { NewsApi } from '../data-access/news-api';
 import { NewsItemDto } from '../data-access/news.models';
 
 @Component({
   selector: 'app-home-highlights',
-  imports: [DatePipe, MatIconModule, RouterLink],
+  imports: [DatePipe, MatIconModule, RouterLink, Skeleton, StaggerIn],
   templateUrl: './home-highlights.html',
   styleUrl: './home-highlights.scss',
 })
@@ -28,6 +29,7 @@ export class HomeHighlights implements AfterViewInit, OnDestroy, OnInit {
   private readonly newsApi = inject(NewsApi);
   protected readonly activeIndex = signal(0);
   protected readonly newsItems = signal<NewsItemDto[]>([]);
+  protected readonly loaded = signal(false);
   protected readonly brokenImages = signal<ReadonlySet<string>>(new Set());
   /** Only the most recent published story gets the "New" sticker. */
   protected readonly newestId = computed(
@@ -49,6 +51,7 @@ export class HomeHighlights implements AfterViewInit, OnDestroy, OnInit {
     this.newsSubscription = this.newsApi.getAll().subscribe({
       next: (items) => {
         this.newsItems.set(items);
+        this.loaded.set(true);
         this.activeIndex.set(0);
         this.programmaticTargetIndex = null;
 
@@ -58,6 +61,7 @@ export class HomeHighlights implements AfterViewInit, OnDestroy, OnInit {
       },
       error: () => {
         this.newsItems.set([]);
+        this.loaded.set(true);
         this.clearAutoAdvance();
       },
     });

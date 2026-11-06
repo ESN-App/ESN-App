@@ -3,14 +3,14 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { MatIconModule } from '@angular/material/icon';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { catchError, map, of, switchMap } from 'rxjs';
-import { LoadingSpinner } from '../../../../shared';
+import { Skeleton } from '../../../../shared';
 import { EventDetailsView } from '../../components/event-details-view/event-details-view';
 import { EventsApi } from '../../data-access/events-api';
 import { extractEventId } from '../../utils/event-url';
 
 @Component({
   selector: 'app-event-details',
-  imports: [EventDetailsView, LoadingSpinner, MatIconModule, RouterLink],
+  imports: [EventDetailsView, MatIconModule, RouterLink, Skeleton],
   templateUrl: './event-details.html',
   styleUrl: './event-details.scss',
 })

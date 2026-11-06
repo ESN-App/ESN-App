@@ -2,7 +2,7 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { MatIconModule } from '@angular/material/icon';
 import { BehaviorSubject, catchError, map, of, startWith, switchMap } from 'rxjs';
-import { EmptyState, ErrorState, LoadingSpinner } from '../../../../shared';
+import { EmptyState, ErrorState, Skeleton, StaggerIn } from '../../../../shared';
 import { InfoListItem } from '../../components/info-list-item/info-list-item';
 import { InfoApi, InfoArticleDto } from '../../data-access/info-api';
 
@@ -13,7 +13,7 @@ interface InfoPageState {
 
 @Component({
   selector: 'app-info-list',
-  imports: [EmptyState, ErrorState, InfoListItem, LoadingSpinner, MatIconModule],
+  imports: [EmptyState, ErrorState, InfoListItem, MatIconModule, Skeleton, StaggerIn],
   templateUrl: './info-list.html',
   styleUrl: './info-list.scss',
 })
