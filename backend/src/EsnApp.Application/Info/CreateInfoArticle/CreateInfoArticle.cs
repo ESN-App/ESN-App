@@ -49,6 +49,8 @@ public class CreateInfoArticleCommandHandler(IInfoArticleRepository repository)
             return Result.Failure<InfoArticleDto>($"Slug '{request.Slug}' is already in use.");
         }
 
+        var drafts = await repository.GetAdminListAsync(
+            InfoArticleStatus.Draft, null, cancellationToken);
         var entity = new InfoArticle
         {
             Title = request.Title.Trim(),
@@ -57,6 +59,8 @@ public class CreateInfoArticleCommandHandler(IInfoArticleRepository repository)
             Category = request.Category.Trim(),
             ImagePath = request.ImagePath,
             ExternalLinks = [.. request.ExternalLinks],
+            // New articles start as drafts and go on top of the draft list.
+            DisplayOrder = drafts.Count == 0 ? 0 : drafts.Min(draft => draft.DisplayOrder) - 1,
         };
 
         var created = await repository.AddAsync(entity, cancellationToken);

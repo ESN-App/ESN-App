@@ -20,6 +20,7 @@ public class InfoArticleRepository(AppDbContext context)
 
         return await query
             .OrderBy(article => article.DisplayOrder)
+            .ThenByDescending(article => article.CreatedAt)
             .ThenBy(article => article.Title)
             .ToListAsync(cancellationToken);
     }
@@ -51,6 +52,7 @@ public class InfoArticleRepository(AppDbContext context)
 
         return await query.OrderBy(article => article.Status)
             .ThenBy(article => article.DisplayOrder)
+            .ThenByDescending(article => article.CreatedAt)
             .ThenBy(article => article.Title)
             .ToListAsync(cancellationToken);
     }

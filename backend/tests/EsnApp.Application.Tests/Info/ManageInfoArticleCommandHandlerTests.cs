@@ -6,7 +6,7 @@ namespace EsnApp.Application.Tests.Info;
 public class ManageInfoArticleCommandHandlerTests
 {
     [Fact]
-    public async Task Publish_DraftArticle_AppendsItToPublishedOrder()
+    public async Task Publish_DraftArticle_PutsItOnTopOfPublishedOrder()
     {
         var published = CreateArticle(InfoArticleStatus.Published, 0);
         var draft = CreateArticle(InfoArticleStatus.Draft, 0);
@@ -19,7 +19,7 @@ public class ManageInfoArticleCommandHandlerTests
 
         Assert.True(result.IsSuccess);
         Assert.Equal(InfoArticleStatus.Published, draft.Status);
-        Assert.Equal(1, draft.DisplayOrder);
+        Assert.Equal(-1, draft.DisplayOrder);
     }
 
     [Fact]
@@ -38,6 +38,28 @@ public class ManageInfoArticleCommandHandlerTests
         Assert.Equal(0, second.DisplayOrder);
         Assert.Equal(1, first.DisplayOrder);
         Assert.Equal([second.Id, first.Id], result.Value!.Select(article => article.Id));
+    }
+
+    [Fact]
+    public async Task Create_Article_PutsItOnTopOfDrafts()
+    {
+        var olderDraft = CreateArticle(InfoArticleStatus.Draft, 2);
+        var published = CreateArticle(InfoArticleStatus.Published, -5);
+        var handler = new CreateInfoArticleCommandHandler(
+            new FakeInfoArticleRepository(olderDraft, published));
+
+        var result = await handler.Handle(
+            new CreateInfoArticleCommand(
+                "New article",
+                "new-article",
+                "Content",
+                "General",
+                "/api/images/uploads/info/image.jpg",
+                []),
+            CancellationToken.None);
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal(1, result.Value!.DisplayOrder);
     }
 
     [Fact]

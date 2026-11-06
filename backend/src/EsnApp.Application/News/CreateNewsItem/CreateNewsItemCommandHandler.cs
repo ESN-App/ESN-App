@@ -13,11 +13,14 @@ public class CreateNewsItemCommandHandler(INewsItemRepository repository)
         CreateNewsItemCommand request,
         CancellationToken cancellationToken)
     {
+        var drafts = await repository.GetAdminListAsync(NewsItemStatus.Draft, cancellationToken);
         var item = new NewsItem
         {
             Title = request.Title.Trim(),
             Description = request.Description.Trim(),
             ImagePath = request.ImagePath.Trim(),
+            // New items start as drafts and go on top of the draft list.
+            DisplayOrder = drafts.Count == 0 ? 0 : drafts.Min(draft => draft.DisplayOrder) - 1,
         };
 
         return Result.Success(NewsItemDto.FromEntity(

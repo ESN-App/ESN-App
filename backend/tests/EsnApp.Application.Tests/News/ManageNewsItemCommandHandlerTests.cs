@@ -11,7 +11,7 @@ namespace EsnApp.Application.Tests.News;
 public class ManageNewsItemCommandHandlerTests
 {
     [Fact]
-    public async Task UpdateStatus_PublishingDraft_AppendsItToPublishedOrder()
+    public async Task UpdateStatus_PublishingDraft_PutsItOnTopOfPublishedOrder()
     {
         var published = CreateNewsItem(NewsItemStatus.Published, 0);
         var draft = CreateNewsItem(NewsItemStatus.Draft, 0);
@@ -24,7 +24,7 @@ public class ManageNewsItemCommandHandlerTests
 
         Assert.True(result.IsSuccess);
         Assert.Equal(NewsItemStatus.Published, draft.Status);
-        Assert.Equal(1, draft.DisplayOrder);
+        Assert.Equal(-1, draft.DisplayOrder);
     }
 
     [Fact]
@@ -106,6 +106,22 @@ public class ManageNewsItemCommandHandlerTests
         Assert.Equal("Everything you need to know.", result.Value.Description);
         Assert.Equal("/api/images/uploads/news/image.jpg", result.Value.ImagePath);
         Assert.Equal(NewsItemStatus.Draft, result.Value.Status);
+    }
+
+    [Fact]
+    public async Task Create_NewsItem_PutsItOnTopOfDrafts()
+    {
+        var olderDraft = CreateNewsItem(NewsItemStatus.Draft, 2);
+        var published = CreateNewsItem(NewsItemStatus.Published, -5);
+        var handler = new CreateNewsItemCommandHandler(
+            new FakeNewsItemRepository(olderDraft, published));
+
+        var result = await handler.Handle(
+            new CreateNewsItemCommand("Title", "Description", "/api/images/uploads/news/image.jpg"),
+            CancellationToken.None);
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal(1, result.Value!.DisplayOrder);
     }
 
     [Fact]

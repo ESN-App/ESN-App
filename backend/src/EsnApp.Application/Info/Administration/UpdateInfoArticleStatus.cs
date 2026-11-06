@@ -34,9 +34,10 @@ public class UpdateInfoArticleStatusCommandHandler(IInfoArticleRepository reposi
         {
             var published = await repository.GetAdminListAsync(
                 InfoArticleStatus.Published, null, cancellationToken);
+            // Newly published articles go on top; admins can reorder afterwards.
             article.DisplayOrder = published.Count == 0
                 ? 0
-                : published.Max(item => item.DisplayOrder) + 1;
+                : published.Min(item => item.DisplayOrder) - 1;
         }
 
         article.Status = request.Status;
