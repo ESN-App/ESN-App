@@ -93,20 +93,19 @@
   width: 14px;
 }
 
-// Replaces the Register button once the event is over: a neutral block, not a button.
+// Replaces the Register button once the event is over: a left-aligned message, not a button.
 .thanks {
   align-items: center;
-  background: var(--tint-neutral);
-  // Card shape, not a pill, so it reads as a message rather than a disabled button.
-  border-radius: 24px;
+  background: var(--tint-green);
+  border-radius: 16px;
   display: flex;
   font-size: 15px;
-  font-weight: 700;
-  gap: 8px;
-  justify-content: center;
+  font-weight: 600;
+  gap: 12px;
+  justify-content: flex-start;
   margin: 0;
-  min-height: 48px;
-  padding: 0 16px;
+  order: 3;
+  padding: 14px 16px;
 }
 
 .info-row {

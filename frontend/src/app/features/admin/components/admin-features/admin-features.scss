@@ -49,6 +49,11 @@ mat-slide-toggle {
     outline: 2px solid var(--app-ink);
     outline-offset: 2px;
   }
+
+  // Keeps the label clear of the switch and its focus ring.
+  ::ng-deep .mdc-label {
+    padding-left: 12px;
+  }
 }
 
 small {
