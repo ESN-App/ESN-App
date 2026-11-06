@@ -664,6 +664,11 @@ app-root {
     outline: 2px solid var(--ink-fixed);
     outline-offset: 2px;
   }
+
+  // On a section colour the pill stays white in dark mode too, like the Month pill.
+  .world-header & {
+    color-scheme: light;
+  }
 }
 
 // Section-colour date tile ("Mon / 2 / March"), rotated like a sticker.
