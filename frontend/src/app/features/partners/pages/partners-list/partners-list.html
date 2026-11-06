@@ -1,16 +1,22 @@
 <section class="partners-page page-stack">
-  <header class="world-header world-header--partners">
+  <header
+    #worldHeader
+    class="world-header world-header--partners"
+    [class.world-header--hidden]="mapMode()"
+  >
     <h1>Partners</h1>
     <p class="intro">Student discounts around Gdańsk. Show your ESNcard.</p>
   </header>
 
-  <div class="partner-tools">
+  <!-- Turns into a compact magenta bar once the header has scrolled away, and in Map view. -->
+  <div class="partner-tools" [class.partner-tools--collapsed]="collapsed()">
+    <p class="bar-title" aria-hidden="true">Partners</p>
     <label class="search-pill">
       <mat-icon aria-hidden="true">search</mat-icon>
       <span class="visually-hidden">Search partners</span>
       <input
         type="search"
-        placeholder="Search partners or offers"
+        [placeholder]="collapsed() && !isDesktop() ? 'Search' : 'Search partners or offers'"
         [value]="searchQuery()"
         (input)="updateSearch($event)"
       />
@@ -27,7 +33,7 @@
           (click)="setMobileView('list')"
         >
           <mat-icon aria-hidden="true">list</mat-icon>
-          List
+          <span class="tab-label">List</span>
         </button>
         <button
           id="partners-map-tab"
@@ -38,7 +44,7 @@
           (click)="setMobileView('map')"
         >
           <mat-icon aria-hidden="true">map</mat-icon>
-          Map
+          <span class="tab-label">Map</span>
         </button>
       </div>
     }

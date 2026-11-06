@@ -2,13 +2,98 @@
   display: block;
 }
 
+// Map view on a phone: the big header folds away so the map sits under the compact bar.
+.world-header {
+  interpolate-size: allow-keywords;
+  transition:
+    height 200ms ease,
+    padding 200ms ease;
+}
+
+.world-header--hidden {
+  height: 0;
+  padding-block: 0;
+
+  // Cancel the page-stack gap so the bar sits at the top.
+  + .partner-tools {
+    margin-top: -28px;
+  }
+}
+
+// Search and the List/Map toggle. Sticky, so once the header has scrolled away it stays
+// on top as a compact magenta bar (64 high) with the title.
 .partner-tools {
+  box-sizing: border-box;
   display: grid;
   gap: 10px;
+  margin-inline: calc(-1 * var(--bleed, 0px));
   margin-top: -8px;
+  padding-inline: var(--bleed, 0px);
+  position: sticky;
+  top: 0;
+  transition:
+    background-color 200ms ease,
+    border-radius 200ms ease,
+    padding 200ms ease;
+  z-index: 5;
 
   .search-pill {
     margin: 0;
+  }
+}
+
+.bar-title {
+  display: none;
+}
+
+.partner-tools--collapsed {
+  align-items: center;
+  background: var(--c-magenta);
+  border-radius: 0 0 24px 24px;
+  display: flex;
+  min-height: 64px;
+  padding-block: 10px;
+
+  // White on magenta only at 20/800 (large text, 3:1).
+  .bar-title {
+    color: #fff;
+    display: block;
+    flex: 0 0 auto;
+    font-size: 20px;
+    font-weight: 800;
+    letter-spacing: -0.3px;
+    margin: 0;
+  }
+
+  .search-pill {
+    border: 0;
+    color-scheme: light;
+    flex: 1;
+    height: 44px;
+    min-width: 0;
+    padding: 0 14px;
+  }
+
+  // Icon-only segments; the labels stay for screen readers.
+  .view-switch {
+    border: 0;
+    color-scheme: light;
+    flex: 0 0 auto;
+    padding: 0;
+
+    button {
+      min-width: 44px;
+      padding: 0 10px;
+    }
+  }
+
+  .tab-label {
+    clip: rect(0 0 0 0);
+    height: 1px;
+    overflow: hidden;
+    position: absolute;
+    white-space: nowrap;
+    width: 1px;
   }
 }
 
@@ -68,8 +153,9 @@
   app-partners-map {
     border: 0;
     border-radius: 24px;
-    // End ~30px above the floating nav on a phone without scrolling.
-    height: max(300px, calc(100dvh - 513px));
+    // End ~30px above the floating nav on a phone without scrolling: top bar 64, compact
+    // bar 64 + 28 gap above the map, nav 102 + 30 gap below it.
+    height: max(300px, calc(100dvh - 288px - env(safe-area-inset-top) - env(safe-area-inset-bottom)));
   }
 }
 
@@ -161,6 +247,14 @@
     margin-top: 0;
   }
 
+  .partner-tools--collapsed {
+    padding-block: 10px;
+
+    .search-pill {
+      flex: 0 1 520px;
+    }
+  }
+
   // Map on the left, list on the right, both visible.
   .partners-split {
     align-items: start;
@@ -173,7 +267,8 @@
     grid-column: 1;
     grid-row: 1;
     position: sticky;
-    top: 24px;
+    // Centred in the viewport below the 64px compact bar, at least 24px under it.
+    top: max(88px, calc(50vh - 248px));
 
     app-partners-map {
       aspect-ratio: 1;
@@ -184,5 +279,12 @@
   .partner-list-region {
     grid-column: 2;
     grid-row: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .world-header,
+  .partner-tools {
+    transition: none;
   }
 }
