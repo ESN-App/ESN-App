@@ -63,6 +63,8 @@
 .event-copy {
   display: grid;
   gap: 4px;
+  // minmax(0, …) lets the nowrap location line ellipsize inside the card.
+  grid-template-columns: minmax(0, 1fr);
   min-width: 0;
 }
 

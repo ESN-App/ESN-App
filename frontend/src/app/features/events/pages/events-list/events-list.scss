@@ -168,6 +168,8 @@
 .event-list {
   display: grid;
   gap: 14px;
+  // minmax(0, …) so the nowrap location line ellipsizes instead of widening the page.
+  grid-template-columns: minmax(0, 1fr);
 }
 
 .empty-month {
