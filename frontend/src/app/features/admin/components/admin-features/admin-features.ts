@@ -5,7 +5,7 @@ import { FeatureFlags } from '../../../../core';
 import { AdminApi, FeatureFlagDto } from '../../data-access/admin-api';
 
 const LABELS: Record<string, string> = {
-  pastEventTag: 'Show “This event has ended” on past events (#33, temporary)',
+  pastEventTag: 'Show “This event has ended” on past events',
 };
 
 /** Feature switches for everyone; changes apply to the student side without a reload. */

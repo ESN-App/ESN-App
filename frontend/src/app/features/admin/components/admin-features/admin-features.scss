@@ -42,6 +42,13 @@ li {
 mat-slide-toggle {
   --mat-slide-toggle-label-text-size: 14px;
   --mat-slide-toggle-label-text-weight: 600;
+
+  // The switch button lives in Material's DOM, outside this component's style scope.
+  ::ng-deep button:focus-visible {
+    border-radius: 999px;
+    outline: 2px solid var(--app-ink);
+    outline-offset: 2px;
+  }
 }
 
 small {
