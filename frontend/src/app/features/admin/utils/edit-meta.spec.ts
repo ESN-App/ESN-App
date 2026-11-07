@@ -13,7 +13,6 @@ describe('editMeta', () => {
       verb: 'Created',
       date: fmt(created),
       by: 'Jan K.',
-      line: `Created ${fmt(created)} by Jan K.`,
       createdLine: null,
       label: `Created ${fmt(created)} by Jan K.`,
     });
@@ -22,16 +21,16 @@ describe('editMeta', () => {
   it('shows the last edit and the creator when edited', () => {
     const meta = editMeta({ createdAt: created, createdBy: 'Maria K.', updatedAt: updated, updatedBy: 'Jan K.' });
     expect(meta.at).toBe(updated);
-    expect(meta.line).toBe(`Edited ${fmt(updated)} by Jan K.`);
+    expect(meta.verb).toBe('Edited');
+    expect(meta.by).toBe('Jan K.');
     expect(meta.createdLine).toBe('Created by Maria K.');
     expect(meta.label).toBe(`Edited ${fmt(updated)} by Jan K., created by Maria K.`);
   });
 
   it('falls back to the creator, then to a dash, when names are missing', () => {
-    expect(editMeta({ createdAt: created, createdBy: 'Maria K.', updatedAt: updated, updatedBy: null }).line)
-      .toBe(`Edited ${fmt(updated)} by Maria K.`);
+    expect(editMeta({ createdAt: created, createdBy: 'Maria K.', updatedAt: updated, updatedBy: null }).by).toBe('Maria K.');
     const meta = editMeta({ createdAt: created, createdBy: null, updatedAt: updated, updatedBy: null });
-    expect(meta.line).toBe(`Edited ${fmt(updated)} by —`);
+    expect(meta.by).toBe('—');
     expect(meta.createdLine).toBe('Created by —');
     expect(meta.label).toBe(`Edited ${fmt(updated)} by unknown, created by unknown`);
   });

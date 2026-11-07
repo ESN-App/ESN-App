@@ -16,8 +16,6 @@ export interface EditMeta {
   date: string;
   /** "Jan K." or "—" */
   by: string;
-  /** "Edited 6 Nov 2026, 21:40 by Jan K." */
-  line: string;
   /** "Created by Maria K." — only for edited items. */
   createdLine: string | null;
   /** Screen-reader sentence; says "unknown" where the visual text shows "—". */
@@ -39,7 +37,6 @@ export function editMeta(item: EditTracked): EditMeta {
     verb,
     date,
     by: by ?? '—',
-    line: `${when} by ${by ?? '—'}`,
     createdLine: edited ? `Created by ${item.createdBy ?? '—'}` : null,
     label: `${when} by ${by ?? 'unknown'}${edited ? `, created by ${item.createdBy ?? 'unknown'}` : ''}`,
   };

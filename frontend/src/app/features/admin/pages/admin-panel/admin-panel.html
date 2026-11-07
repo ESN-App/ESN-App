@@ -101,7 +101,7 @@
                 @for (item of pagedEvents(); track item.id) {
                   <tr [class.draft-row]="item.status === 0">
                     <td class="selection"><input type="checkbox" [attr.aria-label]="'Select ' + item.title" [checked]="selectedIds().has(item.id)" (change)="toggleSelection(item.id)" /></td>
-                    @let meta = editMeta(item);<td class="primary-column" data-label="Event"><a class="details-link" [routerLink]="eventDetailsLink(item)" [title]="item.title">{{ item.title }}</a><small class="created-meta">{{ meta.line }}</small></td>
+                    @let meta = editMeta(item);<td class="primary-column" data-label="Event"><a class="details-link" [routerLink]="eventDetailsLink(item)" [title]="item.title">{{ item.title }}</a></td>
                     <td data-label="Date"><time [attr.datetime]="item.startsAt">{{ item.startsAt | date: 'd MMM y' }}</time></td>
                     <td data-label="Location">{{ item.location }}</td>
                     <td data-label="Price">{{ item.price === 0 ? 'Free' : (item.price | number: '1.0-2') + ' zł' }}</td>
@@ -125,7 +125,7 @@
                 @for (item of pagedNews(); track item.id) {
                   <tr [class.draft-row]="item.status === 0">
                     <td class="selection"><input type="checkbox" [attr.aria-label]="'Select ' + item.title" [checked]="selectedIds().has(item.id)" (change)="toggleSelection(item.id)" /></td>
-                    @let meta = editMeta(item);<td class="primary-column" data-label="News item"><a class="details-link" [routerLink]="['/news', item.id]" [title]="item.title">{{ item.title }}</a><small class="created-meta">{{ meta.line }}</small></td>
+                    @let meta = editMeta(item);<td class="primary-column" data-label="News item"><a class="details-link" [routerLink]="['/news', item.id]" [title]="item.title">{{ item.title }}</a></td>
                     <td class="created-column" data-label="Last edited"><span class="visually-hidden">{{ meta.label }}</span><time aria-hidden="true" [attr.datetime]="meta.at">{{ meta.verb }} <span>{{ meta.date }}</span>&ngsp;<span>by {{ meta.by }}</span></time>@if (meta.createdLine) {<small aria-hidden="true">{{ meta.createdLine }}</small>}</td>
                     <td data-label="Status">@if (item.status === 0) { <app-draft-badge /> } @else { <span class="status-badge">Published</span> }</td>
                     <td class="row-tools"><div class="row-tools__buttons"><a class="icon-button icon-button--edit" [routerLink]="['/admin/news', item.id, 'edit']" [attr.aria-label]="'Edit ' + item.title" title="Edit"></a><button type="button" class="icon-button icon-button--delete" [attr.aria-label]="'Delete ' + item.title" title="Delete" (click)="requestNewsDelete(item)"></button></div></td>
@@ -141,7 +141,7 @@
                 @for (item of pagedPartners(); track item.id) {
                   <tr [class.draft-row]="item.status === 0">
                     <td class="selection"><input type="checkbox" [attr.aria-label]="'Select ' + item.name" [checked]="selectedIds().has(item.id)" (change)="toggleSelection(item.id)" /></td>
-                    @let meta = editMeta(item);<td class="primary-column" data-label="Partner"><a class="details-link" [routerLink]="partnerDetailsLink(item)" [title]="item.name">{{ item.name }}</a><small class="created-meta">{{ meta.line }}</small></td>
+                    @let meta = editMeta(item);<td class="primary-column" data-label="Partner"><a class="details-link" [routerLink]="partnerDetailsLink(item)" [title]="item.name">{{ item.name }}</a></td>
                     <td data-label="Address">{{ item.address || '—' }}</td>
                     <td data-label="Website">@if (item.websiteUrl) { <a class="website-link" [href]="item.websiteUrl" target="_blank" rel="noopener noreferrer">{{ item.name }} website</a> } @else { — }</td>
                     <td class="created-column" data-label="Last edited"><span class="visually-hidden">{{ meta.label }}</span><time aria-hidden="true" [attr.datetime]="meta.at">{{ meta.verb }} <span>{{ meta.date }}</span>&ngsp;<span>by {{ meta.by }}</span></time>@if (meta.createdLine) {<small aria-hidden="true">{{ meta.createdLine }}</small>}</td>
@@ -159,7 +159,7 @@
                 @for (item of pagedInfo(); track item.id) {
                   <tr [class.draft-row]="item.status === 0">
                     <td class="selection"><input type="checkbox" [attr.aria-label]="'Select ' + item.title" [checked]="selectedIds().has(item.id)" (change)="toggleSelection(item.id)" /></td>
-                    @let meta = editMeta(item);<td class="primary-column" data-label="Article"><a class="details-link" [routerLink]="['/info', item.slug]" [title]="item.title">{{ item.title }}</a><small class="created-meta">{{ meta.line }}</small></td>
+                    @let meta = editMeta(item);<td class="primary-column" data-label="Article"><a class="details-link" [routerLink]="['/info', item.slug]" [title]="item.title">{{ item.title }}</a></td>
                     <td data-label="Category">{{ item.category }}</td>
                     <td class="created-column" data-label="Last edited"><span class="visually-hidden">{{ meta.label }}</span><time aria-hidden="true" [attr.datetime]="meta.at">{{ meta.verb }} <span>{{ meta.date }}</span>&ngsp;<span>by {{ meta.by }}</span></time>@if (meta.createdLine) {<small aria-hidden="true">{{ meta.createdLine }}</small>}</td>
                     <td data-label="Status">@if (item.status === 0) { <app-draft-badge /> } @else { <span class="status-badge">Published</span> }</td>

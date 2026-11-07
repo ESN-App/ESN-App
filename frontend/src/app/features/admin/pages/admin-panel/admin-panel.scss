@@ -383,7 +383,8 @@ h1 {
 
 table {
   border-collapse: collapse;
-  min-width: 68rem;
+  // Fits the ~950px table card of a 1000px window (even with a classic scrollbar), so no column hides behind the pinned actions.
+  min-width: 58rem;
   table-layout: fixed;
   width: 100%;
 }
@@ -394,6 +395,15 @@ td {
   padding: 0.9rem 1rem;
   text-align: left;
   vertical-align: middle;
+}
+
+// Below the full design width the narrow table keeps checkbox and status badges clear of the ellipsis.
+@media (max-width: 1120px) {
+  th,
+  td,
+  table .selection {
+    padding-inline: 0.6rem;
+  }
 }
 
 th {
@@ -508,10 +518,6 @@ td.created-column small {
 .admins-table strong {
   font-size: 0.875rem;
   font-weight: 600;
-}
-
-td small.created-meta {
-  display: none;
 }
 
 // Column widths in the template are percentages of the design table, so include padding.
@@ -788,17 +794,6 @@ th.row-tools {
 }
 
 @media (max-width: 700px) {
-  .created-column {
-    display: none;
-  }
-
-  td small.created-meta {
-    display: block;
-    white-space: normal;
-    font-size: 0.75rem;
-    font-weight: 400;
-  }
-
   .admin-header {
     align-items: flex-start;
     margin-top: 0.5rem;
