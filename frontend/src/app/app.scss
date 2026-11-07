@@ -119,14 +119,10 @@
     padding-bottom: 80px;
   }
 
-  .content:has(app-admin-event-create),
-  .content:has(app-admin-event-edit),
-  .content:has(app-admin-partner-create),
-  .content:has(app-admin-partner-edit),
-  .content:has(app-admin-info-create),
-  .content:has(app-admin-info-edit),
-  .content:has(app-admin-news-create),
-  .content:has(app-admin-news-edit) {
+  .content:has(app-admin-event-form),
+  .content:has(app-admin-partner-form),
+  .content:has(app-admin-info-form),
+  .content:has(app-admin-news-form) {
     max-width: 96rem;
   }
 

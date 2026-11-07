@@ -2,38 +2,54 @@ import { Component, HostListener, OnDestroy, computed, inject, signal } from '@a
 import { toSignal } from '@angular/core/rxjs-interop';
 import { TextFieldModule } from '@angular/cdk/text-field';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Observable, forkJoin, of } from 'rxjs';
 import { map, startWith, switchMap, tap } from 'rxjs/operators';
-import { AdminApi, CreateDiscountRequest, CreatePartnerRequest } from '../../data-access/admin-api';
+import { LoadingSpinner } from '../../../../shared';
+import { AdminApi, CreateDiscountRequest, CreatePartnerRequest, DiscountDto } from '../../data-access/admin-api';
 import { PartnerDetailsViewModel } from '../../../partners/components/partner-details-view/partner-details-view';
 import { PartnerOffer } from '../../../partners/data-access/partners.models';
 import { AdminEditorLayout } from '../../components/admin-editor-layout/admin-editor-layout';
 import { AdminPartnerPreview } from '../../components/admin-partner-preview/admin-partner-preview';
 import { createDiscountGroup, createPartnerForm } from '../../utils/partner-form';
 
+type PartnerFormValue = ReturnType<ReturnType<typeof createPartnerForm>['getRawValue']>;
+
+/** Creates a partner (`partners/new`) or edits one (`partners/:partnerSlug/edit`). */
 @Component({
-  selector: 'app-admin-partner-create',
-  imports: [AdminEditorLayout, AdminPartnerPreview, ReactiveFormsModule, RouterLink, TextFieldModule],
-  templateUrl: './admin-partner-create.html',
-  styleUrl: './admin-partner-create.scss',
+  selector: 'app-admin-partner-form',
+  imports: [AdminEditorLayout, AdminPartnerPreview, LoadingSpinner, ReactiveFormsModule, RouterLink, TextFieldModule],
+  templateUrl: './admin-partner-form.html',
+  styleUrl: './admin-partner-form.scss',
 })
-export class AdminPartnerCreate implements OnDestroy {
+export class AdminPartnerForm implements OnDestroy {
   private readonly formBuilder = inject(FormBuilder);
   private readonly api = inject(AdminApi);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
   private objectLogoUrl: string | null = null;
   private createdPartnerId: string | null = null;
   private statusApplied = false;
   private readonly createdDiscountIndexes = new Set<number>();
 
+  readonly partnerSlug = this.route.snapshot.paramMap.get('partnerSlug');
+  readonly isEdit = this.partnerSlug !== null;
+
   readonly submitting = signal(false);
   readonly confirmationOpen = signal(false);
+  readonly loading = signal(this.isEdit);
+  readonly loadFailed = signal(false);
   readonly error = signal<string | null>(null);
   readonly partnerStatus = signal(0);
+  readonly initialPartnerStatus = signal(0);
   readonly selectedLogo = signal<File | null>(null);
   readonly logoPreviewUrl = signal<string | null>(null);
+  readonly existingLogoPath = signal<string | null>(null);
+  readonly logoChanged = signal(false);
+  readonly initialFormState = signal<string | null>(null);
+  readonly initialDiscountIds = signal<ReadonlySet<string>>(new Set());
   readonly logoError = signal<string | null>(null);
+  readonly loadedPartnerId = signal<string | null>(null);
   readonly previewVisible = signal(true);
 
   readonly form = createPartnerForm(this.formBuilder);
@@ -60,8 +76,8 @@ export class AdminPartnerCreate implements OnDestroy {
     })),
   );
   readonly previewPartner = computed<PartnerDetailsViewModel>(() => ({
-    id: 'partner-preview',
-    slug: null,
+    id: this.loadedPartnerId() ?? 'partner-preview',
+    slug: this.partnerSlug,
     name: this.previewName(),
     logoPath: this.logoPreviewUrl(),
     shortDescription: this.previewShortDescription(),
@@ -75,9 +91,27 @@ export class AdminPartnerCreate implements OnDestroy {
     longitude: this.preview().longitude ?? null,
     offers: this.previewOffers(),
   }));
+  /** Create mode can always save; edit mode only once something differs from the loaded partner. */
+  readonly hasChanges = computed(() => {
+    if (!this.isEdit) {
+      return true;
+    }
+    const currentState = this.serializeForm(this.preview());
+    const initialState = this.initialFormState();
+    return this.logoChanged() || (initialState !== null && currentState !== initialState);
+  });
+  /** A new partner needs a logo; an existing one keeps its current logo. */
+  readonly missingLogo = computed(() => !this.isEdit && this.selectedLogo() === null);
 
   get discountGroups() {
     return this.form.controls.discounts.controls;
+  }
+
+  constructor() {
+    if (this.partnerSlug !== null) {
+      this.form.disable();
+      this.loadPartner(this.partnerSlug);
+    }
   }
 
   ngOnDestroy(): void {
@@ -115,8 +149,9 @@ export class AdminPartnerCreate implements OnDestroy {
     const file = input.files?.[0] ?? null;
     this.revokeLogoPreview();
     this.selectedLogo.set(null);
-    this.logoPreviewUrl.set(null);
+    this.logoPreviewUrl.set(this.existingLogoPath());
     this.logoError.set(null);
+    this.logoChanged.set(false);
 
     if (!file) {
       return;
@@ -133,6 +168,7 @@ export class AdminPartnerCreate implements OnDestroy {
     }
 
     this.selectedLogo.set(file);
+    this.logoChanged.set(true);
     this.objectLogoUrl = URL.createObjectURL(file);
     this.logoPreviewUrl.set(this.objectLogoUrl);
   }
@@ -140,15 +176,16 @@ export class AdminPartnerCreate implements OnDestroy {
   removeLogo(input: HTMLInputElement): void {
     this.revokeLogoPreview();
     this.selectedLogo.set(null);
-    this.logoPreviewUrl.set(null);
+    this.logoPreviewUrl.set(this.existingLogoPath());
     this.logoError.set(null);
+    this.logoChanged.set(false);
     input.value = '';
   }
 
   submit(): void {
-    if (this.form.invalid || this.submitting() || !this.selectedLogo()) {
+    if (this.form.invalid || this.submitting() || !this.hasChanges() || this.missingLogo()) {
       this.form.markAllAsTouched();
-      if (!this.selectedLogo()) {
+      if (this.missingLogo()) {
         this.logoError.set('Choose a logo image for this partner.');
       }
       return;
@@ -162,12 +199,17 @@ export class AdminPartnerCreate implements OnDestroy {
   }
 
   confirmSubmit(): void {
-    if (this.form.invalid || this.submitting() || !this.selectedLogo()) {
+    if (this.form.invalid || this.submitting() || !this.hasChanges() || this.missingLogo()) {
       this.confirmationOpen.set(false);
       return;
     }
 
     this.confirmationOpen.set(false);
+
+    const partnerId = this.loadedPartnerId();
+    if (this.isEdit && !partnerId) {
+      return;
+    }
 
     const value = this.form.getRawValue();
     const request: CreatePartnerRequest = {
@@ -181,48 +223,23 @@ export class AdminPartnerCreate implements OnDestroy {
       longitude: value.longitude,
     };
 
-    const newDiscounts = (value.discounts ?? [])
-      .map((discount) => ({
-        title: discount.title?.trim() ?? '',
-        description: discount.description?.trim() ?? '',
-      }))
-      .filter((discount) => discount.title.length > 0);
-
     this.submitting.set(true);
     this.error.set(null);
 
-    // Creating a partner takes three requests (partner, status, offers). If a later one
-    // fails, the partner already exists — remember what landed so retrying finishes the
-    // job instead of creating a duplicate partner or duplicate offers.
-    const create$ = this.createdPartnerId !== null
-      ? of(this.createdPartnerId)
-      : this.api.createPartner(request, this.selectedLogo()!).pipe(
-          map((created) => {
-            this.createdPartnerId = created.id;
-            return created.id;
-          }),
-        );
+    const save$ = partnerId !== null
+      ? this.update$(partnerId, request, value)
+      : this.create$(request, value);
 
-    create$.pipe(
-      switchMap((partnerId) => {
-        const statusUpdate$: Observable<unknown> = value.status === 0 || this.statusApplied
-          ? of(null)
-          : this.api.updatePartnerStatus(partnerId, value.status!).pipe(
-              tap(() => (this.statusApplied = true)),
-            );
-
-        return statusUpdate$.pipe(
-          switchMap(() => this.saveNewDiscounts(partnerId, newDiscounts)),
-        );
-      }),
-    ).subscribe({
+    save$.subscribe({
       next: () => void this.router.navigate(['/admin'], { queryParams: { section: 'partners' } }),
       error: (response) => {
         this.submitting.set(false);
         this.error.set(
-          this.createdPartnerId !== null
-            ? 'The partner was created but some details could not be saved. Save again to finish — this will not create a duplicate.'
-            : response?.error?.detail ?? response?.error?.error ?? 'The partner could not be created.',
+          this.isEdit
+            ? response?.error?.detail ?? response?.error?.error ?? 'The partner changes could not be saved.'
+            : this.createdPartnerId !== null
+              ? 'The partner was created but some details could not be saved. Save again to finish — this will not create a duplicate.'
+              : response?.error?.detail ?? response?.error?.error ?? 'The partner could not be created.',
         );
       },
     });
@@ -237,6 +254,70 @@ export class AdminPartnerCreate implements OnDestroy {
 
   private optionalText(value: string | null | undefined): string | null {
     return value?.trim() || null;
+  }
+
+  private create$(request: CreatePartnerRequest, value: PartnerFormValue): Observable<unknown> {
+    const newDiscounts = (value.discounts ?? [])
+      .map((discount) => ({
+        title: discount.title?.trim() ?? '',
+        description: discount.description?.trim() ?? '',
+      }))
+      .filter((discount) => discount.title.length > 0);
+
+    // Creating a partner takes three requests (partner, status, offers). If a later one
+    // fails, the partner already exists — remember what landed so retrying finishes the
+    // job instead of creating a duplicate partner or duplicate offers.
+    const create$ = this.createdPartnerId !== null
+      ? of(this.createdPartnerId)
+      : this.api.createPartner(request, this.selectedLogo()!).pipe(
+          map((created) => {
+            this.createdPartnerId = created.id;
+            return created.id;
+          }),
+        );
+
+    return create$.pipe(
+      switchMap((partnerId) => {
+        const statusUpdate$: Observable<unknown> = value.status === 0 || this.statusApplied
+          ? of(null)
+          : this.api.updatePartnerStatus(partnerId, value.status!).pipe(
+              tap(() => (this.statusApplied = true)),
+            );
+
+        return statusUpdate$.pipe(
+          switchMap(() => this.saveNewDiscounts(partnerId, newDiscounts)),
+        );
+      }),
+    );
+  }
+
+  private update$(partnerId: string, request: CreatePartnerRequest, value: PartnerFormValue): Observable<unknown> {
+    const currentDiscounts = (value.discounts ?? [])
+      .map((discount) => ({
+        id: discount.id ?? null,
+        title: discount.title?.trim() ?? '',
+        description: discount.description?.trim() ?? '',
+      }))
+      .filter((discount) => discount.title.length > 0);
+    const newDiscounts = currentDiscounts.filter((discount) => !discount.id);
+    const existingDiscounts = currentDiscounts.filter(
+      (discount): discount is { id: string; title: string; description: string } => discount.id !== null,
+    );
+    const currentDiscountIds = new Set(existingDiscounts.map((discount) => discount.id));
+    const deletedDiscountIds = [...this.initialDiscountIds()].filter((id) => !currentDiscountIds.has(id));
+
+    return this.api.updatePartner(partnerId, request, this.selectedLogo()).pipe(
+      switchMap((updated) =>
+        value.status !== this.initialPartnerStatus()
+          ? this.api.updatePartnerStatus(partnerId, value.status!)
+          : of(updated),
+      ),
+      switchMap((updated) =>
+        this.saveDiscounts(partnerId, newDiscounts, existingDiscounts, deletedDiscountIds).pipe(
+          map(() => updated),
+        ),
+      ),
+    );
   }
 
   private saveNewDiscounts(
@@ -262,10 +343,91 @@ export class AdminPartnerCreate implements OnDestroy {
     );
   }
 
+  private saveDiscounts(
+    partnerId: string,
+    newDiscounts: { title: string; description: string }[],
+    existingDiscounts: { id: string; title: string; description: string }[],
+    deletedDiscountIds: string[],
+  ): Observable<unknown> {
+    const operations: Observable<unknown>[] = [
+      ...newDiscounts.map((discount): ReturnType<AdminApi['createDiscount']> => {
+        const request: CreateDiscountRequest = { ...discount, partnerId };
+        return this.api.createDiscount(request);
+      }),
+      ...existingDiscounts.map((discount) =>
+        this.api.updateDiscount(discount.id, {
+          title: discount.title,
+          description: discount.description,
+        }),
+      ),
+      ...deletedDiscountIds.map((id) => this.api.deleteDiscount(id)),
+    ];
+
+    return operations.length === 0 ? of(null) : forkJoin(operations);
+  }
+
+  private loadPartner(slug: string): void {
+    this.error.set(null);
+    this.api.getPartnerBySlug(slug).pipe(
+      switchMap((partner) =>
+        this.api.getPartnerDiscounts(partner.id).pipe(
+          map((discounts) => ({ partner, discounts })),
+        ),
+      ),
+    ).subscribe({
+      next: ({ partner, discounts }) => {
+        this.loadedPartnerId.set(partner.id);
+        this.form.patchValue({
+          status: partner.status,
+          name: partner.name,
+          shortDescription: partner.shortDescription,
+          description: partner.description,
+          address: partner.address ?? '',
+          websiteUrl: partner.websiteUrl ?? '',
+          googleMapsUrl: partner.googleMapsUrl ?? '',
+          latitude: partner.latitude,
+          longitude: partner.longitude,
+        });
+        this.applyDiscounts(discounts);
+        this.partnerStatus.set(partner.status);
+        this.initialPartnerStatus.set(partner.status);
+        this.initialDiscountIds.set(new Set(discounts.map((discount) => discount.id)));
+        this.existingLogoPath.set(partner.logoPath);
+        this.logoPreviewUrl.set(partner.logoPath);
+        this.logoChanged.set(false);
+        this.initialFormState.set(this.serializeForm(this.form.getRawValue()));
+        this.form.markAsPristine();
+        this.form.enable();
+        this.loading.set(false);
+      },
+      error: (response) => {
+        this.loading.set(false);
+        this.loadFailed.set(true);
+        this.error.set(
+          response?.error?.detail ?? response?.error?.error ?? 'The partner could not be loaded.',
+        );
+      },
+    });
+  }
+
+  private applyDiscounts(discounts: DiscountDto[]): void {
+    const array = this.form.controls.discounts;
+    while (array.length > 0) {
+      array.removeAt(0);
+    }
+    discounts.forEach((discount) => {
+      array.push(createDiscountGroup(this.formBuilder, discount));
+    });
+  }
+
   private revokeLogoPreview(): void {
     if (this.objectLogoUrl) {
       URL.revokeObjectURL(this.objectLogoUrl);
       this.objectLogoUrl = null;
     }
+  }
+
+  private serializeForm(value: unknown): string {
+    return JSON.stringify(value);
   }
 }

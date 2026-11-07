@@ -224,14 +224,10 @@ textarea {
   font-family: 'Plus Jakarta Sans', sans-serif;
 }
 
-app-admin-event-create,
-app-admin-event-edit,
-app-admin-partner-create,
-app-admin-partner-edit,
-app-admin-info-create,
-app-admin-info-edit,
-app-admin-news-create,
-app-admin-news-edit {
+app-admin-event-form,
+app-admin-partner-form,
+app-admin-info-form,
+app-admin-news-form {
   .status-field {
     border: 0;
     margin: 0;

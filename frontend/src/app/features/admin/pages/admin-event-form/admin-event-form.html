@@ -6,8 +6,13 @@
         <span>Admin panel</span>
       </a>
       <p class="eyebrow">Events administration</p>
-      <h1>Edit event</h1>
-      <p>Update the event information and publishing status.</p>
+      @if (isEdit) {
+        <h1>Edit event</h1>
+        <p>Update the event information and publishing status.</p>
+      } @else {
+        <h1>Create event</h1>
+        <p>Complete the required information and choose the event status.</p>
+      }
     </div>
   </header>
 
@@ -144,8 +149,10 @@
         <div class="form-actions">
           <a routerLink="/admin" [queryParams]="{ section: 'events' }">Cancel</a>
           <div class="save-action">
-            <button type="submit" [disabled]="form.invalid || submitting() || !hasChanges()">{{ submitting() ? 'Saving…' : 'Save changes' }}</button>
-            @if (!hasChanges()) {
+            <button type="submit" [disabled]="form.invalid || submitting() || !hasChanges()">{{ submitting() ? 'Saving…' : isEdit ? 'Save changes' : 'Create event' }}</button>
+            @if (!isEdit && form.invalid) {
+              <small>Fill in all required fields to continue.</small>
+            } @else if (!hasChanges()) {
               <small>No changes to save yet.</small>
             }
           </div>
@@ -164,13 +171,13 @@
         aria-modal="true"
         aria-labelledby="confirmation-title"
       >
-        <h2 id="confirmation-title">Save these changes?</h2>
+        <h2 id="confirmation-title">{{ isEdit ? 'Save these changes?' : 'Create this event?' }}</h2>
         <div class="confirmation-actions">
           <button type="button" class="confirmation-cancel" (click)="cancelConfirmation()">
             Keep editing
           </button>
           <button type="button" class="confirmation-submit" (click)="confirmSubmit()">
-            Yes, save changes
+            {{ isEdit ? 'Yes, save changes' : 'Yes, create event' }}
           </button>
         </div>
       </section>

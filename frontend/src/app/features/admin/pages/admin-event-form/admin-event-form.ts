@@ -3,8 +3,8 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { TextFieldModule } from '@angular/cdk/text-field';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { of } from 'rxjs';
-import { startWith, switchMap } from 'rxjs/operators';
+import { Observable, of } from 'rxjs';
+import { map, startWith, switchMap } from 'rxjs/operators';
 import { LoadingSpinner } from '../../../../shared';
 import { EventDetailsViewModel } from '../../../events/components/event-details-view/event-details-view';
 import { AdminApi, CreateEventRequest } from '../../data-access/admin-api';
@@ -13,24 +13,27 @@ import { AdminEditorLayout } from '../../components/admin-editor-layout/admin-ed
 import { AdminEventPreview } from '../../components/admin-event-preview/admin-event-preview';
 import { createEventForm } from '../../utils/event-form';
 
+/** Creates an event (`events/new`) or edits one (`events/:eventId/edit`). */
 @Component({
-  selector: 'app-admin-event-edit',
+  selector: 'app-admin-event-form',
   imports: [AdminDateTimePicker, AdminEditorLayout, AdminEventPreview, LoadingSpinner, ReactiveFormsModule, RouterLink, TextFieldModule],
-  templateUrl: './admin-event-edit.html',
-  styleUrl: '../admin-event-create/admin-event-create.scss',
+  templateUrl: './admin-event-form.html',
+  styleUrl: './admin-event-form.scss',
 })
-export class AdminEventEdit implements OnDestroy {
+export class AdminEventForm implements OnDestroy {
   private readonly formBuilder = inject(FormBuilder);
   private readonly api = inject(AdminApi);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   private objectImageUrl: string | null = null;
+  private createdId: string | null = null;
 
-  readonly eventId = this.route.snapshot.paramMap.get('eventId')!;
+  readonly eventId = this.route.snapshot.paramMap.get('eventId');
+  readonly isEdit = this.eventId !== null;
 
   readonly submitting = signal(false);
   readonly confirmationOpen = signal(false);
-  readonly loading = signal(true);
+  readonly loading = signal(this.isEdit);
   readonly loadFailed = signal(false);
   readonly error = signal<string | null>(null);
   readonly eventStatus = signal(0);
@@ -63,7 +66,7 @@ export class AdminEventEdit implements OnDestroy {
   readonly previewStartsAt = computed(() => this.preview().startsAt ?? null);
   readonly previewEndsAt = computed(() => this.preview().endsAt ?? null);
   readonly previewEvent = computed<EventDetailsViewModel>(() => ({
-    id: this.eventId,
+    id: this.eventId ?? 'event-preview',
     title: this.previewTitle(),
     shortDescription: this.previewShortDescription(),
     description: this.previewDescription(),
@@ -79,15 +82,21 @@ export class AdminEventEdit implements OnDestroy {
     price: this.preview().price ?? 0,
     status: this.eventStatus(),
   }));
+  /** Create mode can always save; edit mode only once something differs from the loaded event. */
   readonly hasChanges = computed(() => {
+    if (!this.isEdit) {
+      return true;
+    }
     const currentState = this.serializeForm(this.preview());
     const initialState = this.initialFormState();
     return this.imageChanged() || (initialState !== null && currentState !== initialState);
   });
 
   constructor() {
-    this.form.disable();
-    this.loadEvent(this.eventId);
+    if (this.eventId !== null) {
+      this.form.disable();
+      this.loadEvent(this.eventId);
+    }
   }
 
   ngOnDestroy(): void {
@@ -187,18 +196,20 @@ export class AdminEventEdit implements OnDestroy {
     this.submitting.set(true);
     this.error.set(null);
 
-    this.api.updateEvent(this.eventId, request, this.selectedImage(), this.imageRemoved()).pipe(
-      switchMap((updated) =>
-        value.status !== this.initialEventStatus()
-          ? this.api.updateEventStatus(this.eventId, value.status!)
-          : of(updated),
-      ),
-    ).subscribe({
+    const save$ = this.eventId !== null
+      ? this.update$(this.eventId, request, value.status!)
+      : this.create$(request, value.status!);
+
+    save$.subscribe({
       next: () => void this.router.navigate(['/admin'], { queryParams: { section: 'events' } }),
       error: (response) => {
         this.submitting.set(false);
         this.error.set(
-          response?.error?.detail ?? response?.error?.error ?? 'The event changes could not be saved.',
+          this.isEdit
+            ? response?.error?.detail ?? response?.error?.error ?? 'The event changes could not be saved.'
+            : this.createdId !== null
+              ? 'The event was created but could not be published. Save again to retry publishing — this will not create a duplicate.'
+              : response?.error?.detail ?? response?.error?.error ?? 'The event could not be created.',
         );
       },
     });
@@ -209,6 +220,33 @@ export class AdminEventEdit implements OnDestroy {
     if (this.confirmationOpen() && !this.submitting()) {
       this.cancelConfirmation();
     }
+  }
+
+  private create$(request: CreateEventRequest, status: number): Observable<unknown> {
+    // The status is a second request. If it fails after the create succeeded, the item
+    // exists — remember its id so retrying finishes the job instead of creating a duplicate.
+    const create$ = this.createdId !== null
+      ? of(this.createdId)
+      : this.api.createEvent(request, this.selectedImage()).pipe(
+          map((created) => {
+            this.createdId = created.id;
+            return created.id;
+          }),
+        );
+
+    return create$.pipe(
+      switchMap((id) => (status === 0 ? of(null) : this.api.updateEventStatus(id, status))),
+    );
+  }
+
+  private update$(id: string, request: CreateEventRequest, status: number): Observable<unknown> {
+    return this.api.updateEvent(id, request, this.selectedImage(), this.imageRemoved()).pipe(
+      switchMap((updated) =>
+        status !== this.initialEventStatus()
+          ? this.api.updateEventStatus(id, status)
+          : of(updated),
+      ),
+    );
   }
 
   private optionalText(value: string | null | undefined): string | null {
