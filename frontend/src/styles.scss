@@ -1068,6 +1068,12 @@ app-root {
   }
 }
 
+@keyframes fade-out {
+  to {
+    opacity: 0;
+  }
+}
+
 @keyframes detail-slide-out {
   to {
     opacity: 0;
@@ -1182,10 +1188,23 @@ dialog[open] {
     animation: none;
   }
 
-  ::view-transition-group(*),
-  ::view-transition-old(*),
-  ::view-transition-new(*) {
-    animation: none !important;
+  // Route changes keep a plain cross-fade: no group movement, no slide (the hero morph is
+  // also never set up, see detail-transition.ts).
+  ::view-transition-group(*) {
+    animation: none;
+  }
+
+  .vt-forward::view-transition-old(*),
+  .vt-forward::view-transition-new(*) {
+    animation-duration: var(--motion-base);
+  }
+
+  .vt-forward::view-transition-new(root) {
+    animation-name: fade-in;
+  }
+
+  .vt-back::view-transition-old(root) {
+    animation-name: fade-out;
   }
 
   dialog,

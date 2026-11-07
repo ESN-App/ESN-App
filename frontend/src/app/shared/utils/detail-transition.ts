@@ -39,8 +39,13 @@ export function animateDetailTransition(
   const root = document.documentElement;
   const listImage = () => findListImage(detailPath);
   const hero = () => document.querySelector<HTMLElement>('.details-page .detail-hero');
-  const [oldElement, findNewElement] =
-    direction === 'forward' ? [listImage(), hero] : [hero(), listImage];
+  // Reduced motion: no hero morph, the page only cross-fades (styles.scss).
+  const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const [oldElement, findNewElement] = reducedMotion
+    ? [null, () => null]
+    : direction === 'forward'
+      ? [listImage(), hero]
+      : [hero(), listImage];
   let newElement: HTMLElement | null = null;
 
   root.classList.add(`vt-${direction}`);
