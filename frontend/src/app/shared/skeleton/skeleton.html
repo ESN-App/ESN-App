@@ -87,6 +87,7 @@
         }
       </div>
       <div class="sk-lines sk-about">
+        <span class="skeleton sk-event-image"></span>
         <span class="skeleton sk-heading"></span>
         <span class="skeleton sk-line" style="width: 100%"></span>
         <span class="skeleton sk-line" style="width: 95%"></span>
@@ -94,13 +95,40 @@
       </div>
     </div>
   }
+  @case ('article-detail') {
+    <!-- News / info: the page projects its colour hero; the global article classes lay it out. -->
+    <div class="article-page sk-article">
+      <ng-content />
+      <div class="article-head">
+        @if (meta() === 'above') {
+          <span class="skeleton article-meta" style="width: 120px"></span>
+        }
+        <span class="sk-title">
+          <span class="skeleton" style="width: 100%"></span>
+          <span class="skeleton" style="width: 60%"></span>
+        </span>
+        @if (meta() === 'below') {
+          <span class="skeleton article-meta" style="width: 80px"></span>
+        }
+      </div>
+      <div class="article-body">
+        <span class="skeleton article-image"></span>
+        <span class="sk-text">
+          <span class="skeleton" style="width: 100%"></span>
+          <span class="skeleton" style="width: 95%"></span>
+          <span class="skeleton" style="width: 70%"></span>
+        </span>
+      </div>
+    </div>
+  }
   @case ('partner-detail') {
     <div class="sk-partner-intro">
       <span class="skeleton sk-logo"></span>
-      <span class="skeleton sk-line sk-line--big sk-line--hero" style="width: 70%"></span>
-      <span class="skeleton sk-line" style="width: 100%"></span>
-      <span class="skeleton sk-line" style="width: 95%"></span>
-      <span class="skeleton sk-line" style="width: 70%"></span>
+      <span class="sk-title sk-title--partner"><span class="skeleton" style="width: 70%"></span></span>
+      <span class="sk-text sk-partner-text">
+        <span class="skeleton" style="width: 100%"></span>
+        <span class="skeleton" style="width: 70%"></span>
+      </span>
     </div>
     <div class="sk-detail-body">
       <div class="sk-card sk-info-card">
@@ -131,7 +159,10 @@
     </div>
   }
   @case ('admin-preview') {
-    <span class="skeleton sk-admin-preview"></span>
+    <div class="sk-admin-preview">
+      <span class="skeleton sk-line sk-line--title" style="width: 40%"></span>
+      <span class="skeleton sk-admin-preview__body"></span>
+    </div>
   }
   @case ('table') {
     @for (item of items(); track item) {
