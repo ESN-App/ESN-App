@@ -45,7 +45,11 @@
           [class.news-card--draft]="item.status === 0"
           [routerLink]="['/news', item.id]"
         >
-          <span class="news-image star-fallback" [style.--tile-colour]="tileColours[itemIndex % 3]">
+          <span
+            class="news-image star-fallback"
+            data-hero-source
+            [style.--tile-colour]="tileColours[itemIndex % 3]"
+          >
             @if (item.imagePath && !brokenImages().has(item.id)) {
               <img
                 appImageFade

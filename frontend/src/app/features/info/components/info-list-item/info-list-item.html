@@ -5,13 +5,13 @@
   [class.guide--draft]="item.status === 0"
 >
   @if (featured()) {
-    <div class="guide-tile star-fallback">
+    <div class="guide-tile star-fallback" data-hero-source>
       @if (item.imagePath && !imageBroken()) {
         <img [src]="item.imagePath" alt="" loading="lazy" (error)="imageBroken.set(true)" />
       }
     </div>
   } @else {
-    <span class="icon-square guide-icon tint-{{ tint() }}" aria-hidden="true">
+    <span class="icon-square guide-icon tint-{{ tint() }}" aria-hidden="true" data-hero-source>
       <mat-icon>menu_book</mat-icon>
     </span>
   }

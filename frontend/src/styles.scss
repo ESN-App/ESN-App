@@ -1025,6 +1025,56 @@ app-root {
   animation-timing-function: var(--ease-standard);
 }
 
+// List -> details (shared/utils/detail-transition.ts): the list image (`hero-image`) grows
+// into the details hero while the page slides in from the right; Back plays it in reverse.
+// The shell bars get their own names so they stay put instead of sliding with the page.
+.vt-forward,
+.vt-back {
+  app-root > .toolbar {
+    view-transition-name: app-toolbar;
+  }
+
+  app-root > .mobile-menu {
+    view-transition-name: app-mobile-menu;
+  }
+}
+
+.vt-forward::view-transition-group(*),
+.vt-forward::view-transition-old(*),
+.vt-forward::view-transition-new(*) {
+  animation-duration: var(--motion-slow);
+  animation-timing-function: var(--ease-standard);
+}
+
+.vt-forward::view-transition-new(root) {
+  animation-name: detail-slide-in;
+}
+
+.vt-back::view-transition-group(*),
+.vt-back::view-transition-old(*),
+.vt-back::view-transition-new(*) {
+  animation-duration: var(--motion-base);
+  animation-timing-function: var(--ease-exit);
+}
+
+.vt-back::view-transition-old(root) {
+  animation-name: detail-slide-out;
+}
+
+@keyframes detail-slide-in {
+  from {
+    opacity: 0;
+    transform: translateX(24px);
+  }
+}
+
+@keyframes detail-slide-out {
+  to {
+    opacity: 0;
+    transform: translateX(24px);
+  }
+}
+
 // Native dialogs (month picker, admin modals): scale + fade in over --motion-base, out in 150 ms.
 dialog {
   opacity: 0;

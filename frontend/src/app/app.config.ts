@@ -1,9 +1,20 @@
-import { ApplicationConfig, provideBrowserGlobalErrorListeners, isDevMode } from '@angular/core';
+import {
+  ApplicationConfig,
+  inject,
+  isDevMode,
+  provideBrowserGlobalErrorListeners,
+} from '@angular/core';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
-import { ActivatedRouteSnapshot, provideRouter, withViewTransitions } from '@angular/router';
+import {
+  ActivatedRouteSnapshot,
+  provideRouter,
+  Router,
+  withViewTransitions,
+} from '@angular/router';
 
 import { routes } from './app.routes';
 import { authInterceptor, retryInterceptor } from './core';
+import { animateDetailTransition, detailDirection } from './shared';
 import { provideServiceWorker } from '@angular/service-worker';
 
 export const appConfig: ApplicationConfig = {
@@ -11,11 +22,24 @@ export const appConfig: ApplicationConfig = {
     provideBrowserGlobalErrorListeners(),
     provideRouter(
       routes,
-      // Cross-fade between pages; query-only changes (filters, selected day) stay instant.
+      // Cross-fade between pages; query-only changes (filters, selected day) stay instant;
+      // list <-> details gets the shared hero image and a slide.
       withViewTransitions({
         onViewTransitionCreated: ({ transition, from, to }) => {
-          if (routePath(from) === routePath(to)) {
+          const fromPath = routePath(from);
+          const toPath = routePath(to);
+          if (fromPath === toPath) {
             transition.skipTransition();
+            return;
+          }
+          const popstate = inject(Router).currentNavigation()?.trigger === 'popstate';
+          const direction = detailDirection(fromPath, toPath, popstate);
+          if (direction) {
+            animateDetailTransition(
+              transition,
+              direction,
+              direction === 'forward' ? toPath : fromPath,
+            );
           }
         },
       }),

@@ -8,7 +8,7 @@
     <span class="sticker sticker--green sticker--corner">{{ label }}</span>
   }
 
-  <div class="partner-logo tint-{{ tint() }}">
+  <div class="partner-logo tint-{{ tint() }}" data-hero-source>
     @if (item.logoPath && !logoBroken()) {
       <img appImageFade [src]="item.logoPath" alt="" loading="lazy" (error)="logoBroken.set(true)" />
     } @else {
