@@ -1212,7 +1212,42 @@ dialog[open] {
   transition-timing-function: var(--ease-standard);
 }
 
+// Admin save button (AdminSaveLabel): "Saved" keeps full strength while it waits to redirect.
+button:disabled:has(> app-admin-save-label > .saved.current) {
+  opacity: 1;
+}
+
+// Admin action toast (AdminToast): app-coloured, slides up.
+.admin-toast {
+  --mat-snack-bar-button-color: var(--app-on-primary);
+  --mat-snack-bar-container-color: var(--app-primary);
+  --mat-snack-bar-container-shape: 14px;
+  --mat-snack-bar-supporting-text-color: var(--app-on-primary);
+}
+
+.admin-toast.mat-snack-bar-container-animations-enabled.mat-snack-bar-container-enter {
+  animation: toast-in var(--motion-slow) var(--ease-standard) forwards;
+}
+
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
+  // Material already skips its snackbar animation here; this covers the slide above.
+  .admin-toast.mat-snack-bar-container-animations-enabled.mat-snack-bar-container-enter {
+    animation: none;
+    opacity: 1;
+  }
+
   .skeleton,
   .stagger-in > *,
   .confirmation-dialog,

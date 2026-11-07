@@ -2,12 +2,14 @@ import { Component, HostListener, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { PASSWORD_REQUIREMENTS_HINT } from '../../../../shared';
+import { AdminSaveLabel, SAVED_REDIRECT_DELAY_MS } from '../../components/admin-save-label/admin-save-label';
+import { AdminToast } from '../../utils/admin-toast';
 import { AdminApi } from '../../data-access/admin-api';
 import { adminNameError, applyServerErrors, createAdminForm } from '../../utils/admin-form';
 
 @Component({
   selector: 'app-admin-admin-create',
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [AdminSaveLabel, ReactiveFormsModule, RouterLink],
   templateUrl: './admin-admin-create.html',
   styleUrl: './admin-admin-create.scss',
 })
@@ -15,9 +17,11 @@ export class AdminAdminCreate {
   private readonly formBuilder = inject(FormBuilder);
   private readonly api = inject(AdminApi);
   private readonly router = inject(Router);
+  private readonly toast = inject(AdminToast);
 
   readonly passwordHint = PASSWORD_REQUIREMENTS_HINT;
   readonly submitting = signal(false);
+  readonly saved = signal(false);
   readonly confirmationOpen = signal(false);
   readonly error = signal<string | null>(null);
   readonly passwordVisible = signal(false);
@@ -83,7 +87,15 @@ export class AdminAdminCreate {
         lastName: value.lastName!.trim(),
       })
       .subscribe({
-        next: () => void this.router.navigate(['/admin'], { queryParams: { section: 'admins' } }),
+        next: () => {
+          // Show "Saved" briefly; the toast is root-level, so it stays up after the redirect.
+          this.saved.set(true);
+          this.toast.show('Admin created');
+          setTimeout(
+            () => void this.router.navigate(['/admin'], { queryParams: { section: 'admins' } }),
+            SAVED_REDIRECT_DELAY_MS,
+          );
+        },
         error: (response) => {
           this.submitting.set(false);
           const unmatched = applyServerErrors(this.form, response?.error?.errors);

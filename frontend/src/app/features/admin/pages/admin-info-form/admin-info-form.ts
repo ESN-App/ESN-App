@@ -11,13 +11,15 @@ import { InfoListItemView } from '../../../info/components/info-list-item/info-l
 import { createInfoSlug } from '../../../info/utils/info-url';
 import { AdminEditorLayout } from '../../components/admin-editor-layout/admin-editor-layout';
 import { AdminInfoPreview } from '../../components/admin-info-preview/admin-info-preview';
+import { AdminSaveLabel, SAVED_REDIRECT_DELAY_MS } from '../../components/admin-save-label/admin-save-label';
+import { AdminToast } from '../../utils/admin-toast';
 import { AdminApi, CreateInfoArticleRequest } from '../../data-access/admin-api';
 import { createExternalLinkControl, createInfoForm } from '../../utils/info-form';
 
 /** Creates an info article (`info/new`) or edits one (`info/:infoId/edit`). */
 @Component({
   selector: 'app-admin-info-form',
-  imports: [AdminEditorLayout, AdminInfoPreview, ReactiveFormsModule, RouterLink, Skeleton, TextFieldModule],
+  imports: [AdminSaveLabel, AdminEditorLayout, AdminInfoPreview, ReactiveFormsModule, RouterLink, Skeleton, TextFieldModule],
   templateUrl: './admin-info-form.html',
   styleUrl: './admin-info-form.scss',
 })
@@ -25,6 +27,7 @@ export class AdminInfoForm implements OnDestroy {
   private readonly formBuilder = inject(FormBuilder);
   private readonly api = inject(AdminApi);
   private readonly router = inject(Router);
+  private readonly toast = inject(AdminToast);
   private readonly route = inject(ActivatedRoute);
   private objectImageUrl: string | null = null;
   private createdId: string | null = null;
@@ -33,6 +36,7 @@ export class AdminInfoForm implements OnDestroy {
   readonly isEdit = this.infoId !== null;
 
   readonly submitting = signal(false);
+  readonly saved = signal(false);
   readonly confirmationOpen = signal(false);
   readonly loading = signal(this.isEdit);
   readonly loadFailed = signal(false);
@@ -224,7 +228,19 @@ export class AdminInfoForm implements OnDestroy {
       : this.create$(request, value.status!);
 
     save$.subscribe({
-      next: () => void this.router.navigate(['/admin'], { queryParams: { section: 'info' } }),
+      next: () => {
+        // Show "Saved" briefly; the toast is root-level, so it stays up after the redirect.
+        this.saved.set(true);
+        this.toast.show(
+          value.status === 1 && (!this.isEdit || this.initialInfoStatus() !== 1)
+            ? 'Article published'
+            : this.isEdit ? 'Article saved' : 'Article created',
+        );
+        setTimeout(
+          () => void this.router.navigate(['/admin'], { queryParams: { section: 'info' } }),
+          SAVED_REDIRECT_DELAY_MS,
+        );
+      },
       error: (response) => {
         this.submitting.set(false);
         this.error.set(

@@ -19,6 +19,7 @@ import {
   AdminPartnerDto,
   AdminUserDto,
 } from '../../data-access/admin-api';
+import { AdminToast, countMessage } from '../../utils/admin-toast';
 import { compareArticleOrder } from '../../utils/article-order';
 import { editMeta, lastChangedAt } from '../../utils/edit-meta';
 
@@ -69,6 +70,7 @@ export class AdminPanel {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly authService = inject(AuthService);
+  private readonly toast = inject(AdminToast);
 
   readonly sections: SectionOption[] = [
     { id: 'events', label: 'Events' },
@@ -627,6 +629,11 @@ export class AdminPanel {
       this.selectedIds.update((ids) => new Set([...ids].filter((id) => !deletedIds.has(id))));
       this.applyingBulkAction.set(false);
 
+      if (deletedIds.size > 0) {
+        // Every plural above is the singular + "s".
+        this.toast.show(countMessage(deletedIds.size, itemName.slice(0, -1), itemName, 'deleted'));
+      }
+
       const failedCount = results.length - deletedIds.size;
       if (failedCount === 0) {
         this.bulkDeletePending.set(false);
@@ -645,15 +652,7 @@ export class AdminPanel {
     if (this.selectedCount() === 0) {
       return;
     }
-    const statusOptions: readonly { value: AnyStatusValue; label: string }[] =
-      this.activeSection() === 'partners'
-        ? this.partnerStatusOptions
-        : this.activeSection() === 'info'
-          ? this.infoStatusOptions
-          : this.activeSection() === 'news'
-            ? this.newsStatusOptions
-            : this.eventStatusOptions;
-    const firstEligible = statusOptions.find(
+    const firstEligible = this.statusOptions().find(
       (option) => this.bulkStatusEligibleCount(option.value) > 0,
     );
     if (firstEligible) {
@@ -686,6 +685,16 @@ export class AdminPanel {
             ? this.selectedInfo()
             : [];
     return items.filter((item) => item.status !== status).length;
+  }
+
+  private statusOptions(): readonly { value: AnyStatusValue; label: string }[] {
+    return this.activeSection() === 'partners'
+      ? this.partnerStatusOptions
+      : this.activeSection() === 'info'
+        ? this.infoStatusOptions
+        : this.activeSection() === 'news'
+          ? this.newsStatusOptions
+          : this.eventStatusOptions;
   }
 
   confirmBulkStatus(): void {
@@ -750,6 +759,11 @@ export class AdminPanel {
       this.selectedIds.update((ids) => new Set([...ids].filter((id) => !updatedById.has(id))));
       this.applyingBulkAction.set(false);
 
+      if (updatedById.size > 0) {
+        const label = this.statusOptions().find((option) => option.value === this.selectedBulkStatus())?.label;
+        this.toast.show(`Status changed to ${label}`);
+      }
+
       const failedCount = results.length - updatedById.size;
       if (failedCount === 0) {
         this.bulkStatusPending.set(false);
@@ -789,6 +803,7 @@ export class AdminPanel {
         });
         this.deletingEvent.set(false);
         this.eventPendingDelete.set(null);
+        this.toast.show('Event deleted');
       },
       error: () => {
         this.deleteError.set('The event could not be deleted. Please try again.');
@@ -827,6 +842,7 @@ export class AdminPanel {
         });
         this.deletingPartner.set(false);
         this.partnerPendingDelete.set(null);
+        this.toast.show('Partner deleted');
       },
       error: () => {
         this.deleteError.set('The partner could not be deleted. Please try again.');
@@ -865,6 +881,7 @@ export class AdminPanel {
         });
         this.deletingInfo.set(false);
         this.infoPendingDelete.set(null);
+        this.toast.show('Article deleted');
       },
       error: () => {
         this.deleteError.set('The article could not be deleted. Please try again.');
@@ -903,6 +920,7 @@ export class AdminPanel {
         });
         this.deletingNews.set(false);
         this.newsPendingDelete.set(null);
+        this.toast.show('News article deleted');
       },
       error: () => {
         this.deleteError.set('The news article could not be deleted. Please try again.');
@@ -952,6 +970,7 @@ export class AdminPanel {
         });
         this.deletingAdmin.set(false);
         this.adminPendingDelete.set(null);
+        this.toast.show('Admin deleted');
       },
       error: (response) => {
         this.deleteError.set(
@@ -1008,6 +1027,7 @@ export class AdminPanel {
         this.resettingPassword.set(false);
         this.adminPendingReset.set(null);
         this.resetPasswordSent.set(`A password reset link has been sent to ${item.email}.`);
+        this.toast.show('Password reset email sent');
       },
       error: (response) => {
         this.deleteError.set(
@@ -1062,6 +1082,7 @@ export class AdminPanel {
         }
 
         this.bulkPasswordResetPending.set(failedCount > 0);
+        this.toast.show(countMessage(sentIds.size, 'password reset email', 'password reset emails', 'sent'));
         const sentAdmins = admins.filter((item) => sentIds.has(item.id));
         this.resetPasswordSent.set(
           sentAdmins.length === 1
@@ -1206,6 +1227,7 @@ export class AdminPanel {
         );
         this.savingDisplayOrder.set(false);
         this.closeDisplayOrderModal();
+        this.toast.show('Order saved');
       },
       error: () => {
         this.displayOrderError.set('Failed to save display order. Please try again.');
@@ -1236,6 +1258,7 @@ export class AdminPanel {
         );
         this.savingInfoOrder.set(false);
         this.closeInfoOrderModal();
+        this.toast.show('Order saved');
       },
       error: () => {
         this.infoOrderError.set('Failed to save display order. Please try again.');
@@ -1264,6 +1287,7 @@ export class AdminPanel {
         this.news.update((items) => items.map((item) => updatedById.get(item.id) ?? item));
         this.savingNewsOrder.set(false);
         this.closeNewsOrderModal();
+        this.toast.show('Order saved');
       },
       error: () => {
         this.newsOrderError.set('Failed to save display order. Please try again.');

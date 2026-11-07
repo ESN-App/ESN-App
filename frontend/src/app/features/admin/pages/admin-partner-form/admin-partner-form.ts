@@ -6,6 +6,8 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Observable, forkJoin, of } from 'rxjs';
 import { map, startWith, switchMap, tap } from 'rxjs/operators';
 import { Skeleton } from '../../../../shared';
+import { AdminSaveLabel, SAVED_REDIRECT_DELAY_MS } from '../../components/admin-save-label/admin-save-label';
+import { AdminToast } from '../../utils/admin-toast';
 import { AdminApi, CreateDiscountRequest, CreatePartnerRequest, DiscountDto } from '../../data-access/admin-api';
 import { PartnerDetailsViewModel } from '../../../partners/components/partner-details-view/partner-details-view';
 import { PartnerOffer } from '../../../partners/data-access/partners.models';
@@ -18,7 +20,7 @@ type PartnerFormValue = ReturnType<ReturnType<typeof createPartnerForm>['getRawV
 /** Creates a partner (`partners/new`) or edits one (`partners/:partnerSlug/edit`). */
 @Component({
   selector: 'app-admin-partner-form',
-  imports: [AdminEditorLayout, AdminPartnerPreview, ReactiveFormsModule, RouterLink, Skeleton, TextFieldModule],
+  imports: [AdminSaveLabel, AdminEditorLayout, AdminPartnerPreview, ReactiveFormsModule, RouterLink, Skeleton, TextFieldModule],
   templateUrl: './admin-partner-form.html',
   styleUrl: './admin-partner-form.scss',
 })
@@ -26,6 +28,7 @@ export class AdminPartnerForm implements OnDestroy {
   private readonly formBuilder = inject(FormBuilder);
   private readonly api = inject(AdminApi);
   private readonly router = inject(Router);
+  private readonly toast = inject(AdminToast);
   private readonly route = inject(ActivatedRoute);
   private objectLogoUrl: string | null = null;
   private createdPartnerId: string | null = null;
@@ -36,6 +39,7 @@ export class AdminPartnerForm implements OnDestroy {
   readonly isEdit = this.partnerSlug !== null;
 
   readonly submitting = signal(false);
+  readonly saved = signal(false);
   readonly confirmationOpen = signal(false);
   readonly loading = signal(this.isEdit);
   readonly loadFailed = signal(false);
@@ -231,7 +235,15 @@ export class AdminPartnerForm implements OnDestroy {
       : this.create$(request, value);
 
     save$.subscribe({
-      next: () => void this.router.navigate(['/admin'], { queryParams: { section: 'partners' } }),
+      next: () => {
+        // Show "Saved" briefly; the toast is root-level, so it stays up after the redirect.
+        this.saved.set(true);
+        this.toast.show(this.isEdit ? 'Partner saved' : 'Partner created');
+        setTimeout(
+          () => void this.router.navigate(['/admin'], { queryParams: { section: 'partners' } }),
+          SAVED_REDIRECT_DELAY_MS,
+        );
+      },
       error: (response) => {
         this.submitting.set(false);
         this.error.set(

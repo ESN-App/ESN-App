@@ -62,7 +62,7 @@
     <div class="form-actions">
       <a routerLink="/admin" [queryParams]="{ section: 'admins' }">Cancel</a>
       <div class="save-action">
-        <button type="submit" [disabled]="form.invalid || submitting()">{{ submitting() ? 'Creating…' : 'Create admin' }}</button>
+        <button type="submit" [disabled]="form.invalid || submitting()"><app-admin-save-label [label]="'Create admin'" [saving]="submitting()" [saved]="saved()" /></button>
         @if (form.invalid) {
           <small>Fill in all required fields to continue.</small>
         }
