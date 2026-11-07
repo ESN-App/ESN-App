@@ -21,7 +21,7 @@
       (state().status === 'loading' || (state().status === 'loaded' && state().partners.length > 0)) &&
       !isDesktop()
     ) {
-      <div class="view-switch" role="tablist" aria-label="Partners view">
+      <div class="view-switch" role="tablist" aria-label="Partners view" appSlidingIndicator="[aria-selected='true']">
         <button
           id="partners-list-tab"
           type="button"

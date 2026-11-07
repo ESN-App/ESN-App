@@ -5,11 +5,11 @@ import { Meta } from '@angular/platform-browser';
 import { NavigationEnd, Router, RouterLink, RouterOutlet } from '@angular/router';
 import { filter } from 'rxjs';
 import { AuthService, FeatureFlags, ThemeService } from './core';
-import { NavItem, ThemeToggle } from './shared';
+import { NavItem, SlidingIndicator, ThemeToggle } from './shared';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, RouterLink, MatToolbarModule, NavItem, ThemeToggle],
+  imports: [RouterOutlet, RouterLink, MatToolbarModule, NavItem, SlidingIndicator, ThemeToggle],
   templateUrl: './app.html',
   styleUrl: './app.scss',
 })

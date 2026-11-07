@@ -53,6 +53,9 @@ h1 {
 }
 
 .section-switch {
+  --indicator-colour: var(--app-card);
+  --indicator-radius: 0.65rem;
+  --indicator-shadow: 0 1px 4px rgb(24 25 38 / 12%);
   background: var(--app-raised);
   border-radius: 0.9rem;
   display: grid;
@@ -72,11 +75,10 @@ h1 {
   font-weight: 700;
   min-height: 2.65rem;
   padding: 0.5rem 0.75rem;
+  transition: color var(--motion-base) var(--ease-standard);
 }
 
 .section-switch button.active {
-  background: var(--app-card);
-  box-shadow: 0 1px 4px rgb(24 25 38 / 12%);
   color: var(--app-ink);
 }
 

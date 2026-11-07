@@ -16,3 +16,4 @@ export * from './utils/detail-transition';
 export * from './skeleton/skeleton';
 export * from './stagger-in/stagger-in';
 export * from './image-fade/image-fade';
+export * from './sliding-indicator/sliding-indicator';

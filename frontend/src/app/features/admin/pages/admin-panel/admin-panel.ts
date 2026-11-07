@@ -7,7 +7,7 @@ import { forkJoin, Observable, of } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 import { AuthService } from '../../../../core';
 import { AdminFeatures } from '../../components/admin-features/admin-features';
-import { CancelledBadge, DraftBadge, PublishedBadge, Skeleton } from '../../../../shared';
+import { CancelledBadge, DraftBadge, PublishedBadge, Skeleton, SlidingIndicator } from '../../../../shared';
 import { createEventSlug } from '../../../events/utils/event-url';
 import { createPartnerSlug } from '../../../partners/utils/partner-url';
 import { AdminDisplayOrderModal } from '../../components/admin-display-order-modal/admin-display-order-modal';
@@ -59,7 +59,7 @@ interface SectionOption {
 
 @Component({
   selector: 'app-admin-panel',
-  imports: [AdminFeatures, DatePipe, DecimalPipe, MatButtonModule, MatMenuModule, RouterLink, AdminDisplayOrderModal, CancelledBadge, DraftBadge, PublishedBadge, Skeleton],
+  imports: [AdminFeatures, DatePipe, DecimalPipe, MatButtonModule, MatMenuModule, RouterLink, AdminDisplayOrderModal, CancelledBadge, DraftBadge, PublishedBadge, Skeleton, SlidingIndicator],
   templateUrl: './admin-panel.html',
   styleUrl: './admin-panel.scss',
 })

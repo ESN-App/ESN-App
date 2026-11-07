@@ -4,7 +4,7 @@ import { BreakpointObserver } from '@angular/cdk/layout';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { BehaviorSubject, catchError, map, of, startWith, switchMap } from 'rxjs';
-import { EmptyState, ErrorState, Skeleton, StaggerIn } from '../../../../shared';
+import { EmptyState, ErrorState, Skeleton, SlidingIndicator, StaggerIn } from '../../../../shared';
 import { PartnerListItem, PartnerListItemView } from '../../components/partner-list-item/partner-list-item';
 import { PartnersMap } from '../../components/partners-map/partners-map';
 import { PartnersApi } from '../../data-access/partners-api';
@@ -21,7 +21,7 @@ type MobilePartnersView = 'list' | 'map';
 
 @Component({
   selector: 'app-partners-list',
-  imports: [RouterLink, EmptyState, ErrorState, MatIconModule, PartnerListItem, PartnersMap, Skeleton, StaggerIn],
+  imports: [RouterLink, EmptyState, ErrorState, MatIconModule, PartnerListItem, PartnersMap, Skeleton, SlidingIndicator, StaggerIn],
   templateUrl: './partners-list.html',
   styleUrl: './partners-list.scss',
 })

@@ -7,7 +7,7 @@
     </div>
   </header>
 
-  <nav class="section-switch" aria-label="Admin panel sections" role="tablist">
+  <nav class="section-switch" aria-label="Admin panel sections" role="tablist" appSlidingIndicator="[aria-selected='true']">
     @for (section of sections; track section.id) {
       <button type="button" role="tab" [attr.aria-selected]="activeSection() === section.id" [class.active]="activeSection() === section.id" (click)="setSection(section.id)">
         {{ section.label }}

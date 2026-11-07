@@ -1178,6 +1178,40 @@ dialog[open] {
   }
 }
 
+// SlidingIndicator directive: one selection pill that slides between the items.
+:where(.sliding-indicator) {
+  position: relative;
+}
+
+// Items paint above the pill.
+.sliding-indicator > * {
+  position: relative;
+}
+
+.sliding-indicator::before {
+  background: var(--indicator-current, var(--indicator-colour));
+  border-radius: var(--indicator-radius, 999px);
+  box-shadow: var(--indicator-shadow, none);
+  content: '';
+  height: var(--indicator-h, 0);
+  left: 0;
+  pointer-events: none;
+  position: absolute;
+  top: 0;
+  transform: translate(var(--indicator-x, 0), var(--indicator-y, 0));
+  width: var(--indicator-w, 0);
+}
+
+.sliding-indicator[data-indicator='none']::before {
+  visibility: hidden;
+}
+
+.sliding-indicator[data-indicator='ready']::before {
+  transition-duration: var(--motion-slow);
+  transition-property: transform, width, height, background-color;
+  transition-timing-function: var(--ease-standard);
+}
+
 @media (prefers-reduced-motion: reduce) {
   .skeleton,
   .stagger-in > *,
@@ -1209,6 +1243,7 @@ dialog[open] {
 
   dialog,
   dialog[open],
+  .sliding-indicator[data-indicator='ready']::before,
   .pill-button,
   .day-tile,
   .back-button {

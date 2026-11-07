@@ -11,7 +11,8 @@ import { isActive, Router, RouterLink } from '@angular/router';
   styleUrl: './nav-item.scss',
   host: {
     '[class.nav-item--inline]': "layout() === 'inline'",
-    '[style.--nav-colour]': 'colour()',
+    // Read by the parent nav's SlidingIndicator, which paints the active pill.
+    '[style.--indicator-colour]': 'colour()',
   },
 })
 export class NavItem {

@@ -7,6 +7,11 @@ import { routes } from './app.routes';
 
 describe('App', () => {
   beforeEach(async () => {
+    // jsdom has no ResizeObserver; the nav's SlidingIndicator needs one.
+    globalThis.ResizeObserver ??= class {
+      observe = vi.fn();
+      disconnect = vi.fn();
+    } as unknown as typeof ResizeObserver;
     await TestBed.configureTestingModule({
       imports: [App],
       providers: [provideRouter(routes), provideHttpClient(), provideHttpClientTesting()],
