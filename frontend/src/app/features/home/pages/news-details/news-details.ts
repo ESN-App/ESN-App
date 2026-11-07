@@ -2,15 +2,15 @@ import { Component, inject } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { MatIconModule } from '@angular/material/icon';
 import { ActivatedRoute, RouterLink } from '@angular/router';
+import { Skeleton } from '../../../../shared';
 import { catchError, map, of, switchMap } from 'rxjs';
-import { LoadingSpinner } from '../../../../shared';
 import { NewsDetailsView, NewsDetailsViewModel } from '../../components/news-details-view/news-details-view';
 import { NewsApi } from '../../data-access/news-api';
 import { NewsItemDto } from '../../data-access/news.models';
 
 @Component({
   selector: 'app-news-details',
-  imports: [RouterLink, LoadingSpinner, MatIconModule, NewsDetailsView],
+  imports: [RouterLink, MatIconModule, Skeleton, NewsDetailsView],
   templateUrl: './news-details.html',
   styleUrl: './news-details.scss',
 })

@@ -17,3 +17,14 @@
     margin: 0 0 16px;
   }
 }
+
+// Desktop hero while loading: as tall as the loaded one, no back button (top bar navigates).
+@media (min-width: 701px) {
+  .loading-hero {
+    min-height: 200px;
+
+    > .back-button {
+      display: none;
+    }
+  }
+}

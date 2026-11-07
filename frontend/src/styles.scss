@@ -470,6 +470,16 @@ app-root {
   @include esn-star-fallback;
 }
 
+// A tile with an image (ImageFade) is a neutral frame while it loads; the star is only
+// for no / broken images (the @if removes the img then).
+.star-fallback:has(> img.image-fade) {
+  background: var(--tint-neutral);
+
+  &::after {
+    content: none;
+  }
+}
+
 .world-header,
 .detail-hero {
   --world-colour: var(--c-cyan);
@@ -577,10 +587,18 @@ app-root {
 // Article / event photo at the top of the body (titles never sit on photos).
 .article-image {
   aspect-ratio: 16 / 9;
+  background: var(--tint-neutral);
   border-radius: 24px;
   display: block;
-  object-fit: cover;
+  overflow: hidden;
   width: 100%;
+
+  > img {
+    display: block;
+    height: 100%;
+    object-fit: cover;
+    width: 100%;
+  }
 }
 
 .article-head {
@@ -953,6 +971,14 @@ app-root {
 // prefers-reduced-motion: reduce (see the block at the end).
 // ---------------------------------------------------------------------------
 
+:root {
+  --motion-fast: 120ms;
+  --motion-base: 200ms;
+  --motion-slow: 280ms;
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --ease-exit: cubic-bezier(0.3, 0, 1, 1);
+}
+
 // One skeleton style: a neutral tint block with a soft shimmer. Shapes live in
 // shared/skeleton; any element can use the class.
 .skeleton {
@@ -989,16 +1015,17 @@ app-root {
 // Route change: a short cross-fade (router withViewTransitions()).
 ::view-transition-old(root),
 ::view-transition-new(root) {
-  animation-duration: 180ms;
+  animation-duration: var(--motion-base);
+  animation-timing-function: var(--ease-standard);
 }
 
-// Native dialogs (month picker, admin modals): scale + fade, 200 ms in, 150 ms out.
+// Native dialogs (month picker, admin modals): scale + fade in over --motion-base, out in 150 ms.
 dialog {
   opacity: 0;
   transform: scale(0.96);
   transition:
-    opacity 150ms ease-in,
-    transform 150ms ease-in,
+    opacity 150ms var(--ease-exit),
+    transform 150ms var(--ease-exit),
     overlay 150ms allow-discrete,
     display 150ms allow-discrete;
 }
@@ -1006,8 +1033,8 @@ dialog {
 dialog[open] {
   opacity: 1;
   transform: none;
-  transition-duration: 200ms;
-  transition-timing-function: ease-out;
+  transition-duration: var(--motion-base);
+  transition-timing-function: var(--ease-standard);
 
   @starting-style {
     opacity: 0;
@@ -1016,7 +1043,7 @@ dialog[open] {
 }
 
 .confirmation-dialog {
-  animation: dialog-in 200ms ease-out;
+  animation: dialog-in var(--motion-base) var(--ease-standard);
 }
 
 @keyframes dialog-in {
@@ -1028,7 +1055,7 @@ dialog[open] {
 
 // First render of a list: items fade up one after another (StaggerIn directive).
 .stagger-in > * {
-  animation: stagger-in 220ms ease-out backwards;
+  animation: stagger-in var(--motion-base) var(--ease-standard) backwards;
 }
 
 @for $i from 2 through 8 {
@@ -1048,11 +1075,41 @@ dialog[open] {
   }
 }
 
+// Loaded content replaces its skeleton in the same place; a detail page's colour hero
+// was already there, so only what sits below it fades.
+.fade-in,
+.details-fade-in > article > :not(.detail-hero) {
+  animation: fade-in var(--motion-base) var(--ease-standard);
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+// ImageFade directive: the image stays hidden while loading (its frame shows through),
+// then fades and settles in. The frame must clip (overflow: hidden) for the scale.
+.image-fade--loading {
+  opacity: 0;
+}
+
+.image-fade--loaded {
+  animation: image-fade-in var(--motion-slow) var(--ease-standard);
+}
+
+@keyframes image-fade-in {
+  from {
+    opacity: 0;
+    transform: scale(1.03);
+  }
+}
+
 // Button press feedback.
 .pill-button,
 .day-tile,
 .back-button {
-  transition: transform 100ms ease-out;
+  transition: transform var(--motion-fast) var(--ease-standard);
 
   &:active {
     transform: scale(0.97);
@@ -1062,7 +1119,10 @@ dialog[open] {
 @media (prefers-reduced-motion: reduce) {
   .skeleton,
   .stagger-in > *,
-  .confirmation-dialog {
+  .confirmation-dialog,
+  .fade-in,
+  .details-fade-in > article > :not(.detail-hero),
+  .image-fade--loaded {
     animation: none;
   }
 

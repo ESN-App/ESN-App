@@ -11,7 +11,7 @@
   <header class="partner-intro">
     <div class="logo-square">
       @if (item.logoPath && !logoBroken()) {
-        <img [src]="item.logoPath" [alt]="item.name + ' logo'" (error)="logoBroken.set(true)" />
+        <img appImageFade [src]="item.logoPath" [alt]="item.name + ' logo'" (error)="logoBroken.set(true)" />
       } @else {
         <span aria-hidden="true">{{ initials(item.name) }}</span>
       }

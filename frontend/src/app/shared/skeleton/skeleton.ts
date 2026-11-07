@@ -1,6 +1,16 @@
 import { Component, computed, input } from '@angular/core';
 
-export type SkeletonVariant = 'events' | 'news' | 'guides' | 'partners' | 'event-detail' | 'table';
+export type SkeletonVariant =
+  | 'events'
+  | 'news'
+  | 'guides'
+  | 'partners'
+  | 'event-detail'
+  | 'article-detail'
+  | 'partner-detail'
+  | 'admin-form'
+  | 'admin-preview'
+  | 'table';
 
 /**
  * Placeholder blocks shaped like the real cards and rows of each list, so nothing jumps
@@ -19,5 +29,7 @@ export type SkeletonVariant = 'events' | 'news' | 'guides' | 'partners' | 'event
 export class Skeleton {
   readonly variant = input.required<SkeletonVariant>();
   readonly count = input(3);
+  /** article-detail: where the date / read-time line sits relative to the title. */
+  readonly meta = input<'above' | 'below'>('above');
   protected readonly items = computed(() => Array.from({ length: this.count() }, (_, index) => index));
 }

@@ -5,7 +5,7 @@ import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Observable, of } from 'rxjs';
 import { map, startWith, switchMap } from 'rxjs/operators';
-import { LoadingSpinner } from '../../../../shared';
+import { Skeleton } from '../../../../shared';
 import { EventDetailsViewModel } from '../../../events/components/event-details-view/event-details-view';
 import { AdminApi, CreateEventRequest } from '../../data-access/admin-api';
 import { AdminDateTimePicker } from '../../components/admin-date-time-picker/admin-date-time-picker';
@@ -16,7 +16,7 @@ import { createEventForm } from '../../utils/event-form';
 /** Creates an event (`events/new`) or edits one (`events/:eventId/edit`). */
 @Component({
   selector: 'app-admin-event-form',
-  imports: [AdminDateTimePicker, AdminEditorLayout, AdminEventPreview, LoadingSpinner, ReactiveFormsModule, RouterLink, TextFieldModule],
+  imports: [AdminDateTimePicker, AdminEditorLayout, AdminEventPreview, ReactiveFormsModule, RouterLink, Skeleton, TextFieldModule],
   templateUrl: './admin-event-form.html',
   styleUrl: './admin-event-form.scss',
 })

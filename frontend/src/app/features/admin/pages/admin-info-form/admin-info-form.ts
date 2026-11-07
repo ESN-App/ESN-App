@@ -5,7 +5,7 @@ import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Observable, of } from 'rxjs';
 import { map, startWith, switchMap } from 'rxjs/operators';
-import { LoadingSpinner } from '../../../../shared';
+import { Skeleton } from '../../../../shared';
 import { InfoDetailsViewModel } from '../../../info/components/info-details-view/info-details-view';
 import { InfoListItemView } from '../../../info/components/info-list-item/info-list-item';
 import { createInfoSlug } from '../../../info/utils/info-url';
@@ -17,7 +17,7 @@ import { createExternalLinkControl, createInfoForm } from '../../utils/info-form
 /** Creates an info article (`info/new`) or edits one (`info/:infoId/edit`). */
 @Component({
   selector: 'app-admin-info-form',
-  imports: [AdminEditorLayout, AdminInfoPreview, LoadingSpinner, ReactiveFormsModule, RouterLink, TextFieldModule],
+  imports: [AdminEditorLayout, AdminInfoPreview, ReactiveFormsModule, RouterLink, Skeleton, TextFieldModule],
   templateUrl: './admin-info-form.html',
   styleUrl: './admin-info-form.scss',
 })

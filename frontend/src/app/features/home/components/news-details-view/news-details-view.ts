@@ -2,7 +2,7 @@ import { DatePipe } from '@angular/common';
 import { Component, computed, input, signal } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import { RouterLink } from '@angular/router';
-import { DraftPreviewBanner } from '../../../../shared';
+import { DraftPreviewBanner, ImageFade } from '../../../../shared';
 
 export interface NewsDetailsViewModel {
   id: string;
@@ -18,7 +18,7 @@ const NEW_FOR_MS = 14 * 24 * 60 * 60 * 1000;
 
 @Component({
   selector: 'app-news-details-view',
-  imports: [DatePipe, DraftPreviewBanner, MatIconModule, RouterLink],
+  imports: [DatePipe, DraftPreviewBanner, ImageFade, MatIconModule, RouterLink],
   templateUrl: './news-details-view.html',
   styleUrl: './news-details-view.scss',
 })

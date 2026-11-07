@@ -17,14 +17,17 @@
   </header>
 
   @if (loading()) {
-    <app-loading-spinner />
+    <app-admin-editor-layout [previewVisible]="previewVisible()">
+      <app-skeleton editor-form variant="admin-form" />
+      <app-skeleton editor-preview variant="admin-preview" />
+    </app-admin-editor-layout>
   } @else if (loadFailed()) {
     <div class="save-error" role="alert">
       <p>{{ error() }}</p>
       <a routerLink="/admin" [queryParams]="{ section: 'events' }">Back to admin panel</a>
     </div>
   } @else {
-    <app-admin-editor-layout [previewVisible]="previewVisible()">
+    <app-admin-editor-layout class="fade-in" [previewVisible]="previewVisible()">
       <form class="event-form" editor-form [formGroup]="form" (ngSubmit)="submit()" novalidate>
         <div class="form-heading">
           <div><h2>Event information</h2><p>Fields marked with * are required.</p></div>

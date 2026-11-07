@@ -1,6 +1,7 @@
 import { Component, computed, input, output, signal } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import { RouterLink } from '@angular/router';
+import { ImageFade } from '../../../../shared';
 import { discountLabel, initials } from '../../utils/partner-offer';
 import { createPartnerSlug } from '../../utils/partner-url';
 
@@ -18,7 +19,7 @@ export interface PartnerListItemView {
 
 @Component({
   selector: 'app-partner-list-item',
-  imports: [MatIconModule, RouterLink],
+  imports: [ImageFade, MatIconModule, RouterLink],
   templateUrl: './partner-list-item.html',
   styleUrl: './partner-list-item.scss',
 })

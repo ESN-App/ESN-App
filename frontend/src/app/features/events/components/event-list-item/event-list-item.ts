@@ -1,6 +1,7 @@
 import { DatePipe, DecimalPipe } from '@angular/common';
 import { Component, computed, inject, input, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { ImageFade } from '../../../../shared';
 import { MatIconModule } from '@angular/material/icon';
 import { FeatureFlags } from '../../../../core';
 import { hasEventEnded, isSameCalendarDay } from '../../utils/event-date';
@@ -22,7 +23,7 @@ export interface EventListItemView {
 
 @Component({
   selector: 'app-event-list-item',
-  imports: [DatePipe, DecimalPipe, MatIconModule, RouterLink],
+  imports: [DatePipe, DecimalPipe, ImageFade, MatIconModule, RouterLink],
   templateUrl: './event-list-item.html',
   styleUrl: './event-list-item.scss',
   host: {
