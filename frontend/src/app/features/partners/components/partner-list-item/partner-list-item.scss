@@ -38,6 +38,11 @@
   justify-content: center;
   overflow: hidden;
 
+  // Neutral while the logo loads; the tint colour returns behind the (contained) logo.
+  &:has(> img.image-fade--loading) {
+    background: var(--tint-neutral);
+  }
+
   img {
     height: 100%;
     object-fit: contain;

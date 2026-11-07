@@ -105,7 +105,10 @@
         }
         <span class="sk-title">
           <span class="skeleton" style="width: 100%"></span>
-          <span class="skeleton" style="width: 60%"></span>
+          @if (meta() === 'above') {
+            <!-- News titles tend to wrap; info titles fit one line. -->
+            <span class="skeleton" style="width: 60%"></span>
+          }
         </span>
         @if (meta() === 'below') {
           <span class="skeleton article-meta" style="width: 80px"></span>

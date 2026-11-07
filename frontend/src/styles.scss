@@ -470,6 +470,16 @@ app-root {
   @include esn-star-fallback;
 }
 
+// A tile with an image (ImageFade) is a neutral frame while it loads; the star is only
+// for no / broken images (the @if removes the img then).
+.star-fallback:has(> img.image-fade) {
+  background: var(--tint-neutral);
+
+  &::after {
+    content: none;
+  }
+}
+
 .world-header,
 .detail-hero {
   --world-colour: var(--c-cyan);

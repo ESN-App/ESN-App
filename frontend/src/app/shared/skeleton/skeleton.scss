@@ -186,11 +186,10 @@
   gap: 12px;
 }
 
-// Desktop only: the event image heads the About column.
+// The event image heads the About section (12px gap + 8px = the real 20px margin).
 .sk-event-image {
   aspect-ratio: 16 / 9;
   border-radius: 24px;
-  display: none;
   margin-bottom: 8px;
 }
 
@@ -233,8 +232,13 @@
 
 // Partner details: the sheet with the tilted logo square overlapping the hero.
 :host(.skeleton-partner-detail) {
-  gap: 28px;
+  gap: 0;
   position: relative;
+}
+
+// The real .partner-body: 28px between contact and offers, right after the intro.
+:host(.skeleton-partner-detail) .sk-detail-body {
+  gap: 28px;
 }
 
 .sk-partner-intro {
@@ -410,10 +414,6 @@
     }
   }
 
-  .sk-event-image {
-    display: block;
-  }
-
   .sk-detail-body {
     margin-top: 72px;
     align-items: start;
@@ -459,6 +459,13 @@
 
   .sk-title--partner {
     font-size: 64px;
+  }
+
+  // Mirrors .partner-body on desktop: 688px offers column, 400px contact card.
+  :host(.skeleton-partner-detail) .sk-detail-body {
+    gap: 32px;
+    grid-template-columns: minmax(0, 688px) minmax(0, 400px);
+    margin-top: 40px;
   }
 
   // The wide desktop column fits the short description on one line.
