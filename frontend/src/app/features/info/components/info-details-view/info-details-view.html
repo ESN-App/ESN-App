@@ -15,7 +15,7 @@
 
   <div class="article-body">
     @if (loaded.imagePath && !imageBroken()) {
-      <img class="article-image" [src]="loaded.imagePath" alt="" (error)="imageBroken.set(true)" />
+      <img appImageFade class="article-image" [src]="loaded.imagePath" alt="" (error)="imageBroken.set(true)" />
     }
     <p class="article-text">{{ loaded.content }}</p>
 

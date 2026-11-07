@@ -11,6 +11,7 @@
   <div class="event-tile star-fallback">
     @if (item.imagePath && !imageBroken()) {
       <img
+        appImageFade
         [src]="item.imagePath"
         alt=""
         [attr.loading]="interactive() ? 'lazy' : null"

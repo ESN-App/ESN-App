@@ -22,7 +22,7 @@
 
   <div class="article-body">
     @if (item.imagePath && !imageBroken()) {
-      <img class="article-image" [src]="item.imagePath" alt="" (error)="imageBroken.set(true)" />
+      <img appImageFade class="article-image" [src]="item.imagePath" alt="" (error)="imageBroken.set(true)" />
     }
     <p class="article-text">{{ item.description }}</p>
 

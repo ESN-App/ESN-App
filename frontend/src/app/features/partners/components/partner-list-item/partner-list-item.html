@@ -10,7 +10,7 @@
 
   <div class="partner-logo tint-{{ tint() }}">
     @if (item.logoPath && !logoBroken()) {
-      <img [src]="item.logoPath" alt="" loading="lazy" (error)="logoBroken.set(true)" />
+      <img appImageFade [src]="item.logoPath" alt="" loading="lazy" (error)="logoBroken.set(true)" />
     } @else {
       <span aria-hidden="true">{{ initials(item.name) }}</span>
     }

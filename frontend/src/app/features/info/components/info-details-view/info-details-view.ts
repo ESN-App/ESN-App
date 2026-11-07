@@ -1,6 +1,6 @@
 import { Component, computed, input, signal } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
-import { DraftPreviewBanner, urlHost } from '../../../../shared';
+import { DraftPreviewBanner, ImageFade, urlHost } from '../../../../shared';
 import { readMinutes } from '../../utils/read-time';
 
 export interface InfoDetailsViewModel {
@@ -14,7 +14,7 @@ export interface InfoDetailsViewModel {
 
 @Component({
   selector: 'app-info-details-view',
-  imports: [DraftPreviewBanner, MatIconModule],
+  imports: [DraftPreviewBanner, ImageFade, MatIconModule],
   templateUrl: './info-details-view.html',
   styleUrl: './info-details-view.scss',
 })

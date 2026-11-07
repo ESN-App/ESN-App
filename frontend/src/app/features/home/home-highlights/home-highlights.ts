@@ -13,13 +13,13 @@ import {
 import { MatIconModule } from '@angular/material/icon';
 import { RouterLink } from '@angular/router';
 import { Subscription } from 'rxjs';
-import { Skeleton, StaggerIn } from '../../../shared';
+import { ImageFade, Skeleton, StaggerIn } from '../../../shared';
 import { NewsApi } from '../data-access/news-api';
 import { NewsItemDto } from '../data-access/news.models';
 
 @Component({
   selector: 'app-home-highlights',
-  imports: [DatePipe, MatIconModule, RouterLink, Skeleton, StaggerIn],
+  imports: [DatePipe, MatIconModule, RouterLink, ImageFade, Skeleton, StaggerIn],
   templateUrl: './home-highlights.html',
   styleUrl: './home-highlights.scss',
 })
