@@ -3,7 +3,7 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { MatIconModule } from '@angular/material/icon';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { catchError, of, switchMap } from 'rxjs';
-import { LoadingSpinner } from '../../../../shared';
+import { Skeleton } from '../../../../shared';
 import { PartnerDetailsView, PartnerDetailsViewModel } from '../../components/partner-details-view/partner-details-view';
 import { PartnersApi } from '../../data-access/partners-api';
 import { PartnerView } from '../../data-access/partners.models';
@@ -11,7 +11,7 @@ import { createPartnerSlug } from '../../utils/partner-url';
 
 @Component({
   selector: 'app-partner-details',
-  imports: [RouterLink, LoadingSpinner, MatIconModule, PartnerDetailsView],
+  imports: [RouterLink, Skeleton, MatIconModule, PartnerDetailsView],
   templateUrl: './partner-details.html',
   styleUrl: './partner-details.scss',
 })

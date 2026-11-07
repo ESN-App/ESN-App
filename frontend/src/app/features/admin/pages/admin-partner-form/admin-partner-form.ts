@@ -5,7 +5,7 @@ import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Observable, forkJoin, of } from 'rxjs';
 import { map, startWith, switchMap, tap } from 'rxjs/operators';
-import { LoadingSpinner } from '../../../../shared';
+import { Skeleton } from '../../../../shared';
 import { AdminApi, CreateDiscountRequest, CreatePartnerRequest, DiscountDto } from '../../data-access/admin-api';
 import { PartnerDetailsViewModel } from '../../../partners/components/partner-details-view/partner-details-view';
 import { PartnerOffer } from '../../../partners/data-access/partners.models';
@@ -18,7 +18,7 @@ type PartnerFormValue = ReturnType<ReturnType<typeof createPartnerForm>['getRawV
 /** Creates a partner (`partners/new`) or edits one (`partners/:partnerSlug/edit`). */
 @Component({
   selector: 'app-admin-partner-form',
-  imports: [AdminEditorLayout, AdminPartnerPreview, LoadingSpinner, ReactiveFormsModule, RouterLink, TextFieldModule],
+  imports: [AdminEditorLayout, AdminPartnerPreview, ReactiveFormsModule, RouterLink, Skeleton, TextFieldModule],
   templateUrl: './admin-partner-form.html',
   styleUrl: './admin-partner-form.scss',
 })

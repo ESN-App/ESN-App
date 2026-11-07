@@ -1,6 +1,15 @@
 import { Component, computed, input } from '@angular/core';
 
-export type SkeletonVariant = 'events' | 'news' | 'guides' | 'partners' | 'event-detail' | 'table';
+export type SkeletonVariant =
+  | 'events'
+  | 'news'
+  | 'guides'
+  | 'partners'
+  | 'event-detail'
+  | 'partner-detail'
+  | 'admin-form'
+  | 'admin-preview'
+  | 'table';
 
 /**
  * Placeholder blocks shaped like the real cards and rows of each list, so nothing jumps

@@ -1,6 +1,6 @@
 <main class="details-page">
   @if (newsItem(); as loaded) {
-    <app-news-details-view [newsItem]="detailsView(loaded)">
+    <app-news-details-view class="details-fade-in" [newsItem]="detailsView(loaded)">
       <a detailBack class="back-button" routerLink="/" aria-label="Back to home">
         <mat-icon aria-hidden="true">chevron_left</mat-icon>
       </a>
@@ -12,6 +12,23 @@
       <a class="pill-button" routerLink="/">Back to home</a>
     </section>
   } @else {
-    <app-loading-spinner />
+    <div class="article-page">
+      <div class="detail-hero">
+        <a class="back-button" routerLink="/" aria-label="Back to home">
+          <mat-icon aria-hidden="true">chevron_left</mat-icon>
+        </a>
+      </div>
+      <div class="article-head" role="status" aria-label="Loading">
+        <span class="skeleton skeleton-title" style="width: 70%"></span>
+      </div>
+      <div class="article-body">
+        <span class="skeleton article-image"></span>
+        <span class="skeleton-text">
+          <span class="skeleton" style="width: 100%"></span>
+          <span class="skeleton" style="width: 95%"></span>
+          <span class="skeleton" style="width: 70%"></span>
+        </span>
+      </div>
+    </div>
   }
 </main>

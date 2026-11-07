@@ -1,6 +1,6 @@
 <main class="details-page">
   @if (partner(); as loaded) {
-    <app-partner-details-view [partner]="detailsViewModel(loaded)">
+    <app-partner-details-view class="details-fade-in" [partner]="detailsViewModel(loaded)">
       <a
         detailBack
         class="back-button"
@@ -18,6 +18,11 @@
       <a class="pill-button" routerLink="/partners">Back to partners</a>
     </section>
   } @else {
-    <app-loading-spinner />
+    <div class="detail-hero detail-hero--partners loading-hero">
+      <a class="back-button" routerLink="/partners" queryParamsHandling="preserve" aria-label="Back to partners">
+        <mat-icon aria-hidden="true">chevron_left</mat-icon>
+      </a>
+    </div>
+    <app-skeleton variant="partner-detail" />
   }
 </main>

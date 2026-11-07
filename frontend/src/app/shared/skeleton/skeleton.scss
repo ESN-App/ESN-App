@@ -186,6 +186,74 @@
   gap: 12px;
 }
 
+// Partner details: the sheet with the tilted logo square overlapping the hero.
+:host(.skeleton-partner-detail) {
+  gap: 28px;
+  position: relative;
+}
+
+.sk-partner-intro {
+  background: var(--app-bg);
+  border-radius: 32px 32px 0 0;
+  display: grid;
+  gap: 8px;
+  margin: -50px calc(-1 * var(--bleed, 0px)) 0;
+  padding: 64px var(--bleed, 0px) 20px;
+  position: relative;
+}
+
+.sk-logo {
+  border-radius: 24px;
+  height: 92px;
+  left: var(--bleed, 16px);
+  position: absolute;
+  top: -54px;
+  transform: rotate(-4deg);
+  width: 92px;
+}
+
+.sk-line--hero {
+  height: 32px;
+  margin-bottom: 4px;
+}
+
+.sk-offer {
+  border-radius: 24px;
+  height: 144px;
+}
+
+// Admin edit forms: the form card and the preview panel beside it.
+.sk-admin-form {
+  align-content: start;
+  border: 1px solid var(--app-border);
+  border-radius: 1rem;
+  display: grid;
+  gap: 1rem;
+  padding: 1.25rem;
+}
+
+.sk-field {
+  border-radius: 0.65rem;
+  height: 2.65rem;
+}
+
+.sk-field--status {
+  height: 6rem;
+}
+
+.sk-field--text {
+  height: 9rem;
+}
+
+:host(.skeleton-admin-form) {
+  align-self: start;
+}
+
+.sk-admin-preview {
+  border-radius: 1rem;
+  height: 36rem;
+}
+
 // Admin tables: 58px rows.
 :host(.skeleton-table) {
   gap: 0;
@@ -281,5 +349,26 @@
   .sk-about {
     grid-column: 1;
     grid-row: 1;
+  }
+
+  // Desktop: the logo sits inside the 200px hero, name and text below it.
+  .sk-partner-intro {
+    background: none;
+    border-radius: 0;
+    margin: 0;
+    padding: 40px 0 0;
+    position: static;
+  }
+
+  .sk-logo {
+    height: 132px;
+    left: 0;
+    top: -164px;
+    transform: none;
+    width: 132px;
+  }
+
+  .sk-line--hero {
+    height: 64px;
   }
 }

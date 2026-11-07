@@ -94,6 +94,45 @@
       </div>
     </div>
   }
+  @case ('partner-detail') {
+    <div class="sk-partner-intro">
+      <span class="skeleton sk-logo"></span>
+      <span class="skeleton sk-line sk-line--big sk-line--hero" style="width: 70%"></span>
+      <span class="skeleton sk-line" style="width: 100%"></span>
+      <span class="skeleton sk-line" style="width: 95%"></span>
+      <span class="skeleton sk-line" style="width: 70%"></span>
+    </div>
+    <div class="sk-detail-body">
+      <div class="sk-card sk-info-card">
+        @for (item of [0, 1]; track item) {
+          <div class="sk-info-row">
+            <span class="skeleton sk-icon"></span>
+            <span class="skeleton sk-line" style="width: 60%"></span>
+          </div>
+        }
+      </div>
+      <div class="sk-lines sk-about">
+        <span class="skeleton sk-heading"></span>
+        <span class="skeleton sk-offer"></span>
+      </div>
+    </div>
+  }
+  @case ('admin-form') {
+    <div class="sk-admin-form">
+      <span class="skeleton sk-line sk-line--title" style="width: 45%"></span>
+      <span class="skeleton sk-field sk-field--status"></span>
+      @for (item of [0, 1, 2]; track item) {
+        <span class="sk-lines">
+          <span class="skeleton sk-line" style="width: 25%"></span>
+          <span class="skeleton sk-field"></span>
+        </span>
+      }
+      <span class="skeleton sk-field sk-field--text"></span>
+    </div>
+  }
+  @case ('admin-preview') {
+    <span class="skeleton sk-admin-preview"></span>
+  }
   @case ('table') {
     @for (item of items(); track item) {
       <div class="sk-table-row">

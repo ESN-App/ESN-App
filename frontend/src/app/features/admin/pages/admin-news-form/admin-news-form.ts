@@ -5,7 +5,7 @@ import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Observable, of } from 'rxjs';
 import { map, startWith, switchMap } from 'rxjs/operators';
-import { LoadingSpinner } from '../../../../shared';
+import { Skeleton } from '../../../../shared';
 import { NewsDetailsViewModel } from '../../../home/components/news-details-view/news-details-view';
 import { NewsListItemView } from '../../../home/components/news-list-item/news-list-item';
 import { AdminEditorLayout } from '../../components/admin-editor-layout/admin-editor-layout';
@@ -16,7 +16,7 @@ import { createNewsForm } from '../../utils/news-form';
 /** Creates a news article (`news/new`) or edits one (`news/:newsId/edit`). */
 @Component({
   selector: 'app-admin-news-form',
-  imports: [AdminEditorLayout, AdminNewsPreview, LoadingSpinner, ReactiveFormsModule, RouterLink, TextFieldModule],
+  imports: [AdminEditorLayout, AdminNewsPreview, ReactiveFormsModule, RouterLink, Skeleton, TextFieldModule],
   templateUrl: './admin-news-form.html',
   styleUrl: '../admin-info-form/admin-info-form.scss',
 })
