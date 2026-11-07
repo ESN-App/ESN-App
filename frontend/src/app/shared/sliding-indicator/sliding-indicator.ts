@@ -75,10 +75,18 @@ export class SlidingIndicator {
         subtree: true,
         attributeFilter: ['class', 'aria-selected', 'aria-current', 'aria-pressed'],
       });
-      resizes.observe(this.host);
+      // The items too, so a width change inside a fixed track (e.g. a late web font) re-measures.
+      // Observing every item once avoids the initial callback of a newly observed target
+      // cancelling the slide on each selection change.
+      for (const element of [this.host, ...Array.from(this.host.children)]) {
+        resizes.observe(element);
+      }
+      document.fonts?.ready.then(() => destroyed || place(false));
     });
 
+    let destroyed = false;
     inject(DestroyRef).onDestroy(() => {
+      destroyed = true;
       mutations.disconnect();
       resizes.disconnect();
     });
