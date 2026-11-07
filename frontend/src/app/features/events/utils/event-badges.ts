@@ -22,16 +22,19 @@ export function relativeEventDay(
   return days === 0 ? 'today' : days === 1 ? 'tomorrow' : null;
 }
 
-/** "3 spots left" / "1 spot left" when 1–5 places remain, else null (no limit, plenty, or full). */
+/**
+ * "3 spots left" / "1 spot left" when 1–5 places remain, else null (no limit, plenty, full,
+ * or registrations unknown).
+ */
 export function spotsLeftLabel(event: {
   currentParticipants: number | null;
   maximumParticipants: number | null;
 }): string | null {
-  if (event.maximumParticipants === null) {
+  if (event.maximumParticipants === null || event.currentParticipants === null) {
     return null;
   }
 
-  const left = event.maximumParticipants - (event.currentParticipants ?? 0);
+  const left = event.maximumParticipants - event.currentParticipants;
 
   return left >= 1 && left <= 5 ? `${left} ${left === 1 ? 'spot' : 'spots'} left` : null;
 }

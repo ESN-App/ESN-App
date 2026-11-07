@@ -41,12 +41,12 @@ describe('spotsLeftLabel', () => {
     expect(spots(19, 20)).toBe('1 spot left');
     expect(spots(17, 20)).toBe('3 spots left');
     expect(spots(15, 20)).toBe('5 spots left');
-    expect(spots(null, 3)).toBe('3 spots left');
   });
 
-  it('hides when full, plenty left or no limit', () => {
+  it('hides when full, plenty left, no limit or unknown registrations', () => {
     expect(spots(20, 20)).toBeNull();
     expect(spots(14, 20)).toBeNull();
     expect(spots(5, null)).toBeNull();
+    expect(spots(null, 3)).toBeNull();
   });
 });
