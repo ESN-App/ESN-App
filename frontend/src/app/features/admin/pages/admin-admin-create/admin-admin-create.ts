@@ -1,4 +1,6 @@
-import { Component, HostListener, inject, signal } from '@angular/core';
+import { Component, DestroyRef, HostListener, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { timer } from 'rxjs';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { PASSWORD_REQUIREMENTS_HINT } from '../../../../shared';
@@ -18,6 +20,7 @@ export class AdminAdminCreate {
   private readonly api = inject(AdminApi);
   private readonly router = inject(Router);
   private readonly toast = inject(AdminToast);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly passwordHint = PASSWORD_REQUIREMENTS_HINT;
   readonly submitting = signal(false);
@@ -91,10 +94,10 @@ export class AdminAdminCreate {
           // Show "Saved" briefly; the toast is root-level, so it stays up after the redirect.
           this.saved.set(true);
           this.toast.show('Admin created');
-          setTimeout(
-            () => void this.router.navigate(['/admin'], { queryParams: { section: 'admins' } }),
-            SAVED_REDIRECT_DELAY_MS,
-          );
+          // Cancelled if the admin leaves the form before the redirect.
+          timer(SAVED_REDIRECT_DELAY_MS)
+            .pipe(takeUntilDestroyed(this.destroyRef))
+            .subscribe(() => void this.router.navigate(['/admin'], { queryParams: { section: 'admins' } }));
         },
         error: (response) => {
           this.submitting.set(false);

@@ -1,9 +1,9 @@
-import { Component, HostListener, OnDestroy, computed, inject, signal } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
+import { Component, computed, DestroyRef, HostListener, inject, OnDestroy, signal } from '@angular/core';
+import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { TextFieldModule } from '@angular/cdk/text-field';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { Observable, forkJoin, of } from 'rxjs';
+import { forkJoin, Observable, of, timer } from 'rxjs';
 import { map, startWith, switchMap, tap } from 'rxjs/operators';
 import { Skeleton } from '../../../../shared';
 import { AdminSaveLabel, SAVED_REDIRECT_DELAY_MS } from '../../components/admin-save-label/admin-save-label';
@@ -29,6 +29,7 @@ export class AdminPartnerForm implements OnDestroy {
   private readonly api = inject(AdminApi);
   private readonly router = inject(Router);
   private readonly toast = inject(AdminToast);
+  private readonly destroyRef = inject(DestroyRef);
   private readonly route = inject(ActivatedRoute);
   private objectLogoUrl: string | null = null;
   private createdPartnerId: string | null = null;
@@ -239,10 +240,10 @@ export class AdminPartnerForm implements OnDestroy {
         // Show "Saved" briefly; the toast is root-level, so it stays up after the redirect.
         this.saved.set(true);
         this.toast.show(this.isEdit ? 'Partner saved' : 'Partner created');
-        setTimeout(
-          () => void this.router.navigate(['/admin'], { queryParams: { section: 'partners' } }),
-          SAVED_REDIRECT_DELAY_MS,
-        );
+        // Cancelled if the admin leaves the form before the redirect.
+        timer(SAVED_REDIRECT_DELAY_MS)
+          .pipe(takeUntilDestroyed(this.destroyRef))
+          .subscribe(() => void this.router.navigate(['/admin'], { queryParams: { section: 'partners' } }));
       },
       error: (response) => {
         this.submitting.set(false);

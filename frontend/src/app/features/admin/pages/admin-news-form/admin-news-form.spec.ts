@@ -72,4 +72,18 @@ describe('AdminNewsForm', () => {
     expect(navigate).toHaveBeenCalledWith(['/admin'], { queryParams: { section: 'news' } });
     vi.useRealTimers();
   });
+
+  it('does not redirect once the form is left during the "Saved" delay', () => {
+    vi.useFakeTimers();
+    const { fixture, component } = render({ newsId: 'n1' });
+    const navigate = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
+
+    component.form.controls.title.setValue('Changed');
+    component.confirmSubmit();
+    fixture.destroy();
+    vi.advanceTimersByTime(SAVED_REDIRECT_DELAY_MS);
+
+    expect(navigate).not.toHaveBeenCalled();
+    vi.useRealTimers();
+  });
 });

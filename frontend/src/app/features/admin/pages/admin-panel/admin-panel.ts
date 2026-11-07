@@ -92,7 +92,6 @@ export class AdminPanel {
   readonly error = signal<string | null>(null);
   private readonly loadedSections = new Set<AdminSection>();
   private readonly pendingSections = new Set<AdminSection>();
-  readonly publishingIds = signal(new Set<string>());
   readonly eventPendingDelete = signal<AdminEventDto | null>(null);
   readonly deletingEvent = signal(false);
   readonly partnerPendingDelete = signal<AdminPartnerDto | null>(null);
@@ -1027,7 +1026,6 @@ export class AdminPanel {
         this.resettingPassword.set(false);
         this.adminPendingReset.set(null);
         this.resetPasswordSent.set(`A password reset link has been sent to ${item.email}.`);
-        this.toast.show('Password reset email sent');
       },
       error: (response) => {
         this.deleteError.set(
@@ -1082,7 +1080,6 @@ export class AdminPanel {
         }
 
         this.bulkPasswordResetPending.set(failedCount > 0);
-        this.toast.show(countMessage(sentIds.size, 'password reset email', 'password reset emails', 'sent'));
         const sentAdmins = admins.filter((item) => sentIds.has(item.id));
         this.resetPasswordSent.set(
           sentAdmins.length === 1
@@ -1093,53 +1090,12 @@ export class AdminPanel {
     );
   }
 
-  updateNewsStatus(item: AdminNewsItemDto, status: number): void {
-    this.updateStatus(item.id, this.api.updateNewsStatus(item.id, status), (updated) =>
-      this.news.update((items) => items.map((current) => (current.id === updated.id ? updated : current))),
-    );
-  }
-
-  updatePartnerStatus(item: AdminPartnerDto, status: number): void {
-    this.updateStatus(item.id, this.api.updatePartnerStatus(item.id, status), (updated) =>
-      this.partners.update((items) => items.map((current) => (current.id === updated.id ? updated : current))),
-    );
-  }
-
-  updateInfoStatus(item: AdminInfoArticleDto, status: number): void {
-    this.updateStatus(item.id, this.api.updateInfoStatus(item.id, status), (updated) =>
-      this.info.update((items) => items.map((current) => (current.id === updated.id ? updated : current))),
-    );
-  }
-
-  private updateStatus<T>(id: string, request: Observable<T>, update: (item: T) => void): void {
-    this.publishingIds.update((ids) => new Set(ids).add(id));
-
-    request.subscribe({
-      next: (item) => {
-        update(item);
-        this.removePublishingId(id);
-      },
-      error: () => {
-        this.error.set('The item status could not be changed. Please try again.');
-        this.removePublishingId(id);
-      },
-    });
-  }
-
   /** Runs a request so it always completes, reporting success or failure per row. */
   private settle<T>(id: string, request: Observable<T>): Observable<{ id: string; ok: boolean; value: T | null }> {
     return request.pipe(
       map((value) => ({ id, ok: true, value: value as T | null })),
       catchError(() => of({ id, ok: false, value: null as T | null })),
     );
-  }
-
-  private removePublishingId(id: string): void {
-    this.publishingIds.update((ids) => {
-      const next = new Set(ids);
-      next.delete(id);
-      return next;
-    });
   }
 
   private matchesSearch(...values: (string | number | null | undefined)[]): boolean {

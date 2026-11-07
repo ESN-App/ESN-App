@@ -1,9 +1,9 @@
-import { Component, HostListener, OnDestroy, computed, inject, signal } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
+import { Component, computed, DestroyRef, HostListener, inject, OnDestroy, signal } from '@angular/core';
+import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { TextFieldModule } from '@angular/cdk/text-field';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { Observable, of } from 'rxjs';
+import { Observable, of, timer } from 'rxjs';
 import { map, startWith, switchMap } from 'rxjs/operators';
 import { Skeleton } from '../../../../shared';
 import { InfoDetailsViewModel } from '../../../info/components/info-details-view/info-details-view';
@@ -28,6 +28,7 @@ export class AdminInfoForm implements OnDestroy {
   private readonly api = inject(AdminApi);
   private readonly router = inject(Router);
   private readonly toast = inject(AdminToast);
+  private readonly destroyRef = inject(DestroyRef);
   private readonly route = inject(ActivatedRoute);
   private objectImageUrl: string | null = null;
   private createdId: string | null = null;
@@ -236,10 +237,10 @@ export class AdminInfoForm implements OnDestroy {
             ? 'Article published'
             : this.isEdit ? 'Article saved' : 'Article created',
         );
-        setTimeout(
-          () => void this.router.navigate(['/admin'], { queryParams: { section: 'info' } }),
-          SAVED_REDIRECT_DELAY_MS,
-        );
+        // Cancelled if the admin leaves the form before the redirect.
+        timer(SAVED_REDIRECT_DELAY_MS)
+          .pipe(takeUntilDestroyed(this.destroyRef))
+          .subscribe(() => void this.router.navigate(['/admin'], { queryParams: { section: 'info' } }));
       },
       error: (response) => {
         this.submitting.set(false);
