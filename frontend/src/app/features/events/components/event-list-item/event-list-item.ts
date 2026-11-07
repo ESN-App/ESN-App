@@ -3,6 +3,7 @@ import { Component, computed, inject, input, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { FeatureFlags } from '../../../../core';
+import { relativeEventDay, spotsLeftLabel } from '../../utils/event-badges';
 import { hasEventEnded, isSameCalendarDay } from '../../utils/event-date';
 import { createEventSlug } from '../../utils/event-url';
 
@@ -40,6 +41,15 @@ export class EventListItem {
   private readonly flags = inject(FeatureFlags);
   protected readonly ended = computed(
     () => this.flags.pastEventTag() && hasEventEnded(this.event()),
+  );
+
+  /** Today/Tomorrow and spots-left only make sense for events that are still ahead. */
+  private readonly upcoming = computed(() => !hasEventEnded(this.event()));
+  protected readonly relativeDay = computed(() =>
+    this.upcoming() ? relativeEventDay(this.event().startsAt) : null,
+  );
+  protected readonly spotsLeft = computed(() =>
+    this.upcoming() ? spotsLeftLabel(this.event()) : null,
   );
 
   protected eventLink(): string[] {
