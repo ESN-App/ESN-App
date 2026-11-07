@@ -51,6 +51,8 @@ a:not(.active):hover .pill {
 // The coloured background is the nav's sliding pill (SlidingIndicator), not this element.
 a.active .pill {
   color: var(--ink-fixed);
+  // Delayed so the dark icon does not vanish against the dark bar before the pill arrives.
+  transition: color var(--motion-fast) var(--ease-standard) var(--motion-fast);
 }
 
 mat-icon {
@@ -106,7 +108,8 @@ a.active .label {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .pill {
+  .pill,
+  a.active .pill {
     transition: none;
   }
 }

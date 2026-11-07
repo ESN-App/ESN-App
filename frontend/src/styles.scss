@@ -1027,16 +1027,25 @@ app-root {
 
 // List -> details (shared/utils/detail-transition.ts): the list image (`hero-image`) grows
 // into the details hero while the page slides in from the right; Back plays it in reverse.
-// The shell bars get their own names so they stay put instead of sliding with the page.
-.vt-forward,
-.vt-back {
-  app-root > .toolbar {
-    view-transition-name: app-toolbar;
-  }
+// The shell bars get their own names on every route change so they stay put instead of
+// sliding or cross-fading with the page; the live new snapshot alone shows, so the nav's
+// sliding pill is not doubled by a fading copy of the old one.
+app-root > .toolbar {
+  view-transition-name: app-toolbar;
+}
 
-  app-root > .mobile-menu {
-    view-transition-name: app-mobile-menu;
-  }
+app-root > .mobile-menu {
+  view-transition-name: app-mobile-menu;
+}
+
+::view-transition-old(app-toolbar),
+::view-transition-old(app-mobile-menu) {
+  display: none;
+}
+
+::view-transition-new(app-toolbar),
+::view-transition-new(app-mobile-menu) {
+  animation: none;
 }
 
 .vt-forward::view-transition-group(*),
@@ -1208,7 +1217,8 @@ dialog[open] {
 
 .sliding-indicator[data-indicator='ready']::before {
   transition-duration: var(--motion-slow);
-  transition-property: transform, width, height, background-color;
+  // No background-color: the pill takes the new colour at once instead of blending mid-slide.
+  transition-property: transform, width, height;
   transition-timing-function: var(--ease-standard);
 }
 
