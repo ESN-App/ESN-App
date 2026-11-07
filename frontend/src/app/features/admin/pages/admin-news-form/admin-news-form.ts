@@ -3,82 +3,80 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { TextFieldModule } from '@angular/cdk/text-field';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { of } from 'rxjs';
-import { startWith, switchMap } from 'rxjs/operators';
+import { Observable, of } from 'rxjs';
+import { map, startWith, switchMap } from 'rxjs/operators';
 import { LoadingSpinner } from '../../../../shared';
-import { InfoDetailsViewModel } from '../../../info/components/info-details-view/info-details-view';
-import { InfoListItemView } from '../../../info/components/info-list-item/info-list-item';
+import { NewsDetailsViewModel } from '../../../home/components/news-details-view/news-details-view';
+import { NewsListItemView } from '../../../home/components/news-list-item/news-list-item';
 import { AdminEditorLayout } from '../../components/admin-editor-layout/admin-editor-layout';
-import { AdminInfoPreview } from '../../components/admin-info-preview/admin-info-preview';
-import { AdminApi, CreateInfoArticleRequest } from '../../data-access/admin-api';
-import { createExternalLinkControl, createInfoForm } from '../../utils/info-form';
+import { AdminNewsPreview } from '../../components/admin-news-preview/admin-news-preview';
+import { AdminApi, CreateNewsItemRequest } from '../../data-access/admin-api';
+import { createNewsForm } from '../../utils/news-form';
 
+/** Creates a news article (`news/new`) or edits one (`news/:newsId/edit`). */
 @Component({
-  selector: 'app-admin-info-edit',
-  imports: [AdminEditorLayout, AdminInfoPreview, LoadingSpinner, ReactiveFormsModule, RouterLink, TextFieldModule],
-  templateUrl: './admin-info-edit.html',
-  styleUrl: '../admin-info-create/admin-info-create.scss',
+  selector: 'app-admin-news-form',
+  imports: [AdminEditorLayout, AdminNewsPreview, LoadingSpinner, ReactiveFormsModule, RouterLink, TextFieldModule],
+  templateUrl: './admin-news-form.html',
+  styleUrl: '../admin-info-form/admin-info-form.scss',
 })
-export class AdminInfoEdit implements OnDestroy {
+export class AdminNewsForm implements OnDestroy {
   private readonly formBuilder = inject(FormBuilder);
   private readonly api = inject(AdminApi);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   private objectImageUrl: string | null = null;
+  private createdId: string | null = null;
 
-  readonly infoId = this.route.snapshot.paramMap.get('infoId')!;
+  readonly newsId = this.route.snapshot.paramMap.get('newsId');
+  readonly isEdit = this.newsId !== null;
 
   readonly submitting = signal(false);
   readonly confirmationOpen = signal(false);
-  readonly loading = signal(true);
+  readonly loading = signal(this.isEdit);
   readonly loadFailed = signal(false);
   readonly error = signal<string | null>(null);
-  readonly infoStatus = signal(0);
-  readonly initialInfoStatus = signal(0);
+  readonly newsStatus = signal(0);
+  readonly initialNewsStatus = signal(0);
   readonly initialFormState = signal<string | null>(null);
   readonly previewVisible = signal(true);
   readonly selectedImage = signal<File | null>(null);
   readonly currentImagePath = signal<string | null>(null);
   readonly imageRemoved = signal(false);
+  readonly createdAt = signal<string | null>(null);
   readonly imagePreviewUrl = signal<string | null>(null);
   readonly imageError = signal<string | null>(null);
 
-  readonly form = createInfoForm(this.formBuilder);
+  readonly form = createNewsForm(this.formBuilder);
 
   readonly preview = toSignal(
     this.form.valueChanges.pipe(startWith(this.form.getRawValue())),
     { initialValue: this.form.getRawValue() },
   );
   readonly previewTitle = computed(() => this.preview().title?.trim() || 'New article title');
-  readonly previewContent = computed(
-    () => this.preview().content?.trim() || 'The article content will appear here as you type.',
-  );
-  readonly previewExternalLinks = computed(() =>
-    (this.preview().externalLinks ?? [])
-      .map((link) => link?.trim() ?? '')
-      .filter((link) => link.length > 0),
+  readonly previewDescription = computed(
+    () => this.preview().description?.trim() || 'The news article description will appear here as you type.',
   );
   readonly displayedImagePath = computed(
     () => this.imagePreviewUrl() ?? (this.imageRemoved() ? null : this.currentImagePath()),
   );
-  readonly previewListItem = computed<InfoListItemView>(() => ({
-    id: this.infoId,
+  readonly previewListItem = computed<NewsListItemView>(() => ({
+    id: this.newsId ?? 'news-preview',
     title: this.previewTitle(),
-    slug: this.preview().slug?.trim() || null,
-    content: this.previewContent(),
     imagePath: this.displayedImagePath(),
-    status: this.infoStatus(),
+    status: this.newsStatus(),
   }));
-  readonly previewDetails = computed<InfoDetailsViewModel>(() => ({
-    id: this.infoId,
+  readonly previewDetails = computed<NewsDetailsViewModel>(() => ({
+    id: this.newsId ?? 'news-preview',
     title: this.previewTitle(),
-    content: this.previewContent(),
+    description: this.previewDescription(),
     imagePath: this.displayedImagePath(),
-    externalLinks: this.previewExternalLinks(),
-    status: this.infoStatus(),
+    createdAt: this.createdAt() ?? new Date().toISOString(),
+    status: this.newsStatus(),
   }));
+  /** Create mode can always save; edit mode only once something differs from the loaded article. */
   readonly hasChanges = computed(() => {
-    if (this.selectedImage() !== null || this.imageRemoved()) {
+    if (!this.isEdit || this.selectedImage() !== null || this.imageRemoved()) {
       return true;
     }
     const currentState = this.serializeForm(this.preview());
@@ -86,13 +84,11 @@ export class AdminInfoEdit implements OnDestroy {
     return initialState !== null && currentState !== initialState;
   });
 
-  get externalLinkControls() {
-    return this.form.controls.externalLinks.controls;
-  }
-
   constructor() {
-    this.form.disable();
-    this.loadInfoArticle(this.infoId);
+    if (this.newsId !== null) {
+      this.form.disable();
+      this.loadNewsItem(this.newsId);
+    }
   }
 
   showError(controlName: string): boolean {
@@ -100,24 +96,8 @@ export class AdminInfoEdit implements OnDestroy {
     return Boolean(control && control.invalid && (control.dirty || control.touched));
   }
 
-  showExternalLinkError(index: number): boolean {
-    const control = this.externalLinkControls[index];
-    return Boolean(control && control.invalid && (control.dirty || control.touched));
-  }
-
-  addExternalLink(): void {
-    if (this.externalLinkControls.length >= 20) {
-      return;
-    }
-    this.form.controls.externalLinks.push(createExternalLinkControl(this.formBuilder));
-  }
-
-  removeExternalLink(index: number): void {
-    this.form.controls.externalLinks.removeAt(index);
-  }
-
   updateStatusPreview(): void {
-    this.infoStatus.set(this.form.controls.status.value ?? 0);
+    this.newsStatus.set(this.form.controls.status.value ?? 0);
   }
 
   togglePreview(): void {
@@ -189,31 +169,28 @@ export class AdminInfoEdit implements OnDestroy {
     this.confirmationOpen.set(false);
 
     const value = this.form.getRawValue();
-    const request: CreateInfoArticleRequest = {
+    const request: CreateNewsItemRequest = {
       title: value.title!.trim(),
-      slug: value.slug!.trim(),
-      content: value.content!.trim(),
-      category: value.category!.trim(),
-      externalLinks: (value.externalLinks ?? [])
-        .map((link) => link?.trim() ?? '')
-        .filter((link) => link.length > 0),
+      description: value.description!.trim(),
     };
 
     this.submitting.set(true);
     this.error.set(null);
 
-    this.api.updateInfo(this.infoId, request, this.selectedImage(), this.imageRemoved()).pipe(
-      switchMap((updated) =>
-        value.status !== this.initialInfoStatus()
-          ? this.api.updateInfoStatus(this.infoId, value.status!)
-          : of(updated),
-      ),
-    ).subscribe({
-      next: () => void this.router.navigate(['/admin'], { queryParams: { section: 'info' } }),
+    const save$ = this.newsId !== null
+      ? this.update$(this.newsId, request, value.status!)
+      : this.create$(request, value.status!);
+
+    save$.subscribe({
+      next: () => void this.router.navigate(['/admin'], { queryParams: { section: 'news' } }),
       error: (response) => {
         this.submitting.set(false);
         this.error.set(
-          response?.error?.detail ?? response?.error?.error ?? 'The article changes could not be saved.',
+          this.isEdit
+            ? response?.error?.detail ?? response?.error?.error ?? 'The news article changes could not be saved.'
+            : this.createdId !== null
+              ? 'The news article was created but could not be published. Save again to retry publishing — this will not create a duplicate.'
+              : response?.error?.detail ?? response?.error?.error ?? 'The news article could not be created.',
         );
       },
     });
@@ -226,6 +203,33 @@ export class AdminInfoEdit implements OnDestroy {
     }
   }
 
+  private create$(request: CreateNewsItemRequest, status: number): Observable<unknown> {
+    // The status is a second request. If it fails after the create succeeded, the item
+    // exists — remember its id so retrying finishes the job instead of creating a duplicate.
+    const create$ = this.createdId !== null
+      ? of(this.createdId)
+      : this.api.createNews(request, this.selectedImage()).pipe(
+          map((created) => {
+            this.createdId = created.id;
+            return created.id;
+          }),
+        );
+
+    return create$.pipe(
+      switchMap((id) => (status === 0 ? of(null) : this.api.updateNewsStatus(id, status))),
+    );
+  }
+
+  private update$(id: string, request: CreateNewsItemRequest, status: number): Observable<unknown> {
+    return this.api.updateNews(id, request, this.selectedImage(), this.imageRemoved()).pipe(
+      switchMap((updated) =>
+        status !== this.initialNewsStatus()
+          ? this.api.updateNewsStatus(id, status)
+          : of(updated),
+      ),
+    );
+  }
+
   private revokeImagePreview(): void {
     if (this.objectImageUrl) {
       URL.revokeObjectURL(this.objectImageUrl);
@@ -233,21 +237,19 @@ export class AdminInfoEdit implements OnDestroy {
     }
   }
 
-  private loadInfoArticle(id: string): void {
+  private loadNewsItem(id: string): void {
     this.error.set(null);
-    this.api.getInfoArticle(id).subscribe({
-      next: (article) => {
+    this.api.getNewsItem(id).subscribe({
+      next: (item) => {
         this.form.patchValue({
-          status: article.status,
-          title: article.title,
-          slug: article.slug,
-          category: article.category,
-          content: article.content,
+          status: item.status,
+          title: item.title,
+          description: item.description,
         });
-        this.currentImagePath.set(article.imagePath);
-        this.applyExternalLinks(article.externalLinks);
-        this.infoStatus.set(article.status);
-        this.initialInfoStatus.set(article.status);
+        this.currentImagePath.set(item.imagePath || null);
+        this.createdAt.set(item.createdAt);
+        this.newsStatus.set(item.status);
+        this.initialNewsStatus.set(item.status);
         this.initialFormState.set(this.serializeForm(this.form.getRawValue()));
         this.form.markAsPristine();
         this.form.enable();
@@ -257,19 +259,9 @@ export class AdminInfoEdit implements OnDestroy {
         this.loading.set(false);
         this.loadFailed.set(true);
         this.error.set(
-          response?.error?.detail ?? response?.error?.error ?? 'The article could not be loaded.',
+          response?.error?.detail ?? response?.error?.error ?? 'The news article could not be loaded.',
         );
       },
-    });
-  }
-
-  private applyExternalLinks(links: string[]): void {
-    const array = this.form.controls.externalLinks;
-    while (array.length > 0) {
-      array.removeAt(0);
-    }
-    links.forEach((link) => {
-      array.push(createExternalLinkControl(this.formBuilder, link));
     });
   }
 

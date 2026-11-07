@@ -2,9 +2,10 @@ import { Component, HostListener, OnDestroy, computed, inject, signal } from '@a
 import { toSignal } from '@angular/core/rxjs-interop';
 import { TextFieldModule } from '@angular/cdk/text-field';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
-import { of } from 'rxjs';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { Observable, of } from 'rxjs';
 import { map, startWith, switchMap } from 'rxjs/operators';
+import { LoadingSpinner } from '../../../../shared';
 import { InfoDetailsViewModel } from '../../../info/components/info-details-view/info-details-view';
 import { InfoListItemView } from '../../../info/components/info-list-item/info-list-item';
 import { createInfoSlug } from '../../../info/utils/info-url';
@@ -13,25 +14,36 @@ import { AdminInfoPreview } from '../../components/admin-info-preview/admin-info
 import { AdminApi, CreateInfoArticleRequest } from '../../data-access/admin-api';
 import { createExternalLinkControl, createInfoForm } from '../../utils/info-form';
 
+/** Creates an info article (`info/new`) or edits one (`info/:infoId/edit`). */
 @Component({
-  selector: 'app-admin-info-create',
-  imports: [AdminEditorLayout, AdminInfoPreview, ReactiveFormsModule, RouterLink, TextFieldModule],
-  templateUrl: './admin-info-create.html',
-  styleUrl: './admin-info-create.scss',
+  selector: 'app-admin-info-form',
+  imports: [AdminEditorLayout, AdminInfoPreview, LoadingSpinner, ReactiveFormsModule, RouterLink, TextFieldModule],
+  templateUrl: './admin-info-form.html',
+  styleUrl: './admin-info-form.scss',
 })
-export class AdminInfoCreate implements OnDestroy {
+export class AdminInfoForm implements OnDestroy {
   private readonly formBuilder = inject(FormBuilder);
   private readonly api = inject(AdminApi);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
   private objectImageUrl: string | null = null;
   private createdId: string | null = null;
 
+  readonly infoId = this.route.snapshot.paramMap.get('infoId');
+  readonly isEdit = this.infoId !== null;
+
   readonly submitting = signal(false);
   readonly confirmationOpen = signal(false);
+  readonly loading = signal(this.isEdit);
+  readonly loadFailed = signal(false);
   readonly error = signal<string | null>(null);
   readonly infoStatus = signal(0);
+  readonly initialInfoStatus = signal(0);
+  readonly initialFormState = signal<string | null>(null);
   readonly previewVisible = signal(true);
   readonly selectedImage = signal<File | null>(null);
+  readonly currentImagePath = signal<string | null>(null);
+  readonly imageRemoved = signal(false);
   readonly imagePreviewUrl = signal<string | null>(null);
   readonly imageError = signal<string | null>(null);
 
@@ -50,25 +62,44 @@ export class AdminInfoCreate implements OnDestroy {
       .map((link) => link?.trim() ?? '')
       .filter((link) => link.length > 0),
   );
+  readonly displayedImagePath = computed(
+    () => this.imagePreviewUrl() ?? (this.imageRemoved() ? null : this.currentImagePath()),
+  );
   readonly previewListItem = computed<InfoListItemView>(() => ({
-    id: 'info-preview',
+    id: this.infoId ?? 'info-preview',
     title: this.previewTitle(),
     slug: this.preview().slug?.trim() || null,
     content: this.previewContent(),
-    imagePath: this.imagePreviewUrl(),
+    imagePath: this.displayedImagePath(),
     status: this.infoStatus(),
   }));
   readonly previewDetails = computed<InfoDetailsViewModel>(() => ({
-    id: 'info-preview',
+    id: this.infoId ?? 'info-preview',
     title: this.previewTitle(),
     content: this.previewContent(),
-    imagePath: this.imagePreviewUrl(),
+    imagePath: this.displayedImagePath(),
     externalLinks: this.previewExternalLinks(),
     status: this.infoStatus(),
   }));
+  /** Create mode can always save; edit mode only once something differs from the loaded article. */
+  readonly hasChanges = computed(() => {
+    if (!this.isEdit || this.selectedImage() !== null || this.imageRemoved()) {
+      return true;
+    }
+    const currentState = this.serializeForm(this.preview());
+    const initialState = this.initialFormState();
+    return initialState !== null && currentState !== initialState;
+  });
 
   get externalLinkControls() {
     return this.form.controls.externalLinks.controls;
+  }
+
+  constructor() {
+    if (this.infoId !== null) {
+      this.form.disable();
+      this.loadInfoArticle(this.infoId);
+    }
   }
 
   showError(controlName: string): boolean {
@@ -135,12 +166,13 @@ export class AdminInfoCreate implements OnDestroy {
     input.value = '';
   }
 
-  ngOnDestroy(): void {
-    this.revokeImagePreview();
+  removeCurrentImage(): void {
+    this.imageRemoved.set(true);
   }
 
   onTitleInput(): void {
-    if (this.form.controls.slug.dirty) {
+    // Only new articles derive the slug from the title; an existing slug is part of a published URL.
+    if (this.isEdit || this.form.controls.slug.dirty) {
       return;
     }
     this.form.controls.slug.setValue(createInfoSlug(this.form.controls.title.value ?? ''), {
@@ -148,8 +180,12 @@ export class AdminInfoCreate implements OnDestroy {
     });
   }
 
+  ngOnDestroy(): void {
+    this.revokeImagePreview();
+  }
+
   submit(): void {
-    if (this.form.invalid || this.submitting()) {
+    if (this.form.invalid || this.submitting() || !this.hasChanges()) {
       this.form.markAllAsTouched();
       return;
     }
@@ -162,7 +198,7 @@ export class AdminInfoCreate implements OnDestroy {
   }
 
   confirmSubmit(): void {
-    if (this.form.invalid || this.submitting()) {
+    if (this.form.invalid || this.submitting() || !this.hasChanges()) {
       this.confirmationOpen.set(false);
       return;
     }
@@ -183,27 +219,20 @@ export class AdminInfoCreate implements OnDestroy {
     this.submitting.set(true);
     this.error.set(null);
 
-    // The status is a second request. If it fails after the create succeeded, the item
-    // exists — remember its id so retrying finishes the job instead of creating a duplicate.
-    const create$ = this.createdId !== null
-      ? of(this.createdId)
-      : this.api.createInfo(request, this.selectedImage()).pipe(
-          map((created) => {
-            this.createdId = created.id;
-            return created.id;
-          }),
-        );
+    const save$ = this.infoId !== null
+      ? this.update$(this.infoId, request, value.status!)
+      : this.create$(request, value.status!);
 
-    create$.pipe(
-      switchMap((id) => (value.status === 0 ? of(null) : this.api.updateInfoStatus(id, value.status!))),
-    ).subscribe({
+    save$.subscribe({
       next: () => void this.router.navigate(['/admin'], { queryParams: { section: 'info' } }),
       error: (response) => {
         this.submitting.set(false);
         this.error.set(
-          this.createdId !== null
-            ? 'The info article was created but could not be published. Save again to retry publishing — this will not create a duplicate.'
-            : response?.error?.detail ?? response?.error?.error ?? 'The info article could not be created.',
+          this.isEdit
+            ? response?.error?.detail ?? response?.error?.error ?? 'The article changes could not be saved.'
+            : this.createdId !== null
+              ? 'The info article was created but could not be published. Save again to retry publishing — this will not create a duplicate.'
+              : response?.error?.detail ?? response?.error?.error ?? 'The info article could not be created.',
         );
       },
     });
@@ -216,10 +245,81 @@ export class AdminInfoCreate implements OnDestroy {
     }
   }
 
+  private create$(request: CreateInfoArticleRequest, status: number): Observable<unknown> {
+    // The status is a second request. If it fails after the create succeeded, the item
+    // exists — remember its id so retrying finishes the job instead of creating a duplicate.
+    const create$ = this.createdId !== null
+      ? of(this.createdId)
+      : this.api.createInfo(request, this.selectedImage()).pipe(
+          map((created) => {
+            this.createdId = created.id;
+            return created.id;
+          }),
+        );
+
+    return create$.pipe(
+      switchMap((id) => (status === 0 ? of(null) : this.api.updateInfoStatus(id, status))),
+    );
+  }
+
+  private update$(id: string, request: CreateInfoArticleRequest, status: number): Observable<unknown> {
+    return this.api.updateInfo(id, request, this.selectedImage(), this.imageRemoved()).pipe(
+      switchMap((updated) =>
+        status !== this.initialInfoStatus()
+          ? this.api.updateInfoStatus(id, status)
+          : of(updated),
+      ),
+    );
+  }
+
   private revokeImagePreview(): void {
     if (this.objectImageUrl) {
       URL.revokeObjectURL(this.objectImageUrl);
       this.objectImageUrl = null;
     }
+  }
+
+  private loadInfoArticle(id: string): void {
+    this.error.set(null);
+    this.api.getInfoArticle(id).subscribe({
+      next: (article) => {
+        this.form.patchValue({
+          status: article.status,
+          title: article.title,
+          slug: article.slug,
+          category: article.category,
+          content: article.content,
+        });
+        this.currentImagePath.set(article.imagePath);
+        this.applyExternalLinks(article.externalLinks);
+        this.infoStatus.set(article.status);
+        this.initialInfoStatus.set(article.status);
+        this.initialFormState.set(this.serializeForm(this.form.getRawValue()));
+        this.form.markAsPristine();
+        this.form.enable();
+        this.loading.set(false);
+      },
+      error: (response) => {
+        this.loading.set(false);
+        this.loadFailed.set(true);
+        this.error.set(
+          response?.error?.detail ?? response?.error?.error ?? 'The article could not be loaded.',
+        );
+      },
+    });
+  }
+
+  private applyExternalLinks(links: string[]): void {
+    const array = this.form.controls.externalLinks;
+    while (array.length > 0) {
+      array.removeAt(0);
+    }
+    links.forEach((link) => {
+      array.push(createExternalLinkControl(this.formBuilder, link));
+    });
+  }
+
+  private serializeForm(value: unknown): string {
+    return JSON.stringify(value);
   }
 }

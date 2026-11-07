@@ -6,8 +6,13 @@
         <span>Admin panel</span>
       </a>
       <p class="eyebrow">News administration</p>
-      <h1>Edit news article</h1>
-      <p>Update the news article information and publishing status.</p>
+      @if (isEdit) {
+        <h1>Edit news article</h1>
+        <p>Update the news article information and publishing status.</p>
+      } @else {
+        <h1>Create news article</h1>
+        <p>Complete the required information and choose the news article status.</p>
+      }
     </div>
   </header>
 
@@ -63,10 +68,10 @@
           <span>Image</span>
           <div class="upload-control">
             <input #imageInput class="file-input" type="file" accept="image/jpeg,image/png,image/webp" (change)="chooseImage($event)" />
-            @if (imagePreviewUrl()) { <button type="button" (click)="removeImage(imageInput)">Undo replacement</button> }
+            @if (imagePreviewUrl()) { <button type="button" (click)="removeImage(imageInput)">{{ isEdit ? 'Undo replacement' : 'Remove image' }}</button> }
             @else if (currentImagePath() && !imageRemoved()) { <button type="button" (click)="removeCurrentImage()">Remove image</button> }
           </div>
-          <span class="field-hint">JPEG, PNG, or WebP, up to 8 MB. Leave empty to keep the current image.</span>
+          <span class="field-hint">{{ isEdit ? 'JPEG, PNG, or WebP, up to 8 MB. Leave empty to keep the current image.' : 'Optional. JPEG, PNG, or WebP, up to 8 MB.' }}</span>
           @if (imageError(); as message) { <small>{{ message }}</small> }
         </div>
 
@@ -75,7 +80,7 @@
         <div class="form-actions">
           <a routerLink="/admin" [queryParams]="{ section: 'news' }">Cancel</a>
           <div class="save-action">
-            <button type="submit" [disabled]="form.invalid || submitting() || !hasChanges()">{{ submitting() ? 'Saving…' : 'Save changes' }}</button>
+            <button type="submit" [disabled]="form.invalid || submitting() || !hasChanges()">{{ submitting() ? 'Saving…' : isEdit ? 'Save changes' : 'Create news article' }}</button>
             @if (form.invalid) {
               <small>Fill in all required fields to continue.</small>
             } @else if (!hasChanges()) {
@@ -97,13 +102,13 @@
         aria-modal="true"
         aria-labelledby="confirmation-title"
       >
-        <h2 id="confirmation-title">Save these changes?</h2>
+        <h2 id="confirmation-title">{{ isEdit ? 'Save these changes?' : 'Create this news article?' }}</h2>
         <div class="confirmation-actions">
           <button type="button" class="confirmation-cancel" (click)="cancelConfirmation()">
             Keep editing
           </button>
           <button type="button" class="confirmation-submit" (click)="confirmSubmit()">
-            Yes, save changes
+            {{ isEdit ? 'Yes, save changes' : 'Yes, create news article' }}
           </button>
         </div>
       </section>
