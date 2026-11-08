@@ -6,6 +6,7 @@ export type SkeletonVariant =
   | 'guides'
   | 'partners'
   | 'event-detail'
+  | 'article-detail'
   | 'partner-detail'
   | 'admin-form'
   | 'admin-preview'
@@ -28,5 +29,7 @@ export type SkeletonVariant =
 export class Skeleton {
   readonly variant = input.required<SkeletonVariant>();
   readonly count = input(3);
+  /** article-detail: where the date / read-time line sits relative to the title. */
+  readonly meta = input<'above' | 'below'>('above');
   protected readonly items = computed(() => Array.from({ length: this.count() }, (_, index) => index));
 }

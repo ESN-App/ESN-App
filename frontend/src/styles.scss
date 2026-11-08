@@ -470,6 +470,16 @@ app-root {
   @include esn-star-fallback;
 }
 
+// A tile with an image (ImageFade) is a neutral frame while it loads; the star is only
+// for no / broken images (the @if removes the img then).
+.star-fallback:has(> img.image-fade) {
+  background: var(--tint-neutral);
+
+  &::after {
+    content: none;
+  }
+}
+
 .world-header,
 .detail-hero {
   --world-colour: var(--c-cyan);
@@ -577,10 +587,18 @@ app-root {
 // Article / event photo at the top of the body (titles never sit on photos).
 .article-image {
   aspect-ratio: 16 / 9;
+  background: var(--tint-neutral);
   border-radius: 24px;
   display: block;
-  object-fit: cover;
+  overflow: hidden;
   width: 100%;
+
+  > img {
+    display: block;
+    height: 100%;
+    object-fit: cover;
+    width: 100%;
+  }
 }
 
 .article-head {
@@ -984,30 +1002,6 @@ app-root {
   width: 180px;
 }
 
-// Stand-ins for a detail page title, image and body text (news, info).
-.skeleton-title {
-  height: 32px;
-}
-
-.skeleton.article-image {
-  border-radius: 24px;
-}
-
-.skeleton-text {
-  display: grid;
-  gap: 9px;
-
-  > .skeleton {
-    height: 14px;
-  }
-}
-
-@media (min-width: 701px) {
-  .skeleton-title {
-    height: 59px;
-  }
-}
-
 @keyframes skeleton-shimmer {
   from {
     background-position: 150% 0;
@@ -1150,10 +1144,10 @@ dialog[open] {
   }
 }
 
-// ImageFade directive: tinted box while loading, then the image fades and settles in.
+// ImageFade directive: the image stays hidden while loading (its frame shows through),
+// then fades and settles in. The frame must clip (overflow: hidden) for the scale.
 .image-fade--loading {
-  background: var(--tint-neutral);
-  color: transparent;
+  opacity: 0;
 }
 
 .image-fade--loaded {
