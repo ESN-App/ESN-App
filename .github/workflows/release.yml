@@ -1,0 +1,72 @@
+name: Release
+
+# On every push to main (a merged PR): bump VERSION (semver, level from the PR's
+# release:major / release:minor label, patch otherwise), commit + tag it, then trigger
+# ONE Render deploy per service via deploy hooks (render.yaml has auto-deploy off).
+# workflow_dispatch skips the bump and only redeploys.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency: release
+
+permissions:
+  contents: write
+  pull-requests: read
+
+jobs:
+  release:
+    # The release commit itself must not start another release.
+    if: github.event_name == 'workflow_dispatch' || !startsWith(github.event.head_commit.message, 'chore(release):')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        if: github.event_name == 'push'
+        with:
+          ref: main
+
+      - name: Bump version, commit and tag
+        if: github.event_name == 'push'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          labels=$(gh api "repos/${{ github.repository }}/commits/${{ github.sha }}/pulls" --jq '.[0].labels[].name' || true)
+          level="patch"
+          if grep -qx 'release:major' <<<"$labels"; then level=major
+          elif grep -qx 'release:minor' <<<"$labels"; then level=minor; fi
+
+          IFS=. read -r major minor patch < VERSION
+          case "$level" in
+            major) major=$((major + 1)); minor=0; patch=0 ;;
+            minor) minor=$((minor + 1)); patch=0 ;;
+            *) patch=$((patch + 1)) ;;
+          esac
+          version="$major.$minor.$patch"
+          echo "$level bump -> $version"
+          echo "$version" > VERSION
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -am "chore(release): v$version"
+          git tag "v$version"
+          # Another merge may have landed while this ran; replay the bump on top of it.
+          git pull --rebase origin main
+          git tag -f "v$version"
+          git push origin HEAD:main "v$version"
+
+      - name: Trigger Render deploys
+        env:
+          HOOK_API: ${{ secrets.RENDER_DEPLOY_HOOK_API }}
+          HOOK_WEB: ${{ secrets.RENDER_DEPLOY_HOOK_WEB }}
+        run: |
+          for name in API WEB; do
+            var="HOOK_$name"
+            if [ -z "${!var}" ]; then
+              echo "::warning::RENDER_DEPLOY_HOOK_$name is not set; skipping that deploy."
+              continue
+            fi
+            curl -fsS -X POST "${!var}" > /dev/null
+            echo "Triggered $name deploy."
+          done
