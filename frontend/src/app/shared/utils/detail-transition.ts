@@ -3,7 +3,25 @@
 export type DetailDirection = 'forward' | 'back';
 
 const DETAIL_PATH = /^(events|partners|info|news)\/[^/]+$/;
-const HERO_NAME = 'hero-image';
+
+let lastTransitionDone: Promise<void> = Promise.resolve();
+
+/** Records the running route transition (app.config.ts) for `routeTransitionDone`. */
+export function trackRouteTransition(transition: ViewTransition): void {
+  lastTransitionDone = transition.finished.then(noop, noop);
+}
+
+/**
+ * Resolves once the running route transition has finished. A navigation started earlier
+ * (e.g. a query param redirect while the page opens) would abort it.
+ */
+export function routeTransitionDone(): Promise<void> {
+  return lastTransitionDone;
+}
+
+function noop(): void {
+  // Only the timing matters.
+}
 
 /**
  * 'forward' when a details page opens from a non-details page; 'back' when a details page
@@ -27,9 +45,25 @@ export function detailDirection(
 }
 
 /**
- * Names the list item's image and the details hero `hero-image` for one transition, so the
- * image grows into the hero (or shrinks back). Only one element carries the name in each
- * snapshot; without a match on the list side the page just slides/fades.
+ * CSS naming `hero-image` the list image of the card linking to `detailPath`
+ * (`[data-hero-source]`) and the details image or logo (`[data-hero-target]`). The list
+ * and the details page are never on screen together, so each snapshot has at most one.
+ */
+export function heroRules(detailPath: string): string {
+  // Escaped for a double-quoted CSS string.
+  const href = `/${detailPath}`.replace(/["\\]/g, '\\$&');
+  // routerLink hrefs, with or without preserved query params.
+  const link = `a[href="${href}"], a[href^="${href}?"]`;
+  return `.details-page [data-hero-target],
+.card:not(:has(.card)):has(${link}) [data-hero-source],
+:is(${link}).card [data-hero-source] { view-transition-name: hero-image; }`;
+}
+
+/**
+ * Plays the list <-> details transition: the list image grows into the details image (or
+ * shrinks back) while the page slides. Names come from a temporary stylesheet rather than
+ * inline styles, so the new page's elements carry them the moment they render, before the
+ * new snapshot. With no image on either side there is no shared element, only the slide.
  */
 export function animateDetailTransition(
   transition: ViewTransition,
@@ -37,56 +71,17 @@ export function animateDetailTransition(
   detailPath: string,
 ): void {
   const root = document.documentElement;
-  const listImage = () => findListImage(detailPath);
-  const hero = () => document.querySelector<HTMLElement>('.details-page .detail-hero');
-  // Reduced motion: no hero morph, the page only cross-fades (styles.scss).
-  const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const [oldElement, findNewElement] = reducedMotion
-    ? [null, () => null]
-    : direction === 'forward'
-      ? [listImage(), hero]
-      : [hero(), listImage];
-  let newElement: HTMLElement | null = null;
-
-  root.classList.add(`vt-${direction}`);
-  // The old snapshot is taken on the next frame, so naming now still counts.
-  if (oldElement) {
-    oldElement.style.viewTransitionName = HERO_NAME;
-    // The new DOM is rendered (skeleton hero if data is still loading) but not yet captured.
-    transition.updateCallbackDone.then(() => {
-      oldElement.style.viewTransitionName = '';
-      newElement = findNewElement();
-      if (newElement) {
-        newElement.style.viewTransitionName = HERO_NAME;
-      }
-    }, noop);
+  const rules = document.createElement('style');
+  // Reduced motion: no morph, the page only cross-fades (styles.scss).
+  if (!matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    rules.textContent = heroRules(detailPath);
   }
+  document.head.append(rules);
+  root.classList.add(`vt-${direction}`);
 
   const cleanup = () => {
+    rules.remove();
     root.classList.remove(`vt-${direction}`);
-    if (oldElement) {
-      oldElement.style.viewTransitionName = '';
-    }
-    if (newElement) {
-      newElement.style.viewTransitionName = '';
-    }
   };
   transition.finished.then(cleanup, cleanup);
-}
-
-function findListImage(detailPath: string): HTMLElement | null {
-  for (const link of document.querySelectorAll<HTMLAnchorElement>('a[href]')) {
-    if (decodeURIComponent(link.pathname) !== `/${detailPath}`) {
-      continue;
-    }
-    const image = link.closest('.card')?.querySelector<HTMLElement>('[data-hero-source]');
-    if (image) {
-      return image;
-    }
-  }
-  return null;
-}
-
-function noop(): void {
-  // Navigation cancelled: the transition is skipped and cleanup runs on `finished`.
 }

@@ -3,7 +3,7 @@
     <app-partner-details-view class="details-fade-in" [partner]="detailsViewModel(loaded)">
       <a
         detailBack
-        class="back-button"
+        class="back-button" appBackLink
         routerLink="/partners"
         queryParamsHandling="preserve"
         aria-label="Back to partners"
@@ -19,7 +19,7 @@
     </section>
   } @else {
     <div class="detail-hero detail-hero--partners loading-hero">
-      <a class="back-button" routerLink="/partners" queryParamsHandling="preserve" aria-label="Back to partners">
+      <a class="back-button" appBackLink routerLink="/partners" queryParamsHandling="preserve" aria-label="Back to partners">
         <mat-icon aria-hidden="true">chevron_left</mat-icon>
       </a>
     </div>

@@ -5,13 +5,16 @@
   [class.guide--draft]="item.status === 0"
 >
   @if (featured()) {
-    <div class="guide-tile star-fallback" data-hero-source>
+    <div
+      class="guide-tile star-fallback"
+      [attr.data-hero-source]="item.imagePath && !imageBroken() ? '' : null"
+    >
       @if (item.imagePath && !imageBroken()) {
         <img [src]="item.imagePath" alt="" loading="lazy" (error)="imageBroken.set(true)" />
       }
     </div>
   } @else {
-    <span class="icon-square guide-icon tint-{{ tint() }}" aria-hidden="true" data-hero-source>
+    <span class="icon-square guide-icon tint-{{ tint() }}" aria-hidden="true">
       <mat-icon>menu_book</mat-icon>
     </span>
   }

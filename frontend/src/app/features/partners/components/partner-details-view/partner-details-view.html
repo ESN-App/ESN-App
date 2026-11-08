@@ -9,7 +9,10 @@
   </div>
 
   <header class="partner-intro">
-    <div class="logo-square">
+    <div
+      class="logo-square"
+      [attr.data-hero-target]="item.logoPath && !logoBroken() ? '' : null"
+    >
       @if (item.logoPath && !logoBroken()) {
         <img appImageFade [src]="item.logoPath" [alt]="item.name + ' logo'" (error)="logoBroken.set(true)" />
       } @else {

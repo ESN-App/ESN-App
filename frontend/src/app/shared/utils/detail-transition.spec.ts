@@ -1,5 +1,18 @@
 import { describe, expect, it } from 'vitest';
-import { detailDirection } from './detail-transition';
+import { detailDirection, heroRules } from './detail-transition';
+
+describe('heroRules', () => {
+  it('names the details target and the source in the card linking to the details path', () => {
+    document.body.innerHTML = `
+      <article class="card"><div data-hero-source id="hit"></div><a href="/events/party-1?month=2026-09">Party</a></article>
+      <article class="card"><div data-hero-source id="other"></div><a href="/events/party-10">Other</a></article>
+      <a class="card" href="/news/7"><span data-hero-source id="news"></span></a>`;
+    const selector = heroRules('events/party-1').replace(/\{[^}]*\}$/, '');
+    expect([...document.querySelectorAll(selector)].map((element) => element.id)).toEqual(['hit']);
+    const news = heroRules('news/7').replace(/\{[^}]*\}$/, '');
+    expect([...document.querySelectorAll(news)].map((element) => element.id)).toEqual(['news']);
+  });
+});
 
 describe('detailDirection', () => {
   it('goes forward from a list (or home) to a details page', () => {
