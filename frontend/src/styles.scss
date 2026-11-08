@@ -1019,6 +1019,103 @@ app-root {
   animation-timing-function: var(--ease-standard);
 }
 
+// Query-only changes (filters, selected day) stay instant (app.config.ts).
+.vt-instant::view-transition-group(*),
+.vt-instant::view-transition-old(*),
+.vt-instant::view-transition-new(*) {
+  animation: none;
+}
+
+// List -> details (shared/utils/detail-transition.ts): the list image (`hero-image`) grows
+// into the details image or partner logo while the page slides in from the right; Back
+// plays it in reverse. The shell bars get their own names so they stay put instead of
+// sliding with the page.
+::view-transition-image-pair(hero-image) {
+  // The details frames (.article-image, partner .logo-square) both have 24px corners.
+  border-radius: 24px;
+  overflow: hidden;
+}
+
+// Event and partner list tiles have 18px corners: ease between them instead of popping.
+.vt-forward::view-transition-image-pair(hero-image) {
+  animation: hero-radius-grow var(--motion-slow) var(--ease-standard) both;
+}
+
+.vt-back::view-transition-image-pair(hero-image) {
+  animation: hero-radius-shrink var(--motion-base) var(--ease-exit) both;
+}
+
+@keyframes hero-radius-grow {
+  from {
+    border-radius: 18px;
+  }
+}
+
+@keyframes hero-radius-shrink {
+  to {
+    border-radius: 18px;
+  }
+}
+
+::view-transition-old(hero-image),
+::view-transition-new(hero-image) {
+  height: 100%;
+  object-fit: cover;
+}
+
+.vt-forward,
+.vt-back {
+  app-root > .toolbar {
+    view-transition-name: app-toolbar;
+  }
+
+  app-root > .mobile-menu {
+    view-transition-name: app-mobile-menu;
+  }
+}
+
+.vt-forward::view-transition-group(*),
+.vt-forward::view-transition-old(*),
+.vt-forward::view-transition-new(*) {
+  animation-duration: var(--motion-slow);
+  animation-timing-function: var(--ease-standard);
+}
+
+.vt-forward::view-transition-new(root) {
+  animation-name: detail-slide-in;
+}
+
+.vt-back::view-transition-group(*),
+.vt-back::view-transition-old(*),
+.vt-back::view-transition-new(*) {
+  animation-duration: var(--motion-base);
+  animation-timing-function: var(--ease-exit);
+}
+
+.vt-back::view-transition-old(root) {
+  animation-name: detail-slide-out;
+}
+
+@keyframes detail-slide-in {
+  from {
+    opacity: 0;
+    transform: translateX(24px);
+  }
+}
+
+@keyframes fade-out {
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes detail-slide-out {
+  to {
+    opacity: 0;
+    transform: translateX(24px);
+  }
+}
+
 // Native dialogs (month picker, admin modals): scale + fade in over --motion-base, out in 150 ms.
 dialog {
   opacity: 0;
@@ -1126,10 +1223,23 @@ dialog[open] {
     animation: none;
   }
 
-  ::view-transition-group(*),
-  ::view-transition-old(*),
-  ::view-transition-new(*) {
-    animation: none !important;
+  // Route changes keep a plain cross-fade: no group movement, no slide (the hero morph is
+  // also never set up, see detail-transition.ts).
+  ::view-transition-group(*) {
+    animation: none;
+  }
+
+  .vt-forward::view-transition-old(*),
+  .vt-forward::view-transition-new(*) {
+    animation-duration: var(--motion-base);
+  }
+
+  .vt-forward::view-transition-new(root) {
+    animation-name: fade-in;
+  }
+
+  .vt-back::view-transition-old(root) {
+    animation-name: fade-out;
   }
 
   dialog,

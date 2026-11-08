@@ -1,9 +1,10 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { EMPTY, Observable } from 'rxjs';
-import { expand, map, reduce } from 'rxjs/operators';
+import { expand, map, reduce, tap } from 'rxjs/operators';
 import { environment } from '../../../../environments/environment';
 import { AuthService } from '../../../core';
+import { ResponseCache } from '../../../shared';
 import {
   EventDetailsDto,
   EventListItemDto,
@@ -17,6 +18,7 @@ export class EventsApi {
   private readonly auth = inject(AuthService);
   private readonly baseUrl = `${environment.apiBaseUrl}/api/events`;
   private readonly adminBaseUrl = `${environment.apiBaseUrl}/api/admin/events`;
+  private readonly cache = inject(ResponseCache);
 
   getAll(query?: EventsQuery): Observable<PagedResult<EventListItemDto>> {
     const params = query
@@ -28,19 +30,39 @@ export class EventsApi {
         }
       : undefined;
 
-    return this.http
-      .get<unknown>(this.auth.isAdmin() ? this.adminBaseUrl : this.baseUrl, { params })
-      .pipe(map((response) => this.toPagedResult(response)));
+    const url = this.auth.isAdmin() ? this.adminBaseUrl : this.baseUrl;
+    return this.cache.get(
+      JSON.stringify([url, params]),
+      this.http.get<unknown>(url, { params }).pipe(
+        map((response) => this.toPagedResult(response)),
+        tap((result) => result.items.forEach((item) => this.cache.remember(`event:${item.id}`, item))),
+      ),
+    );
   }
 
   getById(id: string): Observable<EventDetailsDto> {
     const baseUrl = this.auth.isAdmin() ? this.adminBaseUrl : this.baseUrl;
-    return this.http.get<EventDetailsDto>(`${baseUrl}/${id}`);
+    return this.cache.get(
+      `${baseUrl}/${id}`,
+      this.http.get<EventDetailsDto>(`${baseUrl}/${id}`),
+      `event:${id}`,
+      // The list item stands in until the full event arrives (description, links).
+      (listed: EventListItemDto): EventDetailsDto => ({
+        description: listed.shortDescription,
+        googleMapsUrl: null,
+        registrationUrl: null,
+        publishedAt: null,
+        minimumParticipants: null,
+        createdAt: '',
+        updatedAt: null,
+        ...listed,
+      }),
+    );
   }
 
   getAvailableMonths(): Observable<string[]> {
     if (this.auth.isAdmin()) {
-      return this.getAdminPage(1)
+      return this.cache.get('admin-months', this.getAdminPage(1)
         .pipe(
           expand((result) =>
             result.hasNextPage ? this.getAdminPage(result.page + 1) : EMPTY,
@@ -51,10 +73,10 @@ export class EventsApi {
               items.map((event) => event.startsAt.slice(0, 7)),
             ),
           ].sort()),
-        );
+        ));
     }
 
-    return this.http.get<string[]>(`${this.baseUrl}/months`);
+    return this.cache.get(`${this.baseUrl}/months`, this.http.get<string[]>(`${this.baseUrl}/months`));
   }
 
   private getAdminPage(page: number): Observable<PagedResult<EventListItemDto>> {

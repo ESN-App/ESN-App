@@ -22,7 +22,7 @@
 
   <div class="article-body">
     @if (item.imagePath && !imageBroken()) {
-      <div class="article-image"><img appImageFade [src]="item.imagePath" alt="" (error)="imageBroken.set(true)" /></div>
+      <div class="article-image" data-hero-target><img appImageFade [src]="item.imagePath" alt="" (error)="imageBroken.set(true)" /></div>
     }
     <p class="article-text">{{ item.description }}</p>
 

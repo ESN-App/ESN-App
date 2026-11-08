@@ -1,8 +1,9 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Observable, tap } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 import { AuthService } from '../../../core';
+import { ResponseCache } from '../../../shared';
 import { NewsItemDto } from './news.models';
 
 @Injectable({ providedIn: 'root' })
@@ -10,12 +11,18 @@ export class NewsApi {
   private readonly http = inject(HttpClient);
   private readonly auth = inject(AuthService);
   private readonly baseUrl = `${environment.apiBaseUrl}/api/news`;
+  private readonly cache = inject(ResponseCache);
 
   getAll(): Observable<NewsItemDto[]> {
     const url = this.auth.isAdmin()
       ? `${environment.apiBaseUrl}/api/admin/news`
       : this.baseUrl;
-    return this.http.get<NewsItemDto[]>(url);
+    return this.cache.get(
+      url,
+      this.http
+        .get<NewsItemDto[]>(url)
+        .pipe(tap((items) => items.forEach((item) => this.cache.remember(`news:${item.id}`, item)))),
+    );
   }
 
   getById(id: string): Observable<NewsItemDto> {
@@ -24,6 +31,6 @@ export class NewsApi {
     const url = this.auth.isAdmin()
       ? `${environment.apiBaseUrl}/api/admin/news/${id}`
       : `${this.baseUrl}/${id}`;
-    return this.http.get<NewsItemDto>(url);
+    return this.cache.get(url, this.http.get<NewsItemDto>(url), `news:${id}`);
   }
 }
