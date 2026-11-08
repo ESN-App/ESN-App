@@ -14,7 +14,7 @@ import {
 
 import { routes } from './app.routes';
 import { authInterceptor, retryInterceptor } from './core';
-import { animateDetailTransition, detailDirection } from './shared';
+import { animateDetailTransition, detailDirection, trackRouteTransition } from './shared';
 import { provideServiceWorker } from '@angular/service-worker';
 
 export const appConfig: ApplicationConfig = {
@@ -26,6 +26,7 @@ export const appConfig: ApplicationConfig = {
       // list <-> details gets the shared hero image and a slide.
       withViewTransitions({
         onViewTransitionCreated: ({ transition, from, to }) => {
+          trackRouteTransition(transition);
           const fromPath = routePath(from);
           const toPath = routePath(to);
           if (fromPath === toPath) {

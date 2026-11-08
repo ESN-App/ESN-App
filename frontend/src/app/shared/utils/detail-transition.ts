@@ -4,6 +4,25 @@ export type DetailDirection = 'forward' | 'back';
 
 const DETAIL_PATH = /^(events|partners|info|news)\/[^/]+$/;
 
+let lastTransitionDone: Promise<void> = Promise.resolve();
+
+/** Records the running route transition (app.config.ts) for `routeTransitionDone`. */
+export function trackRouteTransition(transition: ViewTransition): void {
+  lastTransitionDone = transition.finished.then(noop, noop);
+}
+
+/**
+ * Resolves once the running route transition has finished. A navigation started earlier
+ * (e.g. a query param redirect while the page opens) would abort it.
+ */
+export function routeTransitionDone(): Promise<void> {
+  return lastTransitionDone;
+}
+
+function noop(): void {
+  // Only the timing matters.
+}
+
 /**
  * 'forward' when a details page opens from a non-details page; 'back' when a details page
  * returns to its list (Back link) or the browser goes back; null for everything else

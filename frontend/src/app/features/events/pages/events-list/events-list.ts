@@ -3,6 +3,7 @@ import {
   afterRenderEffect,
   Component,
   computed,
+  DestroyRef,
   effect,
   ElementRef,
   inject,
@@ -32,7 +33,7 @@ import {
   switchMap,
   tap,
 } from 'rxjs';
-import { ErrorState, Skeleton, StaggerIn } from '../../../../shared';
+import { ErrorState, routeTransitionDone, Skeleton, StaggerIn } from '../../../../shared';
 import { EventListItem } from '../../components/event-list-item/event-list-item';
 import { EventsApi } from '../../data-access/events-api';
 import type { EventListItemDto } from '../../data-access/events.models';
@@ -71,6 +72,8 @@ export class EventsList {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly api = inject(EventsApi);
+  private destroyed = false;
+  private readonly markDestroyed = inject(DestroyRef).onDestroy(() => (this.destroyed = true));
   private readonly calendar = viewChild<MatCalendar<Date>>(MatCalendar);
   private readonly dayStrip = viewChild<ElementRef<HTMLElement>>('dayStrip');
   private readonly monthPicker = viewChild<ElementRef<HTMLDialogElement>>('monthPicker');
@@ -120,11 +123,16 @@ export class EventsList {
     }),
     tap(({ requestedValue, resolvedMonth }) => {
       if (resolvedMonth && requestedValue !== resolvedMonth) {
-        this.router.navigate([], {
-          relativeTo: this.route,
-          queryParams: { month: resolvedMonth, page: null },
-          queryParamsHandling: 'merge',
-          replaceUrl: true,
+        // Months may come from the cache while the page is still transitioning in.
+        routeTransitionDone().then(() => {
+          if (!this.destroyed) {
+            this.router.navigate([], {
+              relativeTo: this.route,
+              queryParams: { month: resolvedMonth, page: null },
+              queryParamsHandling: 'merge',
+              replaceUrl: true,
+            });
+          }
         });
       }
     }),
