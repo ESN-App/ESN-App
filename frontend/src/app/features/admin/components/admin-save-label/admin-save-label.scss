@@ -1,0 +1,49 @@
+:host {
+  display: inline-grid;
+}
+
+span {
+  align-items: center;
+  display: inline-flex;
+  gap: 0.35em;
+  grid-area: 1 / 1;
+  justify-content: center;
+  visibility: hidden;
+}
+
+.current {
+  visibility: visible;
+}
+
+svg {
+  fill: none;
+  height: 1.15em;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2.5;
+  width: 1.15em;
+}
+
+.check {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+}
+
+// Starts when "Saved" becomes the visible label.
+.current .check {
+  animation: check-draw var(--motion-slow) var(--ease-standard) forwards;
+}
+
+@keyframes check-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .current .check {
+    animation: none;
+    stroke-dashoffset: 0;
+  }
+}

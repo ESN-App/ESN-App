@@ -1,12 +1,14 @@
-import { Component, HostListener, OnDestroy, computed, inject, signal } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
+import { Component, computed, DestroyRef, HostListener, inject, OnDestroy, signal } from '@angular/core';
+import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { TextFieldModule } from '@angular/cdk/text-field';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { Observable, of } from 'rxjs';
+import { Observable, of, timer } from 'rxjs';
 import { map, startWith, switchMap } from 'rxjs/operators';
 import { Skeleton } from '../../../../shared';
 import { EventDetailsViewModel } from '../../../events/components/event-details-view/event-details-view';
+import { AdminSaveLabel, SAVED_REDIRECT_DELAY_MS } from '../../components/admin-save-label/admin-save-label';
+import { AdminToast } from '../../utils/admin-toast';
 import { AdminApi, CreateEventRequest } from '../../data-access/admin-api';
 import { AdminDateTimePicker } from '../../components/admin-date-time-picker/admin-date-time-picker';
 import { AdminEditorLayout } from '../../components/admin-editor-layout/admin-editor-layout';
@@ -16,7 +18,7 @@ import { createEventForm } from '../../utils/event-form';
 /** Creates an event (`events/new`) or edits one (`events/:eventId/edit`). */
 @Component({
   selector: 'app-admin-event-form',
-  imports: [AdminDateTimePicker, AdminEditorLayout, AdminEventPreview, ReactiveFormsModule, RouterLink, Skeleton, TextFieldModule],
+  imports: [AdminSaveLabel, AdminDateTimePicker, AdminEditorLayout, AdminEventPreview, ReactiveFormsModule, RouterLink, Skeleton, TextFieldModule],
   templateUrl: './admin-event-form.html',
   styleUrl: './admin-event-form.scss',
 })
@@ -24,6 +26,8 @@ export class AdminEventForm implements OnDestroy {
   private readonly formBuilder = inject(FormBuilder);
   private readonly api = inject(AdminApi);
   private readonly router = inject(Router);
+  private readonly toast = inject(AdminToast);
+  private readonly destroyRef = inject(DestroyRef);
   private readonly route = inject(ActivatedRoute);
   private objectImageUrl: string | null = null;
   private createdId: string | null = null;
@@ -32,6 +36,7 @@ export class AdminEventForm implements OnDestroy {
   readonly isEdit = this.eventId !== null;
 
   readonly submitting = signal(false);
+  readonly saved = signal(false);
   readonly confirmationOpen = signal(false);
   readonly loading = signal(this.isEdit);
   readonly loadFailed = signal(false);
@@ -201,7 +206,19 @@ export class AdminEventForm implements OnDestroy {
       : this.create$(request, value.status!);
 
     save$.subscribe({
-      next: () => void this.router.navigate(['/admin'], { queryParams: { section: 'events' } }),
+      next: () => {
+        // Show "Saved" briefly; the toast is root-level, so it stays up after the redirect.
+        this.saved.set(true);
+        this.toast.show(
+          value.status === 1 && (!this.isEdit || this.initialEventStatus() !== 1)
+            ? 'Event published'
+            : this.isEdit ? 'Event saved' : 'Event created',
+        );
+        // Cancelled if the admin leaves the form before the redirect.
+        timer(SAVED_REDIRECT_DELAY_MS)
+          .pipe(takeUntilDestroyed(this.destroyRef))
+          .subscribe(() => void this.router.navigate(['/admin'], { queryParams: { section: 'events' } }));
+      },
       error: (response) => {
         this.submitting.set(false);
         this.error.set(

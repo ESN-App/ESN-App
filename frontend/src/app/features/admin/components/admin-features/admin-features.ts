@@ -3,6 +3,7 @@ import { Component, inject, signal } from '@angular/core';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { FeatureFlags } from '../../../../core';
 import { AdminApi, FeatureFlagDto } from '../../data-access/admin-api';
+import { AdminToast } from '../../utils/admin-toast';
 
 const LABELS: Record<string, string> = {
   pastEventTag: 'Show “This event has ended” on past events',
@@ -18,6 +19,7 @@ const LABELS: Record<string, string> = {
 export class AdminFeatures {
   private readonly api = inject(AdminApi);
   private readonly featureFlags = inject(FeatureFlags);
+  private readonly toast = inject(AdminToast);
 
   protected readonly flags = signal<FeatureFlagDto[] | null>(null);
   protected readonly loadFailed = signal(false);
@@ -46,6 +48,7 @@ export class AdminFeatures {
       next: (saved) => {
         this.replace(saved);
         this.savingKey.set(null);
+        this.toast.show(saved.enabled ? 'Feature turned on' : 'Feature turned off');
       },
       error: () => {
         this.replace(flag);

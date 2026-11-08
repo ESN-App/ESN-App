@@ -1,0 +1,6 @@
+<span [class.current]="!saving() && !saved()">{{ label() }}</span>
+<span [class.current]="saving() && !saved()">Saving…</span>
+<span class="saved" [class.current]="saved()">
+  <svg viewBox="0 0 24 24" aria-hidden="true"><path class="check" pathLength="1" d="M5 12.5l4.5 4.5L19 7.5" /></svg>
+  Saved
+</span>
