@@ -38,17 +38,21 @@ a.cdk-keyboard-focused .pill {
   display: flex;
   height: 32px;
   justify-content: center;
-  transition: background-color 160ms ease;
+  transition:
+    background-color 160ms ease,
+    color var(--motion-base) var(--ease-standard);
   width: 56px;
 }
 
-a:hover .pill {
+a:not(.active):hover .pill {
   background: var(--app-raised);
 }
 
+// The coloured background is the nav's sliding pill (SlidingIndicator), not this element.
 a.active .pill {
-  background: var(--nav-colour);
   color: var(--ink-fixed);
+  // Delayed so the dark icon does not vanish against the dark bar before the pill arrives.
+  transition: color var(--motion-fast) var(--ease-standard) var(--motion-fast);
 }
 
 mat-icon {
@@ -104,7 +108,8 @@ a.active .label {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .pill {
+  .pill,
+  a.active .pill {
     transition: none;
   }
 }

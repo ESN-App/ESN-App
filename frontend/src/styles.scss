@@ -1028,8 +1028,7 @@ app-root {
 
 // List -> details (shared/utils/detail-transition.ts): the list image (`hero-image`) grows
 // into the details image or partner logo while the page slides in from the right; Back
-// plays it in reverse. The shell bars get their own names so they stay put instead of
-// sliding with the page.
+// plays it in reverse.
 ::view-transition-image-pair(hero-image) {
   // The details frames (.article-image, partner .logo-square) both have 24px corners.
   border-radius: 24px;
@@ -1063,15 +1062,25 @@ app-root {
   object-fit: cover;
 }
 
-.vt-forward,
-.vt-back {
-  app-root > .toolbar {
-    view-transition-name: app-toolbar;
-  }
+// The shell bars get their own names on every route change so they stay put instead of
+// sliding or cross-fading with the page; the live new snapshot alone shows, so the nav's
+// sliding pill is not doubled by a fading copy of the old one.
+app-root > .toolbar {
+  view-transition-name: app-toolbar;
+}
 
-  app-root > .mobile-menu {
-    view-transition-name: app-mobile-menu;
-  }
+app-root > .mobile-menu {
+  view-transition-name: app-mobile-menu;
+}
+
+::view-transition-old(app-toolbar),
+::view-transition-old(app-mobile-menu) {
+  display: none;
+}
+
+::view-transition-new(app-toolbar),
+::view-transition-new(app-mobile-menu) {
+  animation: none;
 }
 
 .vt-forward::view-transition-group(*),
@@ -1213,6 +1222,41 @@ dialog[open] {
   }
 }
 
+// SlidingIndicator directive: one selection pill that slides between the items.
+:where(.sliding-indicator) {
+  position: relative;
+}
+
+// Items paint above the pill.
+.sliding-indicator > * {
+  position: relative;
+}
+
+.sliding-indicator::before {
+  background: var(--indicator-current, var(--indicator-colour));
+  border-radius: var(--indicator-radius, 999px);
+  box-shadow: var(--indicator-shadow, none);
+  content: '';
+  height: var(--indicator-h, 0);
+  left: 0;
+  pointer-events: none;
+  position: absolute;
+  top: 0;
+  transform: translate(var(--indicator-x, 0), var(--indicator-y, 0));
+  width: var(--indicator-w, 0);
+}
+
+.sliding-indicator[data-indicator='none']::before {
+  visibility: hidden;
+}
+
+.sliding-indicator[data-indicator='ready']::before {
+  transition-duration: var(--motion-slow);
+  // No background-color: the pill takes the new colour at once instead of blending mid-slide.
+  transition-property: transform, width, height;
+  transition-timing-function: var(--ease-standard);
+}
+
 @media (prefers-reduced-motion: reduce) {
   .skeleton,
   .stagger-in > *,
@@ -1244,6 +1288,7 @@ dialog[open] {
 
   dialog,
   dialog[open],
+  .sliding-indicator[data-indicator='ready']::before,
   .pill-button,
   .day-tile,
   .back-button {

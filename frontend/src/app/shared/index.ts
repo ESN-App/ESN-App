@@ -17,4 +17,5 @@ export * from './utils/response-cache';
 export * from './skeleton/skeleton';
 export * from './stagger-in/stagger-in';
 export * from './image-fade/image-fade';
+export * from './sliding-indicator/sliding-indicator';
 export * from './back-link/back-link';

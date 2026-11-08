@@ -14,6 +14,7 @@
 
 // Segmented List / Map toggle.
 .view-switch {
+  --indicator-colour: var(--tint-magenta);
   background: var(--app-card);
   border: 1px solid var(--app-border);
   border-radius: 999px;
@@ -35,10 +36,6 @@
     gap: 8px;
     justify-content: center;
     min-height: 44px;
-  }
-
-  button[aria-selected='true'] {
-    background: var(--tint-magenta);
   }
 
   button:focus-visible {
