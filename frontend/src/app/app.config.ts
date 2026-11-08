@@ -15,6 +15,7 @@ import {
 
 import { routes } from './app.routes';
 import { AppUpdate, authInterceptor, retryInterceptor } from './core';
+import { animateDetailTransition, detailDirection, trackRouteTransition } from './shared';
 import { provideServiceWorker } from '@angular/service-worker';
 
 export const appConfig: ApplicationConfig = {
