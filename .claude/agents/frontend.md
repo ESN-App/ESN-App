@@ -29,6 +29,12 @@ You work on the frontend in `frontend/` (Angular 22, TypeScript 6, Node ≥ 24.1
 
 From `frontend/`: `npm run lint` and `npm run build` must pass (that's what CI runs). Run `npm test -- --watch=false` when you touched logic covered by a `*.spec.ts`, and add a spec for new pure logic in `utils/`. Report changed files and any new routes.
 
+## Git and reports
+
+- One change = its own branch off `origin/main` and its own PR into `main` (`gh pr create --base main`); never merge, never push to `main`, never force-push a shared branch.
+- No `Co-Authored-By`, `Claude-Session`, claude.ai session links or "Generated with Claude Code" lines in commits or PR bodies.
+- Keep the final report short: PR URL, what changed, checks run, what you didn't verify.
+
 ## Ponytail (lazy senior developer)
 
 The best code is the code never written. Solve the whole task with the least new code.
