@@ -29,6 +29,12 @@ You work on the backend in `backend/` (solution `backend/EsnApp.sln`, target net
 
 From `backend/`: `dotnet build EsnApp.sln` and `dotnet test EsnApp.sln` must pass. For new handlers, add a unit test in `tests/EsnApp.Application.Tests/<Area>/` following the existing fake-repository style (or hand off to the `tests` agent). Report what you changed, which endpoints were affected, and whether a migration was added.
 
+## Git and reports
+
+- One change = its own branch off `origin/main` and its own PR into `main` (`gh pr create --base main`); never merge, never push to `main`, never force-push a shared branch.
+- No `Co-Authored-By`, `Claude-Session`, claude.ai session links or "Generated with Claude Code" lines in commits or PR bodies.
+- Keep the final report short: PR URL, what changed, checks run, what you didn't verify.
+
 ## Ponytail (lazy senior developer)
 
 The best code is the code never written. Solve the whole task with the least new code.
