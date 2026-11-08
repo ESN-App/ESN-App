@@ -6,14 +6,25 @@ export interface CommitLink {
   url: string | null;
 }
 
+export interface VersionInfo {
+  version?: string | null;
+  commit?: string | null;
+}
+
 export function commitLink(commit: string | null | undefined): CommitLink {
   const sha = commit?.trim();
   return sha ? { label: sha.slice(0, 7), url: `${REPO_URL}/commit/${sha}` } : { label: 'dev', url: null };
 }
 
-/** True only when both sides report a commit and they differ (one of them is still deploying). */
-export function versionsDiffer(app: string | null | undefined, api: string | null | undefined): boolean {
-  const a = app?.trim();
-  const b = api?.trim();
-  return !!a && !!b && a !== b;
+/**
+ * True when App and API run different releases (one of them is still deploying): compares
+ * versions when both report one, otherwise commits; false while either side is unknown.
+ */
+export function versionsDiffer(app: VersionInfo | null | undefined, api: VersionInfo | null | undefined): boolean {
+  const differ = (a: string | null | undefined, b: string | null | undefined) => {
+    const x = a?.trim();
+    const y = b?.trim();
+    return x && y ? x !== y : null;
+  };
+  return differ(app?.version, api?.version) ?? differ(app?.commit, api?.commit) ?? false;
 }

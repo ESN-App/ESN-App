@@ -24,8 +24,9 @@ export interface CreateAdminRequest {
   lastName: string;
 }
 
-/** `/version.json` (rendered by nginx at container start) and `GET /api/version`; commit is empty when not deployed. */
+/** `/version.json` (rendered by nginx) and `GET /api/version`; semver from the root VERSION file, commit empty when not deployed. */
 export interface AppVersionDto {
+  version: string | null;
   commit: string | null;
 }
 

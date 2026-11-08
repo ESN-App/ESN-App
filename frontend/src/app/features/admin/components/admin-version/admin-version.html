@@ -1,11 +1,20 @@
 <section class="version" aria-labelledby="version-title">
-  <h2 id="version-title">App version</h2>
+  <h2 id="version-title">
+    @if (appVersion()?.version; as version) {
+      Version {{ version }}
+    } @else {
+      App version
+    }
+  </h2>
 
   <dl>
     <div>
       <dt>App:</dt>
       <dd>
         @if (appLink(); as link) {
+          @if (appVersion()?.version; as version) {
+            v{{ version }} ·
+          }
           @if (link.url) {
             <a [href]="link.url" target="_blank" rel="noopener">{{ link.label }}</a>
           } @else {
@@ -20,6 +29,9 @@
       <dt>API:</dt>
       <dd>
         @if (apiLink(); as link) {
+          @if (apiVersion()?.version; as version) {
+            v{{ version }} ·
+          }
           @if (link.url) {
             <a [href]="link.url" target="_blank" rel="noopener">{{ link.label }}</a>
           } @else {
