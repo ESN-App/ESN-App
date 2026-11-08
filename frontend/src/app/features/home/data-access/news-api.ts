@@ -11,9 +11,7 @@ export class NewsApi {
   private readonly http = inject(HttpClient);
   private readonly auth = inject(AuthService);
   private readonly baseUrl = `${environment.apiBaseUrl}/api/news`;
-  private readonly cache = new ResponseCache();
-  /** Listed items by id: seed a details page opened from the list. */
-  private readonly listed = new Map<string, NewsItemDto>();
+  private readonly cache = inject(ResponseCache);
 
   getAll(): Observable<NewsItemDto[]> {
     const url = this.auth.isAdmin()
@@ -23,7 +21,7 @@ export class NewsApi {
       url,
       this.http
         .get<NewsItemDto[]>(url)
-        .pipe(tap((items) => items.forEach((item) => this.listed.set(item.id, item)))),
+        .pipe(tap((items) => items.forEach((item) => this.cache.remember(`news:${item.id}`, item)))),
     );
   }
 
@@ -33,6 +31,6 @@ export class NewsApi {
     const url = this.auth.isAdmin()
       ? `${environment.apiBaseUrl}/api/admin/news/${id}`
       : `${this.baseUrl}/${id}`;
-    return this.cache.get(url, this.http.get<NewsItemDto>(url), this.listed.get(id));
+    return this.cache.get(url, this.http.get<NewsItemDto>(url), `news:${id}`);
   }
 }

@@ -18,9 +18,7 @@ export class EventsApi {
   private readonly auth = inject(AuthService);
   private readonly baseUrl = `${environment.apiBaseUrl}/api/events`;
   private readonly adminBaseUrl = `${environment.apiBaseUrl}/api/admin/events`;
-  private readonly cache = new ResponseCache();
-  /** Listed events by id: seed a details page opened from a list. */
-  private readonly listed = new Map<string, EventListItemDto>();
+  private readonly cache = inject(ResponseCache);
 
   getAll(query?: EventsQuery): Observable<PagedResult<EventListItemDto>> {
     const params = query
@@ -37,29 +35,28 @@ export class EventsApi {
       JSON.stringify([url, params]),
       this.http.get<unknown>(url, { params }).pipe(
         map((response) => this.toPagedResult(response)),
-        tap((result) => result.items.forEach((item) => this.listed.set(item.id, item))),
+        tap((result) => result.items.forEach((item) => this.cache.remember(`event:${item.id}`, item))),
       ),
     );
   }
 
   getById(id: string): Observable<EventDetailsDto> {
     const baseUrl = this.auth.isAdmin() ? this.adminBaseUrl : this.baseUrl;
-    const listed = this.listed.get(id);
-    // The list item stands in until the full event arrives (description, links).
-    const seed: EventDetailsDto | undefined = listed && {
-      description: listed.shortDescription,
-      googleMapsUrl: null,
-      registrationUrl: null,
-      publishedAt: null,
-      minimumParticipants: null,
-      createdAt: '',
-      updatedAt: null,
-      ...listed,
-    };
     return this.cache.get(
       `${baseUrl}/${id}`,
       this.http.get<EventDetailsDto>(`${baseUrl}/${id}`),
-      seed,
+      `event:${id}`,
+      // The list item stands in until the full event arrives (description, links).
+      (listed: EventListItemDto): EventDetailsDto => ({
+        description: listed.shortDescription,
+        googleMapsUrl: null,
+        registrationUrl: null,
+        publishedAt: null,
+        minimumParticipants: null,
+        createdAt: '',
+        updatedAt: null,
+        ...listed,
+      }),
     );
   }
 

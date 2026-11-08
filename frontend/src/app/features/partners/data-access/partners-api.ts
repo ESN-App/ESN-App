@@ -13,10 +13,10 @@ export class PartnersApi {
   private readonly auth = inject(AuthService);
   private readonly baseUrl = `${environment.apiBaseUrl}/api`;
   // getBySlug reads the list too, so a details page opened from the list renders at once.
-  private readonly cache = new ResponseCache();
+  private readonly cache = inject(ResponseCache);
 
   getAll(): Observable<PartnerView[]> {
-    return this.cache.get(this.auth.isAdmin() ? 'admin' : 'public', forkJoin({
+    return this.cache.get('partners', forkJoin({
       partners: this.http.get<PartnerDto[]>(
         this.auth.isAdmin() ? `${this.baseUrl}/admin/partners` : `${this.baseUrl}/partners`,
       ),

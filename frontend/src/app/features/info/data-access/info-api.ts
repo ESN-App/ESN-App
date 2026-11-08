@@ -30,9 +30,7 @@ export class InfoApi {
   private readonly http = inject(HttpClient);
   private readonly auth = inject(AuthService);
   private readonly baseUrl = `${environment.apiBaseUrl}/api/info`;
-  private readonly cache = new ResponseCache();
-  /** Listed articles by slug: seed a details page opened from the list. */
-  private readonly listed = new Map<string, InfoArticleDto>();
+  private readonly cache = inject(ResponseCache);
 
   getAll(): Observable<InfoArticleDto[]> {
     const url = this.auth.isAdmin()
@@ -42,7 +40,7 @@ export class InfoApi {
       url,
       this.http
         .get<InfoArticleDto[]>(url)
-        .pipe(tap((articles) => articles.forEach((item) => this.listed.set(item.slug, item)))),
+        .pipe(tap((articles) => articles.forEach((item) => this.cache.remember(`info:${item.slug}`, item)))),
     );
   }
 
@@ -62,6 +60,6 @@ export class InfoApi {
     }
 
     const url = `${this.baseUrl}/by-slug/${encodeURIComponent(slug)}`;
-    return this.cache.get(url, this.http.get<InfoArticleDto>(url), this.listed.get(slug));
+    return this.cache.get(url, this.http.get<InfoArticleDto>(url), `info:${slug}`);
   }
 }
