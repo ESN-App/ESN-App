@@ -1212,8 +1212,10 @@ dialog[open] {
   transition-timing-function: var(--ease-standard);
 }
 
-// Admin save button (AdminSaveLabel): "Saved" keeps full strength while it waits to redirect.
-button:disabled:has(> app-admin-save-label > .saved.current) {
+// Admin save button (AdminSaveLabel): "Saving…" and "Saved" keep full strength. (0,4,2) beats
+// the forms' emulated `.form-actions button:disabled` (0,4,1).
+.form-actions button:disabled:has(> app-admin-save-label > .current:not(:first-child)) {
+  cursor: progress;
   opacity: 1;
 }
 
@@ -1223,6 +1225,21 @@ button:disabled:has(> app-admin-save-label > .saved.current) {
   --mat-snack-bar-container-color: var(--app-primary);
   --mat-snack-bar-container-shape: 14px;
   --mat-snack-bar-supporting-text-color: var(--app-on-primary);
+}
+
+// Two classes so it beats Material's `.mat-mdc-snack-bar-container { margin: 8px }`.
+.admin-toast.mat-mdc-snack-bar-container {
+  margin-bottom: max(8px, env(safe-area-inset-bottom, 0px));
+}
+
+.admin-toast .mat-mdc-snack-bar-action {
+  min-height: 44px;
+  opacity: 0.7;
+
+  &:hover,
+  &:focus-visible {
+    opacity: 1;
+  }
 }
 
 .admin-toast.mat-snack-bar-container-animations-enabled.mat-snack-bar-container-enter {
