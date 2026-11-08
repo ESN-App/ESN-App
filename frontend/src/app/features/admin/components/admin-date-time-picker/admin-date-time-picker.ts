@@ -1,5 +1,9 @@
-import { Component, Input, forwardRef, signal } from '@angular/core';
+import { Component, Input, forwardRef, inject, signal } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
+import { SiteSettings } from '../../../../core';
+import { zonedParts, zonedTimeToUtc } from '../../../../shared';
+
+const INPUT_VALUE = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/;
 
 @Component({
   selector: 'app-admin-date-time-picker',
@@ -13,8 +17,10 @@ import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
     },
   ],
 })
+/** The admin types wall-clock time in the site zone; the form value is the matching instant. */
 export class AdminDateTimePicker implements ControlValueAccessor {
   @Input({ required: true }) inputId = '';
+  private readonly timeZone = inject(SiteSettings).timeZone;
 
   readonly inputValue = signal('');
   readonly disabled = signal(false);
@@ -44,7 +50,9 @@ export class AdminDateTimePicker implements ControlValueAccessor {
   updateValue(event: Event): void {
     const value = (event.currentTarget as HTMLInputElement).value;
     this.inputValue.set(value);
-    this.onChange(value ? new Date(value) : null);
+    const match = INPUT_VALUE.exec(value);
+    const [year, month, day, hour, minute] = match ? match.slice(1).map(Number) : [];
+    this.onChange(match ? zonedTimeToUtc(year, month, day, hour, minute, this.timeZone()) : null);
   }
 
   markTouched(): void {
@@ -53,6 +61,7 @@ export class AdminDateTimePicker implements ControlValueAccessor {
 
   private toLocalInputValue(value: Date): string {
     const pad = (part: number): string => part.toString().padStart(2, '0');
-    return `${value.getFullYear()}-${pad(value.getMonth() + 1)}-${pad(value.getDate())}T${pad(value.getHours())}:${pad(value.getMinutes())}`;
+    const p = zonedParts(value, this.timeZone());
+    return `${p.year}-${pad(p.month)}-${pad(p.day)}T${pad(p.hour)}:${pad(p.minute)}`;
   }
 }

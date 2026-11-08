@@ -1,0 +1,31 @@
+<section class="card" aria-labelledby="time-zone-title">
+  <h2 id="time-zone-title">Time zone</h2>
+  <p class="intro" id="time-zone-help">All dates and times in the app are shown and entered in this time zone.</p>
+
+  <div class="row form-actions">
+    <select
+      id="time-zone-select"
+      aria-labelledby="time-zone-title"
+      aria-describedby="time-zone-help time-zone-preview"
+      [attr.aria-invalid]="error() ? true : null"
+      [attr.aria-errormessage]="error() ? 'time-zone-error' : null"
+      [disabled]="saving()"
+      (change)="select($event)"
+    >
+      @for (zone of zones(); track zone.id) {
+        <option [value]="zone.id" [selected]="zone.id === selected()">{{ zone.label }}</option>
+      }
+    </select>
+    <button type="button" [disabled]="!changed() || saving()" (click)="save()">
+      <app-admin-save-label label="Save changes" [saving]="saving()" [saved]="saved()" />
+    </button>
+  </div>
+
+  <p class="preview" id="time-zone-preview">Now: {{ preview() }}</p>
+
+  @if (error(); as message) {
+    <p class="error" id="time-zone-error" role="alert">{{ message }}</p>
+  }
+</section>
+
+<app-admin-features />

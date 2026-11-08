@@ -26,11 +26,17 @@ describe('event month helpers', () => {
     expect(monthKey(moveMonth(new Date(2026, 0, 1), -1))).toBe('2025-12');
   });
 
-  it('creates an exclusive UTC range for the selected month', () => {
-    expect(monthRange(new Date(2026, 8, 1))).toEqual({
+  it('creates an exclusive range from midnight on the 1st in the site zone', () => {
+    expect(monthRange(new Date(2026, 8, 1), 'UTC')).toEqual({
       from: '2026-09-01T00:00:00.000Z',
       to: '2026-10-01T00:00:00.000Z',
     });
+    // CEST in October, CET in November.
+    expect(monthRange(new Date(2026, 9, 1), 'Europe/Warsaw')).toEqual({
+      from: '2026-09-30T22:00:00.000Z',
+      to: '2026-10-31T23:00:00.000Z',
+    });
+    expect(monthRange(new Date(2026, 11, 1), 'Europe/Warsaw').to).toBe('2026-12-31T23:00:00.000Z');
   });
 
   it('normalizes months returned by the API', () => {

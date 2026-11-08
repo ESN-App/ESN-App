@@ -2,6 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { EMPTY, Observable } from 'rxjs';
 import { expand, reduce } from 'rxjs/operators';
+import type { SiteSettingsDto } from '../../../core';
 import { environment } from '../../../../environments/environment';
 import type { EventDetailsDto, PagedResult } from '../../events/data-access/events.models';
 import type { NewsItemDto } from '../../home/data-access/news.models';
@@ -129,6 +130,10 @@ export class AdminApi {
 
   updateFeature(key: string, enabled: boolean): Observable<FeatureFlagDto> {
     return this.http.put<FeatureFlagDto>(`${this.baseUrl}/features/${encodeURIComponent(key)}`, { enabled });
+  }
+
+  updateSettings(settings: SiteSettingsDto): Observable<SiteSettingsDto> {
+    return this.http.put<SiteSettingsDto>(`${this.baseUrl}/settings`, settings);
   }
 
   getAdmins(): Observable<AdminUserDto[]> {

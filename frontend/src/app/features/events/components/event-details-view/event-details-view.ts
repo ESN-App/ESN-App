@@ -1,8 +1,8 @@
-import { DatePipe, DecimalPipe, NgTemplateOutlet } from '@angular/common';
+import { DecimalPipe, NgTemplateOutlet } from '@angular/common';
 import { Component, computed, inject, input, signal } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
-import { DraftPreviewBanner, ImageFade } from '../../../../shared';
-import { FeatureFlags } from '../../../../core';
+import { AppDatePipe, DraftPreviewBanner, ImageFade } from '../../../../shared';
+import { FeatureFlags, SiteSettings } from '../../../../core';
 import { hasEventEnded, isSameCalendarDay } from '../../utils/event-date';
 import { eventMapUrl } from '../../utils/event-map';
 import type { EventListItemView } from '../event-list-item/event-list-item';
@@ -16,7 +16,7 @@ export interface EventDetailsViewModel extends EventListItemView {
 
 @Component({
   selector: 'app-event-details-view',
-  imports: [DatePipe, DecimalPipe, DraftPreviewBanner, ImageFade, MatIconModule, NgTemplateOutlet],
+  imports: [AppDatePipe, DecimalPipe, DraftPreviewBanner, ImageFade, MatIconModule, NgTemplateOutlet],
   templateUrl: './event-details-view.html',
   styleUrl: './event-details-view.scss',
 })
@@ -26,7 +26,10 @@ export class EventDetailsView {
   readonly showParticipants = input(true);
   readonly imageBroken = signal(false);
 
-  protected readonly isSameDay = isSameCalendarDay;
+  private readonly timeZone = inject(SiteSettings).timeZone;
+  protected isSameDay(start: string | Date, end: string | Date): boolean {
+    return isSameCalendarDay(start, end, this.timeZone());
+  }
   private readonly flags = inject(FeatureFlags);
   protected readonly ended = computed(
     () => this.flags.pastEventTag() && hasEventEnded(this.event()),

@@ -2,12 +2,15 @@ import { describe, expect, it } from 'vitest';
 import { hasEventEnded, isSameCalendarDay } from './event-date';
 
 describe('isSameCalendarDay', () => {
-  it('returns true for times on the same calendar day', () => {
-    expect(isSameCalendarDay('2026-07-12T08:00:00', '2026-07-12T20:00:00')).toBe(true);
+  it('returns true for times on the same calendar day in the zone', () => {
+    expect(isSameCalendarDay('2026-07-12T08:00:00Z', '2026-07-12T20:00:00Z', 'UTC')).toBe(true);
+    // 23:30 and 00:30 UTC are both on 13 Jul in Warsaw (UTC+2).
+    expect(isSameCalendarDay('2026-07-12T23:30:00Z', '2026-07-13T00:30:00Z', 'Europe/Warsaw')).toBe(true);
   });
 
-  it('returns false for different calendar days', () => {
-    expect(isSameCalendarDay('2026-07-12T23:00:00', '2026-07-13T01:00:00')).toBe(false);
+  it('returns false for different calendar days in the zone', () => {
+    expect(isSameCalendarDay('2026-07-12T23:00:00Z', '2026-07-13T01:00:00Z', 'UTC')).toBe(false);
+    expect(isSameCalendarDay('2026-07-12T21:30:00Z', '2026-07-12T22:30:00Z', 'Europe/Warsaw')).toBe(false);
   });
 });
 

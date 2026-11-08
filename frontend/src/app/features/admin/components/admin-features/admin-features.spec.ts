@@ -23,6 +23,7 @@ describe('AdminFeatures', () => {
       .expectOne('/api/admin/features')
       .flush([{ key: 'pastEventTag', enabled: true, updatedAt: '2026-11-06T18:00:00+00:00' }]);
     fixture.detectChanges();
+    http.expectOne('/api/settings').flush({ timeZone: 'Europe/Warsaw' });
     fixture.nativeElement.querySelector('button[role="switch"]').click();
     fixture.detectChanges();
     return fixture;

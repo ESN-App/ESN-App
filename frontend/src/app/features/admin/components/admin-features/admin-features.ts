@@ -1,9 +1,9 @@
-import { DatePipe } from '@angular/common';
 import { Component, inject, signal } from '@angular/core';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { FeatureFlags } from '../../../../core';
 import { AdminApi, FeatureFlagDto } from '../../data-access/admin-api';
 import { AdminToast } from '../../utils/admin-toast';
+import { AppDatePipe } from '../../../../shared';
 
 const LABELS: Record<string, string> = {
   pastEventTag: 'Show “This event has ended” on past events',
@@ -12,7 +12,7 @@ const LABELS: Record<string, string> = {
 /** Feature switches for everyone; changes apply to the student side without a reload. */
 @Component({
   selector: 'app-admin-features',
-  imports: [DatePipe, MatSlideToggleModule],
+  imports: [AppDatePipe, MatSlideToggleModule],
   templateUrl: './admin-features.html',
   styleUrl: './admin-features.scss',
 })

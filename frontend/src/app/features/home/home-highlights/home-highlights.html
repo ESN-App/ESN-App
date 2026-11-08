@@ -67,7 +67,7 @@
           </span>
           <span class="news-body">
             <strong>{{ item.title }}</strong>
-            <time [attr.datetime]="item.createdAt">{{ item.createdAt | date: 'd MMM' }}</time>
+            <time [attr.datetime]="item.createdAt">{{ item.createdAt | appDate: 'd MMM' }}</time>
           </span>
         </a>
       }

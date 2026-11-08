@@ -26,16 +26,16 @@
       @if (item.startsAt) {
         <time [attr.datetime]="item.startsAt">
           @if (showDate()) {
-            {{ item.startsAt | date: 'EEE d MMM' }},
+            {{ item.startsAt | appDate: 'EEE d MMM' }},
           }
-          {{ item.startsAt | date: 'HH:mm' }}
+          {{ item.startsAt | appDate: 'HH:mm' }}
         </time>
         @if (item.endsAt) {
           to
           {{
             isSameDay(item.startsAt, item.endsAt)
-              ? (item.endsAt | date: 'HH:mm')
-              : (item.endsAt | date: 'd MMM, HH:mm')
+              ? (item.endsAt | appDate: 'HH:mm')
+              : (item.endsAt | appDate: 'd MMM, HH:mm')
           }}
         }
       } @else {

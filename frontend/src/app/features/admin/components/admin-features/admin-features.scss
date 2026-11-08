@@ -1,13 +1,19 @@
 :host {
   display: block;
-  margin-top: 1.5rem;
+  margin-top: 1rem;
 }
 
 .features {
   background: var(--app-card);
   border: 1px solid var(--app-border);
   border-radius: 1rem;
-  padding: 1.1rem 1.25rem;
+  padding: 1.5rem;
+}
+
+@media (max-width: 700px) {
+  .features {
+    padding: 1.25rem;
+  }
 }
 
 h2 {

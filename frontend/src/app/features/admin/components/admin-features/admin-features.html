@@ -16,7 +16,7 @@
             (change)="toggle(flag, $event.checked)"
             >{{ label(flag.key) }}</mat-slide-toggle
           >
-          <small>Updated {{ flag.updatedAt | date: 'd MMM y, HH:mm' }}</small>
+          <small>Updated {{ flag.updatedAt | appDate: 'd MMM y, HH:mm' }}</small>
         </li>
       }
     </ul>

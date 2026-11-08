@@ -1,12 +1,8 @@
-export function isSameCalendarDay(start: string | Date, end: string | Date): boolean {
-  const startDate = new Date(start);
-  const endDate = new Date(end);
+import { zonedDayKey } from '../../../shared/utils/time-zone';
 
-  return (
-    startDate.getFullYear() === endDate.getFullYear() &&
-    startDate.getMonth() === endDate.getMonth() &&
-    startDate.getDate() === endDate.getDate()
-  );
+/** Both instants fall on the same calendar day in `timeZone`. */
+export function isSameCalendarDay(start: string | Date, end: string | Date, timeZone: string): boolean {
+  return zonedDayKey(start, timeZone) === zonedDayKey(end, timeZone);
 }
 
 const CANCELLED = 2;

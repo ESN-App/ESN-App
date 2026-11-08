@@ -11,7 +11,7 @@
   <header class="article-head">
     @if (item.createdAt) {
       <p class="article-meta">
-        <time [attr.datetime]="item.createdAt">{{ item.createdAt | date: 'd MMMM yyyy' }}</time>
+        <time [attr.datetime]="item.createdAt">{{ item.createdAt | appDate: 'd MMMM yyyy' }}</time>
       </p>
     }
     <h1>{{ item.title }}</h1>

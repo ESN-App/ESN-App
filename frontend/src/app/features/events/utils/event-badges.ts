@@ -1,14 +1,9 @@
-// en-CA formats as YYYY-MM-DD, so the result parses straight back as a UTC date.
-const warsawDay = new Intl.DateTimeFormat('en-CA', {
-  timeZone: 'Europe/Warsaw',
-  year: 'numeric',
-  month: '2-digit',
-  day: '2-digit',
-});
+import { zonedDayKey } from '../../../shared/utils/time-zone';
 
-/** 'today' / 'tomorrow' when the event starts on that calendar day in Europe/Warsaw, else null. */
+/** 'today' / 'tomorrow' when the event starts on that calendar day in `timeZone`, else null. */
 export function relativeEventDay(
   startsAt: string | Date | null,
+  timeZone: string,
   now = new Date(),
 ): 'today' | 'tomorrow' | null {
   if (startsAt === null) {
@@ -16,7 +11,8 @@ export function relativeEventDay(
   }
 
   const days =
-    (Date.parse(warsawDay.format(new Date(startsAt))) - Date.parse(warsawDay.format(now))) /
+    // YYYY-MM-DD keys parse as UTC midnights, so the difference is whole days.
+    (Date.parse(zonedDayKey(startsAt, timeZone)) - Date.parse(zonedDayKey(now, timeZone))) /
     86_400_000;
 
   return days === 0 ? 'today' : days === 1 ? 'tomorrow' : null;

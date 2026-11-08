@@ -19,3 +19,5 @@ export * from './stagger-in/stagger-in';
 export * from './image-fade/image-fade';
 export * from './sliding-indicator/sliding-indicator';
 export * from './back-link/back-link';
+export * from './app-date/app-date-pipe';
+export * from './utils/time-zone';

@@ -114,7 +114,7 @@
                     <p class="terms">{{ offer.terms }}</p>
                   }
                   @if (offer.validTo) {
-                    <p class="valid">Valid until {{ offer.validTo | date: 'd MMMM' }}</p>
+                    <p class="valid">Valid until {{ offer.validTo | appDate: 'd MMMM' }}</p>
                   }
                 </div>
               }

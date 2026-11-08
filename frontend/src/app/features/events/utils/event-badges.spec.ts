@@ -1,35 +1,42 @@
 import { describe, expect, it } from 'vitest';
 import { relativeEventDay, spotsLeftLabel } from './event-badges';
 
+const WAW = 'Europe/Warsaw';
+
 describe('relativeEventDay', () => {
   // 23:30 Warsaw on 7 Nov 2026 (UTC+1).
   const now = new Date('2026-11-07T22:30:00Z');
 
   it('returns today for a later time on the same Warsaw day', () => {
-    expect(relativeEventDay('2026-11-07T23:59:00+01:00', now)).toBe('today');
-    expect(relativeEventDay('2026-11-07T00:00:00+01:00', now)).toBe('today');
+    expect(relativeEventDay('2026-11-07T23:59:00+01:00', WAW, now)).toBe('today');
+    expect(relativeEventDay('2026-11-07T00:00:00+01:00', WAW, now)).toBe('today');
   });
 
   it('switches to tomorrow at Warsaw midnight, not UTC midnight', () => {
     // 00:30 Warsaw on 8 Nov, stored as UTC the previous day.
-    expect(relativeEventDay('2026-11-07T23:30:00Z', now)).toBe('tomorrow');
-    expect(relativeEventDay('2026-11-08T23:59:00+01:00', now)).toBe('tomorrow');
+    expect(relativeEventDay('2026-11-07T23:30:00Z', WAW, now)).toBe('tomorrow');
+    expect(relativeEventDay('2026-11-08T23:59:00+01:00', WAW, now)).toBe('tomorrow');
   });
 
   it('returns null for other days and undated events', () => {
-    expect(relativeEventDay('2026-11-09T00:00:00+01:00', now)).toBeNull();
-    expect(relativeEventDay('2026-11-06T20:00:00+01:00', now)).toBeNull();
-    expect(relativeEventDay(null, now)).toBeNull();
+    expect(relativeEventDay('2026-11-09T00:00:00+01:00', WAW, now)).toBeNull();
+    expect(relativeEventDay('2026-11-06T20:00:00+01:00', WAW, now)).toBeNull();
+    expect(relativeEventDay(null, WAW, now)).toBeNull();
   });
 
   it('handles the DST change (CEST to CET on 25 Oct 2026)', () => {
     // 23:30 Warsaw on 24 Oct (UTC+2); event at 00:30 Warsaw on 25 Oct, still UTC+2.
     const beforeDst = new Date('2026-10-24T21:30:00Z');
 
-    expect(relativeEventDay('2026-10-24T22:30:00Z', beforeDst)).toBe('tomorrow');
+    expect(relativeEventDay('2026-10-24T22:30:00Z', WAW, beforeDst)).toBe('tomorrow');
     // 23:30 UTC on 25 Oct is 00:30 Warsaw on 26 Oct (UTC+1 after the change).
-    expect(relativeEventDay('2026-10-25T23:30:00Z', beforeDst)).toBeNull();
-    expect(relativeEventDay('2026-10-25T22:30:00Z', beforeDst)).toBe('tomorrow');
+    expect(relativeEventDay('2026-10-25T23:30:00Z', WAW, beforeDst)).toBeNull();
+    expect(relativeEventDay('2026-10-25T22:30:00Z', WAW, beforeDst)).toBe('tomorrow');
+  });
+
+  it('uses the given zone', () => {
+    // 00:30 on 8 Nov in Warsaw is still 23:30 on 7 Nov in London.
+    expect(relativeEventDay('2026-11-07T23:30:00Z', 'Europe/London', now)).toBe('today');
   });
 });
 

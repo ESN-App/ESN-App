@@ -6,3 +6,4 @@ export * from './theme.service';
 export * from './retry.interceptor';
 export * from './feature-flags';
 export * from './app-update';
+export * from './site-settings';

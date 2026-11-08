@@ -1,4 +1,6 @@
-/** Local calendar day as YYYY-MM-DD. */
+import { zonedDayKey, zonedMidnight } from '../../../shared/utils/time-zone';
+
+/** Local calendar day as YYYY-MM-DD (for calendar dates, not instants: use zonedDayKey). */
 export function dayKey(date: Date): string {
   return [
     date.getFullYear(),
@@ -18,12 +20,15 @@ export interface EventDayGroup<T> {
   events: T[];
 }
 
-/** Groups events (already sorted by start) into one entry per local day, in order. */
-export function groupByDay<T extends { startsAt: string }>(events: T[]): EventDayGroup<T>[] {
+/** Groups events (already sorted by start) into one entry per day in `timeZone`, in order. */
+export function groupByDay<T extends { startsAt: string }>(
+  events: T[],
+  timeZone: string,
+): EventDayGroup<T>[] {
   const groups = new Map<string, EventDayGroup<T>>();
 
   for (const event of events) {
-    const key = dayKey(new Date(event.startsAt));
+    const key = zonedDayKey(event.startsAt, timeZone);
     const group = groups.get(key) ?? { dateKey: key, date: dateFromDayKey(key), events: [] };
     group.events.push(event);
     groups.set(key, group);
@@ -33,9 +38,9 @@ export function groupByDay<T extends { startsAt: string }>(events: T[]): EventDa
 }
 
 /** Start of the "Coming up next" list: the day after the selected one, but never in the past. */
-export function upcomingFrom(selectedDayKey: string, now = new Date()): Date {
-  const nextDay = dateFromDayKey(selectedDayKey);
-  nextDay.setDate(nextDay.getDate() + 1);
+export function upcomingFrom(selectedDayKey: string, timeZone: string, now = new Date()): Date {
+  const day = dateFromDayKey(selectedDayKey);
+  const nextDay = zonedMidnight(new Date(day.getFullYear(), day.getMonth(), day.getDate() + 1), timeZone);
 
   return nextDay > now ? nextDay : now;
 }

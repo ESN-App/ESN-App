@@ -1,3 +1,5 @@
+import { zonedDayKey } from '../../../shared/utils/time-zone';
+
 export interface WeekDay {
   date: Date;
   key: string;
@@ -12,6 +14,7 @@ interface DatedEvent {
 
 const CANCELLED = 2;
 
+/** Local calendar day as YYYY-MM-DD (for calendar dates, not instants). */
 export function dayKey(date: Date): string {
   return [
     date.getFullYear(),
@@ -26,10 +29,13 @@ export function startOfWeek(date: Date): Date {
   return new Date(date.getFullYear(), date.getMonth(), date.getDate() - offset);
 }
 
-/** The seven days (Monday to Sunday) of the week containing `today`, flagged with event days. */
-export function weekDays(today: Date, events: readonly DatedEvent[]): WeekDay[] {
+/**
+ * The seven days (Monday to Sunday) of the week containing `today` (a local calendar date,
+ * see zonedCalendarDate), flagged with days that have events in `timeZone`.
+ */
+export function weekDays(today: Date, events: readonly DatedEvent[], timeZone: string): WeekDay[] {
   const monday = startOfWeek(today);
-  const eventDays = new Set(events.map((event) => dayKey(new Date(event.startsAt))));
+  const eventDays = new Set(events.map((event) => zonedDayKey(event.startsAt, timeZone)));
   const todayKey = dayKey(today);
 
   return Array.from({ length: 7 }, (_, index) => {
