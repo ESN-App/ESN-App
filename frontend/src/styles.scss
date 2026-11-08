@@ -1019,9 +1019,29 @@ app-root {
   animation-timing-function: var(--ease-standard);
 }
 
+// Query-only changes (filters, selected day) stay instant (app.config.ts).
+.vt-instant::view-transition-group(*),
+.vt-instant::view-transition-old(*),
+.vt-instant::view-transition-new(*) {
+  animation: none;
+}
+
 // List -> details (shared/utils/detail-transition.ts): the list image (`hero-image`) grows
-// into the details hero while the page slides in from the right; Back plays it in reverse.
-// The shell bars get their own names so they stay put instead of sliding with the page.
+// into the details image or partner logo while the page slides in from the right; Back
+// plays it in reverse. The shell bars get their own names so they stay put instead of
+// sliding with the page.
+::view-transition-image-pair(hero-image) {
+  // The details frames (.article-image, partner .logo-square) both have 24px corners.
+  border-radius: 24px;
+  overflow: hidden;
+}
+
+::view-transition-old(hero-image),
+::view-transition-new(hero-image) {
+  height: 100%;
+  object-fit: cover;
+}
+
 .vt-forward,
 .vt-back {
   app-root > .toolbar {

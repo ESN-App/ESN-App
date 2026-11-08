@@ -29,7 +29,11 @@ export const appConfig: ApplicationConfig = {
           const fromPath = routePath(from);
           const toPath = routePath(to);
           if (fromPath === toPath) {
-            transition.skipTransition();
+            // No animation instead of skipTransition(), whose AbortError Angular logs in dev.
+            const root = document.documentElement;
+            root.classList.add('vt-instant');
+            const done = () => root.classList.remove('vt-instant');
+            transition.finished.then(done, done);
             return;
           }
           const popstate = inject(Router).currentNavigation()?.trigger === 'popstate';

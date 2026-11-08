@@ -3,6 +3,7 @@ import { inject, Injectable } from '@angular/core';
 import { forkJoin, map, Observable } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 import { AuthService } from '../../../core';
+import { ResponseCache } from '../../../shared';
 import { createPartnerSlug } from '../utils/partner-url';
 import { PartnerDto, PartnerOffer, PartnerView } from './partners.models';
 
@@ -11,9 +12,11 @@ export class PartnersApi {
   private readonly http = inject(HttpClient);
   private readonly auth = inject(AuthService);
   private readonly baseUrl = `${environment.apiBaseUrl}/api`;
+  // getBySlug reads the list too, so a details page opened from the list renders at once.
+  private readonly cache = new ResponseCache();
 
   getAll(): Observable<PartnerView[]> {
-    return forkJoin({
+    return this.cache.get(this.auth.isAdmin() ? 'admin' : 'public', forkJoin({
       partners: this.http.get<PartnerDto[]>(
         this.auth.isAdmin() ? `${this.baseUrl}/admin/partners` : `${this.baseUrl}/partners`,
       ),
@@ -29,7 +32,7 @@ export class PartnersApi {
               left.displayOrder - right.displayOrder || left.name.localeCompare(right.name),
           ),
       ),
-    );
+    ));
   }
 
   getBySlug(slug: string): Observable<PartnerView | null> {

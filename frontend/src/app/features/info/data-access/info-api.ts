@@ -1,9 +1,10 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { map, tap } from 'rxjs/operators';
 import { environment } from '../../../../environments/environment';
 import { AuthService } from '../../../core';
+import { ResponseCache } from '../../../shared';
 
 export interface InfoArticleDto {
   id: string;
@@ -29,12 +30,20 @@ export class InfoApi {
   private readonly http = inject(HttpClient);
   private readonly auth = inject(AuthService);
   private readonly baseUrl = `${environment.apiBaseUrl}/api/info`;
+  private readonly cache = new ResponseCache();
+  /** Listed articles by slug: seed a details page opened from the list. */
+  private readonly listed = new Map<string, InfoArticleDto>();
 
   getAll(): Observable<InfoArticleDto[]> {
     const url = this.auth.isAdmin()
       ? `${environment.apiBaseUrl}/api/admin/info`
       : this.baseUrl;
-    return this.http.get<InfoArticleDto[]>(url);
+    return this.cache.get(
+      url,
+      this.http
+        .get<InfoArticleDto[]>(url)
+        .pipe(tap((articles) => articles.forEach((item) => this.listed.set(item.slug, item)))),
+    );
   }
 
   getBySlug(slug: string): Observable<InfoArticleDto> {
@@ -52,6 +61,7 @@ export class InfoApi {
       );
     }
 
-    return this.http.get<InfoArticleDto>(`${this.baseUrl}/by-slug/${encodeURIComponent(slug)}`);
+    const url = `${this.baseUrl}/by-slug/${encodeURIComponent(slug)}`;
+    return this.cache.get(url, this.http.get<InfoArticleDto>(url), this.listed.get(slug));
   }
 }
