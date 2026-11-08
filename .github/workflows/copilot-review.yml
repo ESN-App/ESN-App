@@ -9,7 +9,7 @@ name: Request Copilot Review
 on:
   pull_request:
     types: [opened, reopened, ready_for_review]
-    branches: [dev]
+    branches: [dev, main]
 
 permissions:
   pull-requests: write

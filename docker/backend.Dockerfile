@@ -18,5 +18,6 @@ RUN dotnet publish backend/src/EsnApp.Api/EsnApp.Api.csproj -c Release -o /app/p
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS runtime
 WORKDIR /app
 COPY --from=build /app/publish .
+COPY VERSION ./VERSION
 EXPOSE 8080
 ENTRYPOINT ["dotnet", "EsnApp.Api.dll"]
