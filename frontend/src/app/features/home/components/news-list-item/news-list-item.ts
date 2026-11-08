@@ -1,4 +1,5 @@
 import { Component, input, signal } from '@angular/core';
+import { newsTileColour } from '../../utils/news-tile-colour';
 
 export interface NewsListItemView {
   id: string;
@@ -23,4 +24,5 @@ export class NewsListItem {
   readonly newsItem = input.required<NewsListItemView>();
 
   protected readonly imageBroken = signal(false);
+  protected readonly newsTileColour = newsTileColour;
 }

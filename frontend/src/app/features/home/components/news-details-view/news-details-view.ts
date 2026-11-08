@@ -3,6 +3,7 @@ import { Component, computed, input, signal } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import { RouterLink } from '@angular/router';
 import { DraftPreviewBanner, ImageFade } from '../../../../shared';
+import { newsTileColour } from '../../utils/news-tile-colour';
 
 export interface NewsDetailsViewModel {
   id: string;
@@ -27,6 +28,7 @@ export class NewsDetailsView {
   readonly interactive = input(true);
 
   protected readonly imageBroken = signal(false);
+  protected readonly newsTileColour = newsTileColour;
   protected readonly isNew = computed(() => {
     const createdAt = this.newsItem().createdAt;
     return createdAt !== null && Date.now() - new Date(createdAt).getTime() < NEW_FOR_MS;

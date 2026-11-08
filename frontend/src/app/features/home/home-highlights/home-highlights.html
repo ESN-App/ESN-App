@@ -48,7 +48,7 @@
           <span
             class="news-image star-fallback"
             data-hero-source
-            [style.--tile-colour]="tileColours[itemIndex % 3]"
+            [style.--tile-colour]="newsTileColour(item.id)"
           >
             @if (item.imagePath && !brokenImages().has(item.id)) {
               <img

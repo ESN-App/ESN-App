@@ -16,6 +16,7 @@ import { Subscription } from 'rxjs';
 import { ImageFade, Skeleton, StaggerIn } from '../../../shared';
 import { NewsApi } from '../data-access/news-api';
 import { NewsItemDto } from '../data-access/news.models';
+import { newsTileColour } from '../utils/news-tile-colour';
 
 @Component({
   selector: 'app-home-highlights',
@@ -41,7 +42,7 @@ export class HomeHighlights implements AfterViewInit, OnDestroy, OnInit {
           null,
         )?.id ?? null,
   );
-  protected readonly tileColours = ['var(--c-cyan)', 'var(--c-orange)', 'var(--c-green)'];
+  protected readonly newsTileColour = newsTileColour;
   private autoAdvanceTimer?: ReturnType<typeof setInterval>;
   private newsSubscription?: Subscription;
   private programmaticTargetIndex: number | null = null;
