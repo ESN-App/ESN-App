@@ -17,14 +17,15 @@ export function commitLink(commit: string | null | undefined): CommitLink {
 }
 
 /**
- * True when App and API run different releases (one of them is still deploying): compares
- * versions when both report one, otherwise commits; false while either side is unknown.
+ * True when App and API run different builds (one of them is still deploying): the versions
+ * differ, or the commits differ (a redeploy can change the commit without bumping VERSION).
+ * A value only counts when both sides report it.
  */
 export function versionsDiffer(app: VersionInfo | null | undefined, api: VersionInfo | null | undefined): boolean {
   const differ = (a: string | null | undefined, b: string | null | undefined) => {
     const x = a?.trim();
     const y = b?.trim();
-    return x && y ? x !== y : null;
+    return !!x && !!y && x !== y;
   };
-  return differ(app?.version, api?.version) ?? differ(app?.commit, api?.commit) ?? false;
+  return differ(app?.version, api?.version) || differ(app?.commit, api?.commit);
 }

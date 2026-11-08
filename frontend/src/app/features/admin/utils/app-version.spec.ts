@@ -13,13 +13,15 @@ describe('app version', () => {
     expect(commitLink(null)).toEqual({ label: 'dev', url: null });
   });
 
-  it('compares versions when both sides report one', () => {
+  it('flags differing versions or differing commits', () => {
     expect(versionsDiffer({ version: '0.3.20', commit: 'aaa' }, { version: '0.3.21', commit: 'aaa' })).toBe(true);
-    expect(versionsDiffer({ version: '0.3.20', commit: 'aaa' }, { version: '0.3.20', commit: 'bbb' })).toBe(false);
+    expect(versionsDiffer({ version: '0.3.20', commit: 'aaa' }, { version: '0.3.20', commit: 'bbb' })).toBe(true);
+    expect(versionsDiffer({ version: '0.3.20', commit: 'aaa' }, { version: '0.3.20', commit: 'aaa' })).toBe(false);
   });
 
-  it('falls back to commits and stays quiet while a side is unknown', () => {
+  it('ignores values only one side reports', () => {
     expect(versionsDiffer({ commit: 'aaa' }, { version: '0.3.20', commit: 'bbb' })).toBe(true);
+    expect(versionsDiffer({ version: '0.3.20', commit: '' }, { version: '0.3.20', commit: 'bbb' })).toBe(false);
     expect(versionsDiffer({ commit: 'aaa' }, { commit: 'aaa' })).toBe(false);
     expect(versionsDiffer({ commit: '' }, { commit: 'bbb' })).toBe(false);
     expect(versionsDiffer({ version: '0.3.20', commit: 'aaa' }, null)).toBe(false);
