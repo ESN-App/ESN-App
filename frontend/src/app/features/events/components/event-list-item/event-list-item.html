@@ -67,7 +67,14 @@
       @if (item.status === 2) {
         <span class="chip chip--red">Cancelled</span>
       } @else {
-        @if (item.currentParticipants !== null) {
+        @if (relativeDay() === 'today') {
+          <span class="chip chip--magenta"><span class="today-dot" aria-hidden="true"></span>Today</span>
+        } @else if (relativeDay() === 'tomorrow') {
+          <span class="chip">Tomorrow</span>
+        }
+        @if (spotsLeft(); as label) {
+          <span class="chip chip--orange">{{ label }}</span>
+        } @else if (item.currentParticipants !== null) {
           <span class="chip chip--green">
             {{ item.currentParticipants }}
             @if (item.maximumParticipants !== null) {
@@ -76,11 +83,12 @@
             going
           </span>
         }
-        @if (item.price > 0) {
-          <span class="chip">{{ item.price | number: '1.0-2' }} zł</span>
-        }
         @if (isFull(item)) {
           <span class="chip chip--red">Full</span>
+        }
+        <!-- Free events use the corner "Free!" sticker above; the price chip is hidden for them. -->
+        @if (item.price > 0) {
+          <span class="chip">{{ item.price | number: '1.0-2' }} zł</span>
         }
       }
     </div>

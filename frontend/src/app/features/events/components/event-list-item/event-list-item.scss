@@ -120,6 +120,13 @@
     height: 14px;
     width: 14px;
   }
+
+  .today-dot {
+    background: var(--c-magenta);
+    border-radius: 50%;
+    height: 7px;
+    width: 7px;
+  }
 }
 
 @media (min-width: 701px) {
