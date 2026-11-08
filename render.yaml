@@ -21,7 +21,7 @@ services:
     plan: free
     region: frankfurt
     branch: main
-    autoDeployTrigger: commit
+    autoDeployTrigger: "off" # deploys come from Render deploy hooks in .github/workflows/release.yml
     dockerfilePath: ./docker/backend.Dockerfile
     dockerContext: .
     healthCheckPath: /health
@@ -75,7 +75,7 @@ services:
     plan: free
     region: frankfurt
     branch: main
-    autoDeployTrigger: commit
+    autoDeployTrigger: "off" # deploys come from Render deploy hooks in .github/workflows/release.yml
     dockerfilePath: ./docker/frontend.Dockerfile
     dockerContext: .
     healthCheckPath: /

@@ -8,6 +8,9 @@ namespace EsnApp.Api.Tests;
 public class VersionTests(WebApplicationFactory<Program> factory)
     : IClassFixture<WebApplicationFactory<Program>>
 {
+    // The app runs in-process, so its base directory is the test output directory.
+    private static readonly string VersionFile = Path.Combine(AppContext.BaseDirectory, "VERSION");
+
     private WebApplicationFactory<Program> Factory(string? commit) => factory.WithWebHostBuilder(builder =>
     {
         builder.UseEnvironment("Testing");
@@ -20,17 +23,32 @@ public class VersionTests(WebApplicationFactory<Program> factory)
         }
     });
 
-    [Theory]
-    [InlineData("0123456789abcdef0123456789abcdef01234567", "0123456789abcdef0123456789abcdef01234567")]
-    [InlineData(null, "dev")]
-    public async Task Get_Anonymous_ReturnsCommit(string? envCommit, string expected)
+    [Fact]
+    public async Task Get_WithCommitAndVersionFile_ReturnsBoth()
     {
-        var response = await Factory(envCommit).CreateClient().GetAsync("/api/version");
+        const string sha = "0123456789abcdef0123456789abcdef01234567";
+        await File.WriteAllTextAsync(VersionFile, "0.3.20\n");
+        try
+        {
+            var body = await GetVersion(sha);
 
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        var body = await response.Content.ReadFromJsonAsync<Body>();
-        Assert.Equal(expected, body!.Commit);
-        Assert.True(body.DeployedAt <= DateTimeOffset.UtcNow);
+            Assert.Equal("0.3.20", body.Version);
+            Assert.Equal(sha, body.Commit);
+            Assert.True(body.DeployedAt <= DateTimeOffset.UtcNow);
+        }
+        finally
+        {
+            File.Delete(VersionFile);
+        }
+    }
+
+    [Fact]
+    public async Task Get_WithoutCommitOrVersionFile_ReturnsDev()
+    {
+        var body = await GetVersion(null);
+
+        Assert.Equal("dev", body.Version);
+        Assert.Equal("dev", body.Commit);
     }
 
     [Fact]
@@ -41,5 +59,13 @@ public class VersionTests(WebApplicationFactory<Program> factory)
         Assert.Equal(HttpStatusCode.MethodNotAllowed, response.StatusCode);
     }
 
-    private record Body(string Commit, DateTimeOffset DeployedAt);
+    private async Task<Body> GetVersion(string? commit)
+    {
+        var response = await Factory(commit).CreateClient().GetAsync("/api/version");
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        return (await response.Content.ReadFromJsonAsync<Body>())!;
+    }
+
+    private record Body(string Version, string Commit, DateTimeOffset DeployedAt);
 }
