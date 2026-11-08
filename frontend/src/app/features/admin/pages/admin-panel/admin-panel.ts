@@ -7,7 +7,7 @@ import { forkJoin, Observable, of } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 import { AuthService } from '../../../../core';
 import { AdminFeatures } from '../../components/admin-features/admin-features';
-import { CancelledBadge, DraftBadge, PublishedBadge, Skeleton } from '../../../../shared';
+import { CancelledBadge, DraftBadge, PublishedBadge, Skeleton, SlidingIndicator } from '../../../../shared';
 import { createEventSlug } from '../../../events/utils/event-url';
 import { createPartnerSlug } from '../../../partners/utils/partner-url';
 import { AdminDisplayOrderModal } from '../../components/admin-display-order-modal/admin-display-order-modal';
@@ -19,6 +19,7 @@ import {
   AdminPartnerDto,
   AdminUserDto,
 } from '../../data-access/admin-api';
+import { AdminToast, countMessage } from '../../utils/admin-toast';
 import { compareArticleOrder } from '../../utils/article-order';
 import { editMeta, lastChangedAt } from '../../utils/edit-meta';
 
@@ -59,7 +60,7 @@ interface SectionOption {
 
 @Component({
   selector: 'app-admin-panel',
-  imports: [AdminFeatures, DatePipe, DecimalPipe, MatButtonModule, MatMenuModule, RouterLink, AdminDisplayOrderModal, CancelledBadge, DraftBadge, PublishedBadge, Skeleton],
+  imports: [AdminFeatures, DatePipe, DecimalPipe, MatButtonModule, MatMenuModule, RouterLink, AdminDisplayOrderModal, CancelledBadge, DraftBadge, PublishedBadge, Skeleton, SlidingIndicator],
   templateUrl: './admin-panel.html',
   styleUrl: './admin-panel.scss',
 })
@@ -69,6 +70,7 @@ export class AdminPanel {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly authService = inject(AuthService);
+  private readonly toast = inject(AdminToast);
 
   readonly sections: SectionOption[] = [
     { id: 'events', label: 'Events' },
@@ -90,7 +92,6 @@ export class AdminPanel {
   readonly error = signal<string | null>(null);
   private readonly loadedSections = new Set<AdminSection>();
   private readonly pendingSections = new Set<AdminSection>();
-  readonly publishingIds = signal(new Set<string>());
   readonly eventPendingDelete = signal<AdminEventDto | null>(null);
   readonly deletingEvent = signal(false);
   readonly partnerPendingDelete = signal<AdminPartnerDto | null>(null);
@@ -627,6 +628,11 @@ export class AdminPanel {
       this.selectedIds.update((ids) => new Set([...ids].filter((id) => !deletedIds.has(id))));
       this.applyingBulkAction.set(false);
 
+      if (deletedIds.size > 0) {
+        // Every plural above is the singular + "s".
+        this.toast.show(countMessage(deletedIds.size, itemName.slice(0, -1), itemName, 'deleted'));
+      }
+
       const failedCount = results.length - deletedIds.size;
       if (failedCount === 0) {
         this.bulkDeletePending.set(false);
@@ -645,15 +651,7 @@ export class AdminPanel {
     if (this.selectedCount() === 0) {
       return;
     }
-    const statusOptions: readonly { value: AnyStatusValue; label: string }[] =
-      this.activeSection() === 'partners'
-        ? this.partnerStatusOptions
-        : this.activeSection() === 'info'
-          ? this.infoStatusOptions
-          : this.activeSection() === 'news'
-            ? this.newsStatusOptions
-            : this.eventStatusOptions;
-    const firstEligible = statusOptions.find(
+    const firstEligible = this.statusOptions().find(
       (option) => this.bulkStatusEligibleCount(option.value) > 0,
     );
     if (firstEligible) {
@@ -686,6 +684,16 @@ export class AdminPanel {
             ? this.selectedInfo()
             : [];
     return items.filter((item) => item.status !== status).length;
+  }
+
+  private statusOptions(): readonly { value: AnyStatusValue; label: string }[] {
+    return this.activeSection() === 'partners'
+      ? this.partnerStatusOptions
+      : this.activeSection() === 'info'
+        ? this.infoStatusOptions
+        : this.activeSection() === 'news'
+          ? this.newsStatusOptions
+          : this.eventStatusOptions;
   }
 
   confirmBulkStatus(): void {
@@ -750,6 +758,11 @@ export class AdminPanel {
       this.selectedIds.update((ids) => new Set([...ids].filter((id) => !updatedById.has(id))));
       this.applyingBulkAction.set(false);
 
+      if (updatedById.size > 0) {
+        const label = this.statusOptions().find((option) => option.value === this.selectedBulkStatus())?.label;
+        this.toast.show(`Status changed to ${label}`);
+      }
+
       const failedCount = results.length - updatedById.size;
       if (failedCount === 0) {
         this.bulkStatusPending.set(false);
@@ -789,6 +802,7 @@ export class AdminPanel {
         });
         this.deletingEvent.set(false);
         this.eventPendingDelete.set(null);
+        this.toast.show('Event deleted');
       },
       error: () => {
         this.deleteError.set('The event could not be deleted. Please try again.');
@@ -827,6 +841,7 @@ export class AdminPanel {
         });
         this.deletingPartner.set(false);
         this.partnerPendingDelete.set(null);
+        this.toast.show('Partner deleted');
       },
       error: () => {
         this.deleteError.set('The partner could not be deleted. Please try again.');
@@ -865,6 +880,7 @@ export class AdminPanel {
         });
         this.deletingInfo.set(false);
         this.infoPendingDelete.set(null);
+        this.toast.show('Article deleted');
       },
       error: () => {
         this.deleteError.set('The article could not be deleted. Please try again.');
@@ -903,6 +919,7 @@ export class AdminPanel {
         });
         this.deletingNews.set(false);
         this.newsPendingDelete.set(null);
+        this.toast.show('News article deleted');
       },
       error: () => {
         this.deleteError.set('The news article could not be deleted. Please try again.');
@@ -952,6 +969,7 @@ export class AdminPanel {
         });
         this.deletingAdmin.set(false);
         this.adminPendingDelete.set(null);
+        this.toast.show('Admin deleted');
       },
       error: (response) => {
         this.deleteError.set(
@@ -1072,53 +1090,12 @@ export class AdminPanel {
     );
   }
 
-  updateNewsStatus(item: AdminNewsItemDto, status: number): void {
-    this.updateStatus(item.id, this.api.updateNewsStatus(item.id, status), (updated) =>
-      this.news.update((items) => items.map((current) => (current.id === updated.id ? updated : current))),
-    );
-  }
-
-  updatePartnerStatus(item: AdminPartnerDto, status: number): void {
-    this.updateStatus(item.id, this.api.updatePartnerStatus(item.id, status), (updated) =>
-      this.partners.update((items) => items.map((current) => (current.id === updated.id ? updated : current))),
-    );
-  }
-
-  updateInfoStatus(item: AdminInfoArticleDto, status: number): void {
-    this.updateStatus(item.id, this.api.updateInfoStatus(item.id, status), (updated) =>
-      this.info.update((items) => items.map((current) => (current.id === updated.id ? updated : current))),
-    );
-  }
-
-  private updateStatus<T>(id: string, request: Observable<T>, update: (item: T) => void): void {
-    this.publishingIds.update((ids) => new Set(ids).add(id));
-
-    request.subscribe({
-      next: (item) => {
-        update(item);
-        this.removePublishingId(id);
-      },
-      error: () => {
-        this.error.set('The item status could not be changed. Please try again.');
-        this.removePublishingId(id);
-      },
-    });
-  }
-
   /** Runs a request so it always completes, reporting success or failure per row. */
   private settle<T>(id: string, request: Observable<T>): Observable<{ id: string; ok: boolean; value: T | null }> {
     return request.pipe(
       map((value) => ({ id, ok: true, value: value as T | null })),
       catchError(() => of({ id, ok: false, value: null as T | null })),
     );
-  }
-
-  private removePublishingId(id: string): void {
-    this.publishingIds.update((ids) => {
-      const next = new Set(ids);
-      next.delete(id);
-      return next;
-    });
   }
 
   private matchesSearch(...values: (string | number | null | undefined)[]): boolean {
@@ -1206,6 +1183,7 @@ export class AdminPanel {
         );
         this.savingDisplayOrder.set(false);
         this.closeDisplayOrderModal();
+        this.toast.show('Order saved');
       },
       error: () => {
         this.displayOrderError.set('Failed to save display order. Please try again.');
@@ -1236,6 +1214,7 @@ export class AdminPanel {
         );
         this.savingInfoOrder.set(false);
         this.closeInfoOrderModal();
+        this.toast.show('Order saved');
       },
       error: () => {
         this.infoOrderError.set('Failed to save display order. Please try again.');
@@ -1264,6 +1243,7 @@ export class AdminPanel {
         this.news.update((items) => items.map((item) => updatedById.get(item.id) ?? item));
         this.savingNewsOrder.set(false);
         this.closeNewsOrderModal();
+        this.toast.show('Order saved');
       },
       error: () => {
         this.newsOrderError.set('Failed to save display order. Please try again.');

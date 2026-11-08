@@ -168,7 +168,7 @@
         <div class="form-actions">
           <a routerLink="/admin" [queryParams]="{ section: 'partners' }">Cancel</a>
           <div class="save-action">
-            <button type="submit" [disabled]="form.invalid || submitting() || !hasChanges() || missingLogo()">{{ submitting() ? 'Saving…' : isEdit ? 'Save changes' : 'Create partner' }}</button>
+            <button type="submit" [disabled]="form.invalid || submitting() || !hasChanges() || missingLogo()"><app-admin-save-label [label]="isEdit ? 'Save changes' : 'Create partner'" [saving]="submitting()" [saved]="saved()" /></button>
             @if (!isEdit && (form.invalid || missingLogo())) {
               <small>Fill in all required fields to continue.</small>
             } @else if (!hasChanges()) {

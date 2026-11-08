@@ -1,21 +1,31 @@
-import { Component, inject, signal } from '@angular/core';
+import {
+  afterNextRender,
+  Component,
+  ElementRef,
+  inject,
+  Injector,
+  signal,
+  viewChild,
+} from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { Meta } from '@angular/platform-browser';
-import { NavigationEnd, Router, RouterLink, RouterOutlet } from '@angular/router';
+import { NavigationEnd, NavigationStart, Router, RouterLink, RouterOutlet } from '@angular/router';
 import { filter } from 'rxjs';
 import { AuthService, FeatureFlags, ThemeService } from './core';
-import { NavItem, ThemeToggle } from './shared';
+import { NavItem, SlidingIndicator, ThemeToggle } from './shared';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, RouterLink, MatToolbarModule, NavItem, ThemeToggle],
+  imports: [RouterOutlet, RouterLink, MatToolbarModule, NavItem, SlidingIndicator, ThemeToggle],
   templateUrl: './app.html',
   styleUrl: './app.scss',
 })
 export class App {
   private readonly meta = inject(Meta);
   private readonly router = inject(Router);
+  private readonly injector = inject(Injector);
+  private readonly content = viewChild.required<ElementRef<HTMLElement>>('content');
 
   protected readonly auth = inject(AuthService);
   // Instantiated here so the stored theme is applied on every route.
@@ -35,6 +45,7 @@ export class App {
   ];
 
   constructor() {
+    this.restoreContentScroll();
     this.router.events
       .pipe(
         filter((event): event is NavigationEnd => event instanceof NavigationEnd),
@@ -64,6 +75,47 @@ export class App {
         this.publicPage.set(!/^\/(admin|auth)(\/|$)/.test(path));
         this.hideMobileNavigation.set(activeRoute.snapshot.data['hideMobileNavigation'] === true);
       });
+  }
+
+  /**
+   * Scroll restoration for whichever element scrolls: main.content on phones, the document
+   * from 701px. A new page starts at the top, browser back/forward returns to where that
+   * page was left, query-only changes (filters, selected day) keep the position. Applied
+   * right after the new page renders, so the route transition snapshots it already in place.
+   * (The router's own restoration only knows the window and resets on query-only changes.)
+   */
+  private restoreContentScroll(): void {
+    const scrollTops = new Map<number, number>();
+    let currentId = 0;
+    let currentPath = '';
+    let target = 0;
+    const scroller = (): Element => {
+      const content = this.content().nativeElement;
+      const overflowY = getComputedStyle(content).overflowY;
+      return overflowY === 'auto' || overflowY === 'scroll'
+        ? content
+        : (document.scrollingElement ?? document.documentElement);
+    };
+    // Otherwise the browser restores the window itself, before the page has rendered.
+    history.scrollRestoration = 'manual';
+
+    this.router.events.pipe(takeUntilDestroyed()).subscribe((event) => {
+      if (event instanceof NavigationStart) {
+        scrollTops.set(currentId, scroller().scrollTop);
+        target = event.restoredState ? (scrollTops.get(event.restoredState.navigationId) ?? 0) : 0;
+      } else if (event instanceof NavigationEnd) {
+        const path = event.urlAfterRedirects.split('?')[0];
+        const keep = path === currentPath && target === 0;
+        currentId = event.id;
+        currentPath = path;
+        if (!keep) {
+          const scrollTop = target;
+          afterNextRender(() => (scroller().scrollTop = scrollTop), {
+            injector: this.injector,
+          });
+        }
+      }
+    });
   }
 
   protected logout(): void {

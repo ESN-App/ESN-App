@@ -1,7 +1,7 @@
 <main class="details-page">
   @if (newsItem(); as loaded) {
     <app-news-details-view class="details-fade-in" [newsItem]="detailsView(loaded)">
-      <a detailBack class="back-button" routerLink="/" aria-label="Back to home">
+      <a detailBack class="back-button" appBackLink routerLink="/" aria-label="Back to home">
         <mat-icon aria-hidden="true">chevron_left</mat-icon>
       </a>
     </app-news-details-view>
@@ -14,7 +14,7 @@
   } @else {
     <app-skeleton variant="article-detail" meta="above">
       <div class="detail-hero">
-        <a class="back-button" routerLink="/" aria-label="Back to home">
+        <a class="back-button" appBackLink routerLink="/" aria-label="Back to home">
           <mat-icon aria-hidden="true">chevron_left</mat-icon>
         </a>
       </div>

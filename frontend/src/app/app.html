@@ -5,7 +5,7 @@
     <span>ESN Gdańsk</span>
   </a>
 
-  <nav class="desktop-menu" aria-label="Main navigation">
+  <nav class="desktop-menu" aria-label="Main navigation" appSlidingIndicator="[aria-current='page'] .pill">
     @for (item of navItems; track item.link) {
       <app-nav-item
         layout="inline"
@@ -36,6 +36,7 @@
 </mat-toolbar>
 
 <main
+  #content
   class="content"
   [class.public-page]="publicPage()"
   [class.mobile-navigation-hidden]="hideMobileNavigation()"
@@ -43,7 +44,12 @@
   <router-outlet />
 </main>
 
-<nav class="mobile-menu" [class.hidden]="hideMobileNavigation()" aria-label="Mobile navigation">
+<nav
+  class="mobile-menu"
+  [class.hidden]="hideMobileNavigation()"
+  aria-label="Mobile navigation"
+  appSlidingIndicator="[aria-current='page'] .pill"
+>
   @for (item of navItems; track item.link) {
     <app-nav-item
       [link]="item.link"

@@ -89,6 +89,78 @@
   }
 }
 
+// Phones: the month picker is a bottom sheet that slides up (closes down) instead of
+// the centred scale/fade dialog from styles.scss.
+@media (max-width: 700px) {
+  .month-picker-popover {
+    border-bottom: 0;
+    border-radius: 22px 22px 0 0;
+    box-shadow: 0 -8px 24px rgb(22 23 43 / 16%);
+    inset: auto 0 0;
+    margin: 0;
+    max-width: none;
+    opacity: 1;
+    transform: translateY(105%);
+    transition:
+      transform var(--motion-base) var(--ease-exit),
+      overlay var(--motion-base) allow-discrete,
+      display var(--motion-base) allow-discrete;
+    width: 100%;
+
+    &::backdrop {
+      opacity: 0;
+      transition:
+        opacity var(--motion-base) var(--ease-exit),
+        overlay var(--motion-base) allow-discrete,
+        display var(--motion-base) allow-discrete;
+    }
+
+    &[open] {
+      transform: none;
+      transition-duration: var(--motion-slow);
+      transition-timing-function: var(--ease-standard);
+
+      @starting-style {
+        transform: translateY(105%);
+      }
+    }
+
+    &[open]::backdrop {
+      opacity: 1;
+      transition-duration: var(--motion-slow);
+      transition-timing-function: var(--ease-standard);
+
+      @starting-style {
+        opacity: 0;
+      }
+    }
+  }
+
+  // Padding lives on the body, so a tap in the safe area is not a backdrop click.
+  .month-picker-body {
+    padding: 8px 16px calc(16px + env(safe-area-inset-bottom, 0px));
+
+    &::before {
+      background: color-mix(in srgb, var(--app-muted) 45%, transparent);
+      border-radius: 2px;
+      content: '';
+      display: block;
+      height: 4px;
+      margin: 0 auto 12px;
+      width: 36px;
+    }
+  }
+}
+
+@media (max-width: 700px) and (prefers-reduced-motion: reduce) {
+  .month-picker-popover,
+  .month-picker-popover[open],
+  .month-picker-popover::backdrop,
+  .month-picker-popover[open]::backdrop {
+    transition: none;
+  }
+}
+
 .month-picker-grid {
   display: grid;
   gap: 6px;
