@@ -9,9 +9,7 @@
   }
 
   <div
-    class="event-tile star-fallback"
-    [attr.data-hero-source]="item.imagePath && !imageBroken() ? '' : null"
-  >
+    class="event-tile star-fallback" data-hero-source>
     @if (item.imagePath && !imageBroken()) {
       <img
         appImageFade
