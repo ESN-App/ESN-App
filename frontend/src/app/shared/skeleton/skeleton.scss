@@ -186,17 +186,65 @@
   gap: 12px;
 }
 
+// The event image heads the About section (12px gap + 8px = the real 20px margin).
+.sk-event-image {
+  aspect-ratio: 16 / 9;
+  border-radius: 24px;
+  margin-bottom: 8px;
+}
+
+// News / info details. Each bar takes exactly one line box of the text it stands for
+// (h1, .article-meta, .article-text), so the loaded article lands in the same place.
+.sk-article .article-image {
+  border-radius: 24px;
+}
+
+.sk-title {
+  display: grid;
+  font-size: 28px;
+  line-height: 1.12;
+  width: 100%;
+
+  > .skeleton {
+    height: calc(1lh - 6px);
+    margin-block: 3px;
+  }
+}
+
+.sk-article .article-meta {
+  // .article-meta keeps its margins; transparent borders pad the 14px bar to one line.
+  background-clip: padding-box;
+  border-block: calc((1lh - 14px) / 2) solid transparent;
+  box-sizing: content-box;
+  height: 14px;
+}
+
+.sk-text {
+  display: grid;
+  font-size: 15px;
+  line-height: 1.55;
+
+  > .skeleton {
+    height: calc(1lh - 9px);
+    margin-block: 4.5px;
+  }
+}
+
 // Partner details: the sheet with the tilted logo square overlapping the hero.
 :host(.skeleton-partner-detail) {
-  gap: 28px;
+  gap: 0;
   position: relative;
+}
+
+// The real .partner-body: 28px between contact and offers, right after the intro.
+:host(.skeleton-partner-detail) .sk-detail-body {
+  gap: 28px;
 }
 
 .sk-partner-intro {
   background: var(--app-bg);
   border-radius: 32px 32px 0 0;
-  display: grid;
-  gap: 8px;
+  display: block;
   margin: -50px calc(-1 * var(--bleed, 0px)) 0;
   padding: 64px var(--bleed, 0px) 20px;
   position: relative;
@@ -212,9 +260,8 @@
   width: 92px;
 }
 
-.sk-line--hero {
-  height: 32px;
-  margin-bottom: 4px;
+.sk-partner-text {
+  margin-top: 8px;
 }
 
 .sk-offer {
@@ -222,7 +269,8 @@
   height: 144px;
 }
 
-// Admin edit forms: the form card and the preview panel beside it.
+// Admin edit forms: the form card (border only, like the real one) and the preview
+// panel card beside it, so neither frame pops in when the form fades in.
 .sk-admin-form {
   align-content: start;
   border: 1px solid var(--app-border);
@@ -250,8 +298,18 @@
 }
 
 .sk-admin-preview {
+  background: var(--app-card);
+  border: 1px solid var(--app-border);
   border-radius: 1rem;
+  display: grid;
+  gap: 1rem;
+  grid-template-rows: auto 1fr;
   height: 36rem;
+  padding: 1.15rem;
+}
+
+.sk-admin-preview__body {
+  border-radius: 1rem;
 }
 
 // Admin tables: 58px rows.
@@ -328,12 +386,36 @@
     display: block;
   }
 
-  // The title sits inside the desktop hero, which the page draws.
+  // Desktop: date tile and title sit inside the 218px hero the page draws (40px top,
+  // 48px bottom padding, 120x130 tile); the page's back button sits above the title.
   .sk-detail-title {
-    display: none;
+    background: none;
+    border-radius: 0;
+    gap: 32px;
+    height: 130px;
+    margin: -178px 0 0;
+    padding: 0;
+  }
+
+  .sk-date-tile {
+    flex-basis: 120px;
+    height: 130px;
+  }
+
+  .sk-detail-title .sk-lines {
+    padding-top: 52px;
+  }
+
+  .sk-detail-title .sk-line--big {
+    height: 56px;
+
+    + .sk-line--big {
+      display: none;
+    }
   }
 
   .sk-detail-body {
+    margin-top: 72px;
     align-items: start;
     gap: 64px;
     grid-template-columns: minmax(0, 640px) 432px;
@@ -349,6 +431,13 @@
   .sk-about {
     grid-column: 1;
     grid-row: 1;
+  }
+
+  .sk-title {
+    font-size: 56px;
+    line-height: 1.05;
+    max-width: 760px;
+    order: 1;
   }
 
   // Desktop: the logo sits inside the 200px hero, name and text below it.
@@ -368,7 +457,19 @@
     width: 132px;
   }
 
-  .sk-line--hero {
-    height: 64px;
+  .sk-title--partner {
+    font-size: 64px;
+  }
+
+  // Mirrors .partner-body on desktop: 688px offers column, 400px contact card.
+  :host(.skeleton-partner-detail) .sk-detail-body {
+    gap: 32px;
+    grid-template-columns: minmax(0, 688px) minmax(0, 400px);
+    margin-top: 40px;
+  }
+
+  // The wide desktop column fits the short description on one line.
+  .sk-partner-text > :nth-child(n + 2) {
+    display: none;
   }
 }

@@ -1,4 +1,19 @@
-import { indicatorBox } from './sliding-indicator';
+import { indicatorBox, trackResized } from './sliding-indicator';
+
+describe('trackResized', () => {
+  it('treats the first measurement as a resize', () => {
+    expect(trackResized(undefined, { width: 300, height: 44 })).toBe(true);
+  });
+
+  it('ignores the sub-pixel and text-width nudges of a selection change', () => {
+    expect(trackResized({ width: 480, height: 40 }, { width: 480.8, height: 40 })).toBe(false);
+  });
+
+  it('reports a real track resize', () => {
+    expect(trackResized({ width: 480, height: 40 }, { width: 350, height: 40 })).toBe(true);
+    expect(trackResized({ width: 480, height: 40 }, { width: 480, height: 68 })).toBe(true);
+  });
+});
 
 describe('indicatorBox', () => {
   it('places the target inside the host padding box', () => {

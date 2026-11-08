@@ -1,4 +1,6 @@
-import { afterNextRender, DestroyRef, Directive, ElementRef, inject, input } from '@angular/core';
+import { afterNextRender, DestroyRef, Directive, ElementRef, inject, Injector, input } from '@angular/core';
+import { NavigationCancel, NavigationEnd, NavigationError, Router } from '@angular/router';
+import { filter, take } from 'rxjs';
 
 export interface IndicatorBox {
   x: number;
@@ -22,11 +24,28 @@ export function indicatorBox(
 }
 
 /**
+ * Whether the track itself was resized (window resize, layout change) rather than
+ * nudged by a sub-pixel or text-width change of an item becoming selected.
+ */
+export function trackResized(
+  previous: { width: number; height: number } | undefined,
+  next: { width: number; height: number },
+  tolerance = 2,
+): boolean {
+  return (
+    !previous ||
+    Math.abs(previous.width - next.width) > tolerance ||
+    Math.abs(previous.height - next.height) > tolerance
+  );
+}
+
+/**
  * One selection pill that slides between the items of a switch or nav instead of each
  * item painting its own. The value is a CSS selector for the selected element inside
  * the host; its `--indicator-colour` becomes the pill colour. The pill itself is the
- * host's `::before` (styles.scss, `.sliding-indicator`); it only animates after the
- * first paint and after resizes, so it never slides in from nowhere.
+ * host's `::before` (styles.scss, `.sliding-indicator`). It snaps into place (no slide)
+ * until the router's first navigation has rendered and whenever the track is resized,
+ * so it never slides in from nowhere.
  */
 @Directive({
   selector: '[appSlidingIndicator]',
@@ -38,6 +57,11 @@ export class SlidingIndicator {
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef).nativeElement;
 
   constructor() {
+    const router = inject(Router);
+    const injector = inject(Injector);
+    // Before the first navigation renders, the selection still points at the initial route.
+    let settled = router.navigated;
+
     const place = (animate: boolean) => {
       const host = this.host;
       const target = host.querySelector<HTMLElement>(this.target());
@@ -49,7 +73,7 @@ export class SlidingIndicator {
 
       const box = indicatorBox(target.getBoundingClientRect(), host.getBoundingClientRect(), host);
       // Snap (no transition) on first paint, on resize and when the pill reappears.
-      const snap = !animate || host.dataset['indicator'] !== 'ready';
+      const snap = !animate || !settled || host.dataset['indicator'] !== 'ready';
       if (snap) {
         delete host.dataset['indicator'];
       }
@@ -67,7 +91,15 @@ export class SlidingIndicator {
 
     // Selection changes show up as attribute changes; our own writes (style, data-*) are filtered out.
     const mutations = new MutationObserver(() => place(true));
-    const resizes = new ResizeObserver(() => place(false));
+    let trackSize: { width: number; height: number } | undefined;
+    // Items are observed too, so a late web font re-measures; their small size changes on
+    // selection retarget the running slide, only a real track resize snaps.
+    const resizes = new ResizeObserver(() => {
+      const { width, height } = this.host.getBoundingClientRect();
+      const resized = trackResized(trackSize, { width, height });
+      trackSize = { width, height };
+      place(!resized);
+    });
 
     afterNextRender(() => {
       place(false);
@@ -75,14 +107,30 @@ export class SlidingIndicator {
         subtree: true,
         attributeFilter: ['class', 'aria-selected', 'aria-current', 'aria-pressed'],
       });
-      // The items too, so a width change inside a fixed track (e.g. a late web font) re-measures.
-      // Observing every item once avoids the initial callback of a newly observed target
-      // cancelling the slide on each selection change.
       for (const element of [this.host, ...Array.from(this.host.children)]) {
         resizes.observe(element);
       }
-      document.fonts?.ready.then(() => destroyed || place(false));
+      document.fonts?.ready.then(() => destroyed || place(true));
     });
+
+    if (!settled) {
+      router.events
+        .pipe(
+          filter((e) => e instanceof NavigationEnd || e instanceof NavigationCancel || e instanceof NavigationError),
+          take(1),
+        )
+        .subscribe(() =>
+          afterNextRender(
+            () => {
+              // Drop the aria-current change of this first render so it snaps, then animate from now on.
+              mutations.takeRecords();
+              place(false);
+              settled = true;
+            },
+            { injector },
+          ),
+        );
+    }
 
     let destroyed = false;
     inject(DestroyRef).onDestroy(() => {

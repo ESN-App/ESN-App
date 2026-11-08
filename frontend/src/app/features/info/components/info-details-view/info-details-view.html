@@ -15,7 +15,7 @@
 
   <div class="article-body">
     @if (loaded.imagePath && !imageBroken()) {
-      <img appImageFade class="article-image" [src]="loaded.imagePath" alt="" (error)="imageBroken.set(true)" />
+      <div class="article-image" data-hero-target><img appImageFade [src]="loaded.imagePath" alt="" (error)="imageBroken.set(true)" /></div>
     }
     <p class="article-text">{{ loaded.content }}</p>
 

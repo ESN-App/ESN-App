@@ -470,6 +470,16 @@ app-root {
   @include esn-star-fallback;
 }
 
+// A tile with an image (ImageFade) is a neutral frame while it loads; the star is only
+// for no / broken images (the @if removes the img then).
+.star-fallback:has(> img.image-fade) {
+  background: var(--tint-neutral);
+
+  &::after {
+    content: none;
+  }
+}
+
 .world-header,
 .detail-hero {
   --world-colour: var(--c-cyan);
@@ -577,10 +587,18 @@ app-root {
 // Article / event photo at the top of the body (titles never sit on photos).
 .article-image {
   aspect-ratio: 16 / 9;
+  background: var(--tint-neutral);
   border-radius: 24px;
   display: block;
-  object-fit: cover;
+  overflow: hidden;
   width: 100%;
+
+  > img {
+    display: block;
+    height: 100%;
+    object-fit: cover;
+    width: 100%;
+  }
 }
 
 .article-head {
@@ -984,30 +1002,6 @@ app-root {
   width: 180px;
 }
 
-// Stand-ins for a detail page title, image and body text (news, info).
-.skeleton-title {
-  height: 32px;
-}
-
-.skeleton.article-image {
-  border-radius: 24px;
-}
-
-.skeleton-text {
-  display: grid;
-  gap: 9px;
-
-  > .skeleton {
-    height: 14px;
-  }
-}
-
-@media (min-width: 701px) {
-  .skeleton-title {
-    height: 59px;
-  }
-}
-
 @keyframes skeleton-shimmer {
   from {
     background-position: 150% 0;
@@ -1025,18 +1019,68 @@ app-root {
   animation-timing-function: var(--ease-standard);
 }
 
-// List -> details (shared/utils/detail-transition.ts): the list image (`hero-image`) grows
-// into the details hero while the page slides in from the right; Back plays it in reverse.
-// The shell bars get their own names so they stay put instead of sliding with the page.
-.vt-forward,
-.vt-back {
-  app-root > .toolbar {
-    view-transition-name: app-toolbar;
-  }
+// Query-only changes (filters, selected day) stay instant (app.config.ts).
+.vt-instant::view-transition-group(*),
+.vt-instant::view-transition-old(*),
+.vt-instant::view-transition-new(*) {
+  animation: none;
+}
 
-  app-root > .mobile-menu {
-    view-transition-name: app-mobile-menu;
+// List -> details (shared/utils/detail-transition.ts): the list image (`hero-image`) grows
+// into the details image or partner logo while the page slides in from the right; Back
+// plays it in reverse.
+::view-transition-image-pair(hero-image) {
+  // The details frames (.article-image, partner .logo-square) both have 24px corners.
+  border-radius: 24px;
+  overflow: hidden;
+}
+
+// Event and partner list tiles have 18px corners: ease between them instead of popping.
+.vt-forward::view-transition-image-pair(hero-image) {
+  animation: hero-radius-grow var(--motion-slow) var(--ease-standard) both;
+}
+
+.vt-back::view-transition-image-pair(hero-image) {
+  animation: hero-radius-shrink var(--motion-base) var(--ease-exit) both;
+}
+
+@keyframes hero-radius-grow {
+  from {
+    border-radius: 18px;
   }
+}
+
+@keyframes hero-radius-shrink {
+  to {
+    border-radius: 18px;
+  }
+}
+
+::view-transition-old(hero-image),
+::view-transition-new(hero-image) {
+  height: 100%;
+  object-fit: cover;
+}
+
+// The shell bars get their own names on every route change so they stay put instead of
+// sliding or cross-fading with the page; the live new snapshot alone shows, so the nav's
+// sliding pill is not doubled by a fading copy of the old one.
+app-root > .toolbar {
+  view-transition-name: app-toolbar;
+}
+
+app-root > .mobile-menu {
+  view-transition-name: app-mobile-menu;
+}
+
+::view-transition-old(app-toolbar),
+::view-transition-old(app-mobile-menu) {
+  display: none;
+}
+
+::view-transition-new(app-toolbar),
+::view-transition-new(app-mobile-menu) {
+  animation: none;
 }
 
 .vt-forward::view-transition-group(*),
@@ -1150,10 +1194,10 @@ dialog[open] {
   }
 }
 
-// ImageFade directive: tinted box while loading, then the image fades and settles in.
+// ImageFade directive: the image stays hidden while loading (its frame shows through),
+// then fades and settles in. The frame must clip (overflow: hidden) for the scale.
 .image-fade--loading {
-  background: var(--tint-neutral);
-  color: transparent;
+  opacity: 0;
 }
 
 .image-fade--loaded {
@@ -1208,7 +1252,8 @@ dialog[open] {
 
 .sliding-indicator[data-indicator='ready']::before {
   transition-duration: var(--motion-slow);
-  transition-property: transform, width, height, background-color;
+  // No background-color: the pill takes the new colour at once instead of blending mid-slide.
+  transition-property: transform, width, height;
   transition-timing-function: var(--ease-standard);
 }
 

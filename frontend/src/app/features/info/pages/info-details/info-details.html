@@ -1,7 +1,7 @@
 <main class="details-page">
   @if (article(); as loaded) {
     <app-info-details-view class="details-fade-in" [article]="loaded">
-      <a detailBack class="back-button" routerLink="/info" aria-label="Back to info">
+      <a detailBack class="back-button" appBackLink routerLink="/info" aria-label="Back to info">
         <mat-icon aria-hidden="true">chevron_left</mat-icon>
       </a>
     </app-info-details-view>
@@ -12,23 +12,12 @@
       <a class="pill-button" routerLink="/info">Back to info</a>
     </section>
   } @else {
-    <div class="article-page">
+    <app-skeleton variant="article-detail" meta="below">
       <div class="detail-hero detail-hero--info">
-        <a class="back-button" routerLink="/info" aria-label="Back to info">
+        <a class="back-button" appBackLink routerLink="/info" aria-label="Back to info">
           <mat-icon aria-hidden="true">chevron_left</mat-icon>
         </a>
       </div>
-      <div class="article-head" role="status" aria-label="Loading">
-        <span class="skeleton skeleton-title" style="width: 70%"></span>
-      </div>
-      <div class="article-body">
-        <span class="skeleton article-image"></span>
-        <span class="skeleton-text">
-          <span class="skeleton" style="width: 100%"></span>
-          <span class="skeleton" style="width: 95%"></span>
-          <span class="skeleton" style="width: 70%"></span>
-        </span>
-      </div>
-    </div>
+    </app-skeleton>
   }
 </main>

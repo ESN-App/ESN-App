@@ -1,9 +1,9 @@
 import { Directive, ElementRef, afterNextRender, inject, signal } from '@angular/core';
 
 /**
- * While the image loads its box shows the neutral tint; once loaded it fades and
+ * Hides the image while it loads, so its tinted frame shows; once loaded it fades and
  * settles in (`.image-fade` in styles.scss). Images already in the cache show at once.
- * A broken image stays a tinted box until the host's own (error) fallback replaces it.
+ * The frame (parent) supplies the background and must clip the scale (overflow: hidden).
  */
 @Directive({
   selector: 'img[appImageFade]',
