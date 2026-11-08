@@ -5,6 +5,7 @@ using EsnApp.Domain.Events;
 using EsnApp.Domain.Features;
 using EsnApp.Domain.Info;
 using EsnApp.Domain.News;
+using EsnApp.Domain.Settings;
 using EsnApp.Infrastructure.Identity;
 using EsnApp.Infrastructure.Persistence.Configurations;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
@@ -27,6 +28,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, ICurrentUser? 
     public DbSet<NewsItem> NewsItems => Set<NewsItem>();
 
     public DbSet<FeatureFlag> FeatureFlags => Set<FeatureFlag>();
+
+    public DbSet<SiteSetting> SiteSettings => Set<SiteSetting>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -58,6 +61,13 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, ICurrentUser? 
         {
             entity.HasKey(flag => flag.Key);
             entity.Property(flag => flag.Key).HasMaxLength(100);
+        });
+
+        builder.Entity<SiteSetting>(entity =>
+        {
+            entity.HasKey(setting => setting.Key);
+            entity.Property(setting => setting.Key).HasMaxLength(100);
+            entity.Property(setting => setting.Value).HasMaxLength(500);
         });
 
         builder.Entity<Discount>(entity =>
