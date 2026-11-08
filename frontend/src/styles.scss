@@ -601,6 +601,21 @@ app-root {
   }
 }
 
+// No / broken details image: the list's no-image tile (star on the section colour) in
+// the image's place, so the list tile still has a shared element to morph into.
+.article-image--placeholder {
+  background: var(--c-cyan);
+  max-height: 240px;
+}
+
+.article-image--events {
+  background: var(--c-green);
+}
+
+.article-image--info {
+  background: var(--c-orange);
+}
+
 .article-head {
   background: var(--app-bg);
   border-radius: 32px 32px 0 0;

@@ -6,9 +6,7 @@
 >
   @if (featured()) {
     <div
-      class="guide-tile star-fallback"
-      [attr.data-hero-source]="item.imagePath && !imageBroken() ? '' : null"
-    >
+      class="guide-tile star-fallback" data-hero-source>
       @if (item.imagePath && !imageBroken()) {
         <img [src]="item.imagePath" alt="" loading="lazy" (error)="imageBroken.set(true)" />
       }
