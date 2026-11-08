@@ -1,0 +1,53 @@
+<section class="version" aria-labelledby="version-title">
+  <h2 id="version-title">
+    @if (appVersion()?.version; as version) {
+      Version {{ version }}
+    } @else {
+      App version
+    }
+  </h2>
+
+  <dl>
+    <div>
+      <dt>App:</dt>
+      <dd>
+        @if (appLink(); as link) {
+          @if (appVersion()?.version; as version) {
+            v{{ version }} ·
+          }
+          @if (link.url) {
+            <a [href]="link.url" target="_blank" rel="noopener">{{ link.label }}</a>
+          } @else {
+            {{ link.label }}
+          }
+        } @else {
+          –
+        }
+      </dd>
+    </div>
+    <div>
+      <dt>API:</dt>
+      <dd>
+        @if (apiLink(); as link) {
+          @if (apiVersion()?.version; as version) {
+            v{{ version }} ·
+          }
+          @if (link.url) {
+            <a [href]="link.url" target="_blank" rel="noopener">{{ link.label }}</a>
+          } @else {
+            {{ link.label }}
+          }
+          @if (apiVersion()?.deployedAt; as deployedAt) {
+            · deployed {{ deployedAt | appDate: 'd MMM y, HH:mm' }}
+          }
+        } @else {
+          –
+        }
+      </dd>
+    </div>
+  </dl>
+
+  @if (differ()) {
+    <p class="hint">If App and API differ, one of them is still deploying.</p>
+  }
+</section>

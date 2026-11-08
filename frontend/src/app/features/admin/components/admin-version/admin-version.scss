@@ -1,0 +1,55 @@
+:host {
+  display: block;
+  margin-top: 1rem;
+}
+
+.version {
+  background: var(--app-card);
+  border: 1px solid var(--app-border);
+  border-radius: 1rem;
+  padding: 1.5rem;
+}
+
+@media (max-width: 700px) {
+  .version {
+    padding: 1.25rem;
+  }
+}
+
+h2 {
+  font-size: 1.05rem;
+  font-weight: 800;
+  margin: 0 0 0.75rem;
+}
+
+dl {
+  display: grid;
+  font-size: 0.85rem;
+  gap: 0.4rem;
+  margin: 0;
+}
+
+dl > div {
+  display: flex;
+  gap: 0.4rem;
+}
+
+dt {
+  font-weight: 700;
+}
+
+dd {
+  font-variant-numeric: tabular-nums;
+  margin: 0;
+}
+
+a {
+  color: inherit;
+  font-family: ui-monospace, monospace;
+}
+
+.hint {
+  color: var(--app-muted);
+  font-size: 0.8rem;
+  margin: 0.75rem 0 0;
+}

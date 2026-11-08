@@ -27,6 +27,8 @@ describe('AdminSettings', () => {
     fixture.detectChanges();
     http.expectOne('/api/features').flush({});
     http.expectOne('/api/admin/features').flush([]);
+    http.expectOne('/version.json').flush({ commit: '' });
+    http.expectOne('/api/version').flush({ commit: '', deployedAt: null });
     const element: HTMLElement = fixture.nativeElement;
     const select = element.querySelector('select')!;
     const button = element.querySelector<HTMLButtonElement>('.row button')!;

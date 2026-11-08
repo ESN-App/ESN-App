@@ -24,6 +24,16 @@ export interface CreateAdminRequest {
   lastName: string;
 }
 
+/** `/version.json` (rendered by nginx) and `GET /api/version`; semver from the root VERSION file, commit empty when not deployed. */
+export interface AppVersionDto {
+  version: string | null;
+  commit: string | null;
+}
+
+export interface ApiVersionDto extends AppVersionDto {
+  deployedAt: string | null;
+}
+
 export interface FeatureFlagDto {
   key: string;
   enabled: boolean;
@@ -122,6 +132,15 @@ export class AdminApi {
 
   getInfo(): Observable<AdminInfoArticleDto[]> {
     return this.http.get<AdminInfoArticleDto[]>(`${this.baseUrl}/info`);
+  }
+
+  /** Same-origin static file served by the frontend's nginx, not the API. */
+  getAppVersion(): Observable<AppVersionDto> {
+    return this.http.get<AppVersionDto>('/version.json');
+  }
+
+  getApiVersion(): Observable<ApiVersionDto> {
+    return this.http.get<ApiVersionDto>(`${environment.apiBaseUrl}/api/version`);
   }
 
   getFeatures(): Observable<FeatureFlagDto[]> {
