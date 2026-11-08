@@ -1,9 +1,15 @@
-import { ApplicationConfig, provideBrowserGlobalErrorListeners, isDevMode } from '@angular/core';
+import {
+  ApplicationConfig,
+  inject,
+  isDevMode,
+  provideAppInitializer,
+  provideBrowserGlobalErrorListeners,
+} from '@angular/core';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { ActivatedRouteSnapshot, provideRouter, withViewTransitions } from '@angular/router';
 
 import { routes } from './app.routes';
-import { authInterceptor, retryInterceptor } from './core';
+import { AppUpdate, authInterceptor, retryInterceptor } from './core';
 import { provideServiceWorker } from '@angular/service-worker';
 
 export const appConfig: ApplicationConfig = {
@@ -25,6 +31,7 @@ export const appConfig: ApplicationConfig = {
       enabled: !isDevMode(),
       registrationStrategy: 'registerWhenStable:30000',
     }),
+    provideAppInitializer(() => inject(AppUpdate).start()),
   ],
 };
 

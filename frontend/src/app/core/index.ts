@@ -5,3 +5,4 @@ export * from './admin.guard';
 export * from './theme.service';
 export * from './retry.interceptor';
 export * from './feature-flags';
+export * from './app-update';
