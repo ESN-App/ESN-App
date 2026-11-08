@@ -46,4 +46,24 @@ public class HealthCheckTests(WebApplicationFactory<Program> factory)
 
         Assert.Equal(System.Net.HttpStatusCode.Unauthorized, response.StatusCode);
     }
+
+    [Fact]
+    public async Task AdminSettingsUpdate_Anonymous_ReturnsUnauthorized()
+    {
+        var client = Factory.CreateClient();
+
+        var response = await client.PutAsJsonAsync("/api/admin/settings", new { timeZone = "Europe/Warsaw" });
+
+        Assert.Equal(System.Net.HttpStatusCode.Unauthorized, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task PublicSettings_Put_IsNotAllowed()
+    {
+        var client = Factory.CreateClient();
+
+        var response = await client.PutAsJsonAsync("/api/settings", new { timeZone = "Europe/Warsaw" });
+
+        Assert.Equal(System.Net.HttpStatusCode.MethodNotAllowed, response.StatusCode);
+    }
 }

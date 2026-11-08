@@ -368,6 +368,25 @@ namespace EsnApp.Infrastructure.Persistence.Migrations
                     b.ToTable("NewsItems");
                 });
 
+            modelBuilder.Entity("EsnApp.Domain.Settings.SiteSetting", b =>
+                {
+                    b.Property<string>("Key")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Value")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.HasKey("Key");
+
+                    b.ToTable("SiteSettings");
+                });
+
             modelBuilder.Entity("EsnApp.Infrastructure.Identity.ApplicationUser", b =>
                 {
                     b.Property<string>("Id")

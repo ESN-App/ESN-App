@@ -5,6 +5,7 @@ using EsnApp.Application.Features;
 using EsnApp.Application.Identity;
 using EsnApp.Application.Info;
 using EsnApp.Application.News.Abstractions;
+using EsnApp.Application.Settings;
 using EsnApp.Infrastructure.Identity;
 using EsnApp.Infrastructure.Persistence;
 using EsnApp.Infrastructure.Persistence.Repositories;
@@ -76,6 +77,7 @@ public static class DependencyInjection
         services.AddScoped<IInfoArticleRepository, InfoArticleRepository>();
         services.AddScoped<INewsItemRepository, NewsItemRepository>();
         services.AddScoped<IFeatureFlagRepository, FeatureFlagRepository>();
+        services.AddScoped<ISiteSettingRepository, SiteSettingRepository>();
 
         return services;
     }
