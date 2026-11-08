@@ -1036,6 +1036,27 @@ app-root {
   overflow: hidden;
 }
 
+// Event and partner list tiles have 18px corners: ease between them instead of popping.
+.vt-forward::view-transition-image-pair(hero-image) {
+  animation: hero-radius-grow var(--motion-slow) var(--ease-standard) both;
+}
+
+.vt-back::view-transition-image-pair(hero-image) {
+  animation: hero-radius-shrink var(--motion-base) var(--ease-exit) both;
+}
+
+@keyframes hero-radius-grow {
+  from {
+    border-radius: 18px;
+  }
+}
+
+@keyframes hero-radius-shrink {
+  to {
+    border-radius: 18px;
+  }
+}
+
 ::view-transition-old(hero-image),
 ::view-transition-new(hero-image) {
   height: 100%;
