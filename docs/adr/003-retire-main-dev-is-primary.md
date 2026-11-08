@@ -2,7 +2,7 @@
 
 ## Status
 
-Accepted (2026-07-07). Supersedes the `feature/* → dev → main` workflow described in [meeting-summary.md](../meeting-summary.md) and [architecture-decisions.md](../architecture-decisions.md).
+Superseded by [ADR-004](004-main-is-primary-again.md) on 2026-11-06. Originally accepted (2026-07-07); it superseded the `feature/* → dev → main` workflow described in [meeting-summary.md](../meeting-summary.md) and [architecture-decisions.md](../architecture-decisions.md).
 
 ## Context
 
