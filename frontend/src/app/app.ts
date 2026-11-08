@@ -78,20 +78,30 @@ export class App {
   }
 
   /**
-   * Pages scroll inside main.content, which the router's scroll restoration doesn't see:
-   * a new page starts at the top, browser back/forward returns to where that page was left,
-   * query-only changes (filters, selected day) keep the position. Applied right after the
-   * new page renders, so the route transition snapshots it already in place.
+   * Scroll restoration for whichever element scrolls: main.content on phones, the document
+   * from 701px. A new page starts at the top, browser back/forward returns to where that
+   * page was left, query-only changes (filters, selected day) keep the position. Applied
+   * right after the new page renders, so the route transition snapshots it already in place.
+   * (The router's own restoration only knows the window and resets on query-only changes.)
    */
   private restoreContentScroll(): void {
     const scrollTops = new Map<number, number>();
     let currentId = 0;
     let currentPath = '';
     let target = 0;
+    const scroller = (): Element => {
+      const content = this.content().nativeElement;
+      const overflowY = getComputedStyle(content).overflowY;
+      return overflowY === 'auto' || overflowY === 'scroll'
+        ? content
+        : (document.scrollingElement ?? document.documentElement);
+    };
+    // Otherwise the browser restores the window itself, before the page has rendered.
+    history.scrollRestoration = 'manual';
 
     this.router.events.pipe(takeUntilDestroyed()).subscribe((event) => {
       if (event instanceof NavigationStart) {
-        scrollTops.set(currentId, this.content().nativeElement.scrollTop);
+        scrollTops.set(currentId, scroller().scrollTop);
         target = event.restoredState ? (scrollTops.get(event.restoredState.navigationId) ?? 0) : 0;
       } else if (event instanceof NavigationEnd) {
         const path = event.urlAfterRedirects.split('?')[0];
@@ -100,7 +110,7 @@ export class App {
         currentPath = path;
         if (!keep) {
           const scrollTop = target;
-          afterNextRender(() => (this.content().nativeElement.scrollTop = scrollTop), {
+          afterNextRender(() => (scroller().scrollTop = scrollTop), {
             injector: this.injector,
           });
         }
