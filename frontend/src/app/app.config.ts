@@ -14,7 +14,7 @@ import {
 } from '@angular/router';
 
 import { routes } from './app.routes';
-import { AppUpdate, authInterceptor, retryInterceptor } from './core';
+import { AppUpdate, authInterceptor, retryInterceptor, SiteSettings } from './core';
 import { animateDetailTransition, detailDirection, trackRouteTransition } from './shared';
 import { provideServiceWorker } from '@angular/service-worker';
 
@@ -56,6 +56,8 @@ export const appConfig: ApplicationConfig = {
       registrationStrategy: 'registerWhenStable:30000',
     }),
     provideAppInitializer(() => inject(AppUpdate).start()),
+    // Starts loading the site time zone right away (non-blocking; defaults until it arrives).
+    provideAppInitializer(() => void inject(SiteSettings)),
   ],
 };
 

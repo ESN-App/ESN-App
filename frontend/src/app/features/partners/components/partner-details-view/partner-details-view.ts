@@ -1,7 +1,6 @@
-import { DatePipe } from '@angular/common';
 import { Component, input, signal } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
-import { DraftPreviewBanner, ImageFade, urlHost } from '../../../../shared';
+import { AppDatePipe, DraftPreviewBanner, ImageFade, urlHost } from '../../../../shared';
 import { PartnerOffer } from '../../data-access/partners.models';
 import { discountParts, initials } from '../../utils/partner-offer';
 import { PartnerListItemView } from '../partner-list-item/partner-list-item';
@@ -18,7 +17,7 @@ export interface PartnerDetailsViewModel extends PartnerListItemView {
 
 @Component({
   selector: 'app-partner-details-view',
-  imports: [DatePipe, DraftPreviewBanner, ImageFade, MatIconModule],
+  imports: [AppDatePipe, DraftPreviewBanner, ImageFade, MatIconModule],
   templateUrl: './partner-details-view.html',
   styleUrl: './partner-details-view.scss',
 })

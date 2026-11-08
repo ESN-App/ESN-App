@@ -1,4 +1,3 @@
-import { DatePipe } from '@angular/common';
 import {
   AfterViewInit,
   Component,
@@ -13,14 +12,14 @@ import {
 import { MatIconModule } from '@angular/material/icon';
 import { RouterLink } from '@angular/router';
 import { Subscription } from 'rxjs';
-import { ImageFade, Skeleton, StaggerIn } from '../../../shared';
+import { AppDatePipe, ImageFade, Skeleton, StaggerIn } from '../../../shared';
 import { NewsApi } from '../data-access/news-api';
 import { NewsItemDto } from '../data-access/news.models';
 import { newsTileColour } from '../utils/news-tile-colour';
 
 @Component({
   selector: 'app-home-highlights',
-  imports: [DatePipe, MatIconModule, RouterLink, ImageFade, Skeleton, StaggerIn],
+  imports: [AppDatePipe, MatIconModule, RouterLink, ImageFade, Skeleton, StaggerIn],
   templateUrl: './home-highlights.html',
   styleUrl: './home-highlights.scss',
 })

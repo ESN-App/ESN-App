@@ -1,3 +1,5 @@
+import { zonedMidnight } from '../../../shared/utils/time-zone';
+
 const MONTH_KEY_PATTERN = /^(\d{4})-(0[1-9]|1[0-2])$/;
 
 export interface MonthRange {
@@ -53,13 +55,11 @@ export function moveMonth(date: Date, offset: number): Date {
   return new Date(date.getFullYear(), date.getMonth() + offset, 1);
 }
 
-export function monthRange(date: Date): MonthRange {
-  const year = date.getFullYear();
-  const month = date.getMonth();
-
+/** The month as an exclusive instant range, from midnight on the 1st in `timeZone`. */
+export function monthRange(date: Date, timeZone: string): MonthRange {
   return {
-    from: new Date(Date.UTC(year, month, 1)).toISOString(),
-    to: new Date(Date.UTC(year, month + 1, 1)).toISOString(),
+    from: zonedMidnight(moveMonth(date, 0), timeZone).toISOString(),
+    to: zonedMidnight(moveMonth(date, 1), timeZone).toISOString(),
   };
 }
 

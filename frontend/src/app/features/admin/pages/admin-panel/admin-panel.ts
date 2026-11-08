@@ -1,13 +1,13 @@
-import { DatePipe, DecimalPipe } from '@angular/common';
+import { DecimalPipe } from '@angular/common';
 import { Component, computed, HostListener, inject, signal, viewChildren, WritableSignal } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatMenuModule, MatMenuTrigger } from '@angular/material/menu';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { forkJoin, Observable, of } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
-import { AuthService } from '../../../../core';
-import { AdminFeatures } from '../../components/admin-features/admin-features';
-import { CancelledBadge, DraftBadge, PublishedBadge, Skeleton, SlidingIndicator } from '../../../../shared';
+import { AuthService, SiteSettings } from '../../../../core';
+import { AdminSettings } from '../../components/admin-settings/admin-settings';
+import { AppDatePipe, CancelledBadge, DraftBadge, PublishedBadge, Skeleton, SlidingIndicator, zonedParts } from '../../../../shared';
 import { createEventSlug } from '../../../events/utils/event-url';
 import { createPartnerSlug } from '../../../partners/utils/partner-url';
 import { AdminDisplayOrderModal } from '../../components/admin-display-order-modal/admin-display-order-modal';
@@ -23,7 +23,7 @@ import { AdminToast, countMessage } from '../../utils/admin-toast';
 import { compareArticleOrder } from '../../utils/article-order';
 import { editMeta, lastChangedAt } from '../../utils/edit-meta';
 
-type AdminSection = 'events' | 'news' | 'partners' | 'info' | 'admins';
+type AdminSection = 'events' | 'news' | 'partners' | 'info' | 'admins' | 'settings';
 type SortField = 'title' | 'date' | 'created' | 'status';
 type ActiveSortField = SortField | 'default';
 type SortDirection = 'ascending' | 'descending';
@@ -60,7 +60,7 @@ interface SectionOption {
 
 @Component({
   selector: 'app-admin-panel',
-  imports: [AdminFeatures, DatePipe, DecimalPipe, MatButtonModule, MatMenuModule, RouterLink, AdminDisplayOrderModal, CancelledBadge, DraftBadge, PublishedBadge, Skeleton, SlidingIndicator],
+  imports: [AdminSettings, AppDatePipe, DecimalPipe, MatButtonModule, MatMenuModule, RouterLink, AdminDisplayOrderModal, CancelledBadge, DraftBadge, PublishedBadge, Skeleton, SlidingIndicator],
   templateUrl: './admin-panel.html',
   styleUrl: './admin-panel.scss',
 })
@@ -71,6 +71,7 @@ export class AdminPanel {
   private readonly router = inject(Router);
   private readonly authService = inject(AuthService);
   private readonly toast = inject(AdminToast);
+  protected readonly timeZone = inject(SiteSettings).timeZone;
 
   readonly sections: SectionOption[] = [
     { id: 'events', label: 'Events' },
@@ -78,6 +79,7 @@ export class AdminPanel {
     { id: 'partners', label: 'Partners' },
     { id: 'info', label: 'Info' },
     { id: 'admins', label: 'Admins' },
+    { id: 'settings', label: 'Settings' },
   ];
   private readonly initialSection = this.resolveInitialSection();
   readonly activeSection = signal<AdminSection>(this.initialSection);
@@ -237,6 +239,8 @@ export class AdminPanel {
         return this.filteredInfo().length;
       case 'admins':
         return this.filteredAdmins().length;
+      case 'settings':
+        return 0;
     }
   });
   readonly activeTotalCount = computed(() => {
@@ -251,6 +255,8 @@ export class AdminPanel {
         return this.info().length;
       case 'admins':
         return this.admins().length;
+      case 'settings':
+        return 0;
     }
   });
   readonly activeLabel = computed(
@@ -280,6 +286,8 @@ export class AdminPanel {
         return this.pagedAdmins()
           .filter((item) => !this.isCurrentAdmin(item))
           .map((item) => item.id);
+      case 'settings':
+        return [];
     }
   });
   readonly selectedCount = computed(() => this.selectedIds().size);
@@ -458,7 +466,8 @@ export class AdminPanel {
   }
 
   private ensureSectionLoaded(section: AdminSection, force = false): void {
-    if (!force && (this.loadedSections.has(section) || this.pendingSections.has(section))) {
+    // Settings load their own data.
+    if (section === 'settings' || (!force && (this.loadedSections.has(section) || this.pendingSections.has(section)))) {
       return;
     }
 
@@ -1136,19 +1145,20 @@ export class AdminPanel {
   }
 
   private sortEventsFromCurrentMonth(items: AdminEventDto[]): AdminEventDto[] {
-    const currentMonth = new Date().getMonth();
+    const timeZone = this.timeZone();
+    const currentMonth = zonedParts(new Date(), timeZone).month;
+    const monthDistance = (startsAt: string) =>
+      (zonedParts(startsAt, timeZone).month - currentMonth + 12) % 12;
 
     return [...items].sort((left, right) => {
-      const leftDate = new Date(left.startsAt);
-      const rightDate = new Date(right.startsAt);
-      const leftMonthDistance = (leftDate.getMonth() - currentMonth + 12) % 12;
-      const rightMonthDistance = (rightDate.getMonth() - currentMonth + 12) % 12;
+      const leftMonthDistance = monthDistance(left.startsAt);
+      const rightMonthDistance = monthDistance(right.startsAt);
 
       if (leftMonthDistance !== rightMonthDistance) {
         return leftMonthDistance - rightMonthDistance;
       }
 
-      return leftDate.getTime() - rightDate.getTime();
+      return Date.parse(left.startsAt) - Date.parse(right.startsAt);
     });
   }
 

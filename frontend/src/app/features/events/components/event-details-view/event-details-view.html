@@ -9,9 +9,9 @@
   <header class="title-block">
     @if (item.startsAt) {
       <div class="date-tile" aria-hidden="true">
-        <span>{{ item.startsAt | date: 'EEE' }}</span>
-        <strong>{{ item.startsAt | date: 'd' }}</strong>
-        <span>{{ item.startsAt | date: 'MMMM' }}</span>
+        <span>{{ item.startsAt | appDate: 'EEE' }}</span>
+        <strong>{{ item.startsAt | appDate: 'd' }}</strong>
+        <span>{{ item.startsAt | appDate: 'MMMM' }}</span>
       </div>
     }
     <div class="title-main">
@@ -41,17 +41,17 @@
           <div>
             @if (item.startsAt) {
               <strong>
-                {{ item.startsAt | date: 'HH:mm' }}
+                {{ item.startsAt | appDate: 'HH:mm' }}
                 @if (item.endsAt) {
                   to
                   {{
                     isSameDay(item.startsAt, item.endsAt)
-                      ? (item.endsAt | date: 'HH:mm')
-                      : (item.endsAt | date: 'd MMMM, HH:mm')
+                      ? (item.endsAt | appDate: 'HH:mm')
+                      : (item.endsAt | appDate: 'd MMMM, HH:mm')
                   }}
                 }
               </strong>
-              <span>{{ item.startsAt | date: 'EEEE, d MMMM yyyy' }}</span>
+              <span>{{ item.startsAt | appDate: 'EEEE, d MMMM yyyy' }}</span>
             } @else {
               <strong>Date to be announced</strong>
             }

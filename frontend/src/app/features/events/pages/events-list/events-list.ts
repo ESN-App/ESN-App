@@ -10,7 +10,7 @@ import {
   signal,
   viewChild,
 } from '@angular/core';
-import { rxResource, toSignal } from '@angular/core/rxjs-interop';
+import { rxResource, toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { MAT_DATE_LOCALE, provideNativeDateAdapter } from '@angular/material/core';
 import {
   MatCalendar,
@@ -33,7 +33,15 @@ import {
   switchMap,
   tap,
 } from 'rxjs';
-import { ErrorState, routeTransitionDone, Skeleton, StaggerIn } from '../../../../shared';
+import { SiteSettings } from '../../../../core';
+import {
+  ErrorState,
+  routeTransitionDone,
+  Skeleton,
+  StaggerIn,
+  zonedCalendarDate,
+  zonedDayKey,
+} from '../../../../shared';
 import { EventListItem } from '../../components/event-list-item/event-list-item';
 import { EventsApi } from '../../data-access/events-api';
 import type { EventListItemDto } from '../../data-access/events.models';
@@ -72,6 +80,7 @@ export class EventsList {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly api = inject(EventsApi);
+  private readonly timeZone = inject(SiteSettings).timeZone;
   private destroyed = false;
   private readonly markDestroyed = inject(DestroyRef).onDestroy(() => (this.destroyed = true));
   private readonly calendar = viewChild<MatCalendar<Date>>(MatCalendar);
@@ -107,7 +116,7 @@ export class EventsList {
     this.availableMonths$,
   ]).pipe(
     map(([requestedValue, availableMonths]) => {
-      const requestedMonth = normalizeMonthKey(requestedValue);
+      const requestedMonth = normalizeMonthKey(requestedValue, this.today());
       const firstMonth = availableMonths.at(0);
       const lastMonth = availableMonths.at(-1);
       const isWithinAvailableRange =
@@ -145,12 +154,12 @@ export class EventsList {
   readonly availableMonths = toSignal(this.availableMonths$, { initialValue: [] });
 
   readonly selectedMonth = toSignal(this.monthKey$.pipe(map(monthFromKey)), {
-    initialValue: monthFromKey(normalizeMonthKey(null)),
+    initialValue: monthFromKey(normalizeMonthKey(null, this.today())),
   });
 
   readonly events = toSignal(
-    combineLatest([this.monthKey$, this.reload$]).pipe(
-      map(([key]) => monthRange(monthFromKey(key))),
+    combineLatest([this.monthKey$, this.reload$, toObservable(this.timeZone)]).pipe(
+      map(([key, , timeZone]) => monthRange(monthFromKey(key), timeZone)),
       switchMap((range) =>
         this.api.getAll({ ...range, page: 1, pageSize: 100 }).pipe(
           startWith(null),
@@ -228,7 +237,7 @@ export class EventsList {
 
   readonly calendarDateClass = computed<MatCalendarCellClassFunction<Date>>(() => {
     const eventDates = new Set(
-      (this.events()?.items ?? []).map((event) => dayKey(new Date(event.startsAt))),
+      (this.events()?.items ?? []).map((event) => zonedDayKey(event.startsAt, this.timeZone())),
     );
 
     return (date, view) =>
@@ -238,11 +247,11 @@ export class EventsList {
   readonly mobileCalendarDays = computed<MobileCalendarDay[]>(() => {
     const month = this.selectedMonth();
     const daysInMonth = new Date(month.getFullYear(), month.getMonth() + 1, 0).getDate();
-    const todayKey = dayKey(new Date());
+    const todayKey = zonedDayKey(new Date(), this.timeZone());
     const eventCounts = new Map<string, number>();
 
     for (const event of this.events()?.items ?? []) {
-      const eventDateKey = dayKey(new Date(event.startsAt));
+      const eventDateKey = zonedDayKey(event.startsAt, this.timeZone());
       eventCounts.set(eventDateKey, (eventCounts.get(eventDateKey) ?? 0) + 1);
     }
 
@@ -262,7 +271,7 @@ export class EventsList {
   // Selected day: that day's events, then the next few upcoming ones (may cross months).
   readonly dayEvents = computed(() =>
     this.matchingSearch(this.events()?.items ?? []).filter(
-      (event) => dayKey(new Date(event.startsAt)) === this.selectedDateKey(),
+      (event) => zonedDayKey(event.startsAt, this.timeZone()) === this.selectedDateKey(),
     ),
   );
   // While searching, fetch more so the search isn't limited to the next 5 events.
@@ -270,10 +279,10 @@ export class EventsList {
   readonly upcoming = rxResource({
     params: () => {
       const day = this.selectedDateKey();
-      return day ? { day, pageSize: this.upcomingPageSize() } : undefined;
+      return day ? { day, pageSize: this.upcomingPageSize(), timeZone: this.timeZone() } : undefined;
     },
     stream: ({ params }) => {
-      const from = upcomingFrom(params.day);
+      const from = upcomingFrom(params.day, params.timeZone);
       // shortcut: looks 6 months ahead (the API defaults to one month); widen if events
       // get announced further out.
       const to = new Date(from.getFullYear(), from.getMonth() + 6, from.getDate());
@@ -289,13 +298,15 @@ export class EventsList {
 
   // Whole month, grouped by day; in the current month, days before today are left out.
   readonly monthGroups = computed(() => {
-    const today = dayKey(new Date());
+    const timeZone = this.timeZone();
+    const today = zonedDayKey(new Date(), timeZone);
     const isCurrentMonth = this.selectedMonthKey() === today.slice(0, 7);
 
     return groupByDay(
       this.matchingSearch(this.events()?.items ?? []).filter(
-        (event) => !isCurrentMonth || dayKey(new Date(event.startsAt)) >= today,
+        (event) => !isCurrentMonth || zonedDayKey(event.startsAt, timeZone) >= today,
       ),
+      timeZone,
     );
   });
   readonly shownCount = computed(() =>
@@ -450,6 +461,11 @@ export class EventsList {
       queryParamsHandling: 'merge',
       replaceUrl: true,
     });
+  }
+
+  /** Today in the site zone, as a local calendar date. */
+  private today(): Date {
+    return zonedCalendarDate(new Date(), this.timeZone());
   }
 
   private matchingSearch(events: EventListItemDto[]): EventListItemDto[] {

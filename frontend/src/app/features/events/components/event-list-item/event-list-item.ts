@@ -1,9 +1,9 @@
-import { DatePipe, DecimalPipe } from '@angular/common';
+import { DecimalPipe } from '@angular/common';
 import { Component, computed, inject, input, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { ImageFade } from '../../../../shared';
+import { AppDatePipe, ImageFade } from '../../../../shared';
 import { MatIconModule } from '@angular/material/icon';
-import { FeatureFlags } from '../../../../core';
+import { FeatureFlags, SiteSettings } from '../../../../core';
 import { relativeEventDay, spotsLeftLabel } from '../../utils/event-badges';
 import { hasEventEnded, isSameCalendarDay } from '../../utils/event-date';
 import { createEventSlug } from '../../utils/event-url';
@@ -24,7 +24,7 @@ export interface EventListItemView {
 
 @Component({
   selector: 'app-event-list-item',
-  imports: [DatePipe, DecimalPipe, ImageFade, MatIconModule, RouterLink],
+  imports: [AppDatePipe, DecimalPipe, ImageFade, MatIconModule, RouterLink],
   templateUrl: './event-list-item.html',
   styleUrl: './event-list-item.scss',
   host: {
@@ -38,7 +38,10 @@ export class EventListItem {
   /** Show the date in the time line; off when the list is already filtered to one day. */
   readonly showDate = input(true);
 
-  protected readonly isSameDay = isSameCalendarDay;
+  private readonly timeZone = inject(SiteSettings).timeZone;
+  protected isSameDay(start: string | Date, end: string | Date): boolean {
+    return isSameCalendarDay(start, end, this.timeZone());
+  }
   private readonly flags = inject(FeatureFlags);
   protected readonly ended = computed(
     () => this.flags.pastEventTag() && hasEventEnded(this.event()),
@@ -47,7 +50,7 @@ export class EventListItem {
   /** Today/Tomorrow and spots-left only make sense for events that are still ahead. */
   private readonly upcoming = computed(() => !hasEventEnded(this.event()));
   protected readonly relativeDay = computed(() =>
-    this.upcoming() ? relativeEventDay(this.event().startsAt) : null,
+    this.upcoming() ? relativeEventDay(this.event().startsAt, this.timeZone()) : null,
   );
   protected readonly spotsLeft = computed(() =>
     this.upcoming() ? spotsLeftLabel(this.event()) : null,

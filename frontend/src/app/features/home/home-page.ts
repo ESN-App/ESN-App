@@ -1,9 +1,11 @@
 import { DatePipe } from '@angular/common';
 import { Component, computed, inject, signal } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
+import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { MatIconModule } from '@angular/material/icon';
 import { RouterLink } from '@angular/router';
 import { catchError, map, of, switchMap } from 'rxjs';
+import { SiteSettings } from '../../core';
+import { AppDatePipe, zonedCalendarDate, zonedMidnight } from '../../shared';
 import { EventsApi } from '../events/data-access/events-api';
 import { createEventSlug } from '../events/utils/event-url';
 import { InfoApi } from '../info/data-access/info-api';
@@ -20,7 +22,7 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 
 @Component({
   selector: 'app-home-page',
-  imports: [DatePipe, MatIconModule, RouterLink, HomeHighlights],
+  imports: [AppDatePipe, DatePipe, MatIconModule, RouterLink, HomeHighlights],
   templateUrl: './home-page.html',
   styleUrl: './home-page.scss',
 })
@@ -28,28 +30,39 @@ export class HomePage {
   private readonly eventsApi = inject(EventsApi);
   private readonly partnersApi = inject(PartnersApi);
   private readonly infoApi = inject(InfoApi);
+  private readonly timeZone = inject(SiteSettings).timeZone;
   private readonly now = new Date();
-  private readonly monday = startOfWeek(this.now);
+  /** Today in the site zone, as a local calendar date. */
+  private readonly today = computed(() => zonedCalendarDate(this.now, this.timeZone()));
 
   protected readonly isStandalone = this.detectStandaloneMode();
   protected readonly installOpen = signal(false);
 
   private readonly weekEvents = toSignal(
-    this.eventsApi
-      .getAll({
-        from: this.monday.toISOString(),
-        to: new Date(this.monday.getTime() + 7 * DAY_MS).toISOString(),
-        page: 1,
-        pageSize: 100,
-      })
-      .pipe(
-        map((result) => result.items.filter((event) => event.status !== CANCELLED)),
-        catchError(() => of([])),
-      ),
+    toObservable(this.today).pipe(
+      switchMap((today) => {
+        const monday = startOfWeek(today);
+        const nextMonday = new Date(monday.getFullYear(), monday.getMonth(), monday.getDate() + 7);
+
+        return this.eventsApi
+          .getAll({
+            from: zonedMidnight(monday, this.timeZone()).toISOString(),
+            to: zonedMidnight(nextMonday, this.timeZone()).toISOString(),
+            page: 1,
+            pageSize: 100,
+          })
+          .pipe(
+            map((result) => result.items.filter((event) => event.status !== CANCELLED)),
+            catchError(() => of([])),
+          );
+      }),
+    ),
     { initialValue: [] },
   );
 
-  protected readonly week = computed(() => weekDays(this.now, this.weekEvents()));
+  protected readonly week = computed(() =>
+    weekDays(this.today(), this.weekEvents(), this.timeZone()),
+  );
   protected readonly weekEventCount = computed(() => this.weekEvents().length);
 
   /**

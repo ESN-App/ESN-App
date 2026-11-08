@@ -1,4 +1,4 @@
-import { formatDate } from '@angular/common';
+import { formatInZone } from '../../../shared/utils/time-zone';
 
 export interface EditTracked {
   createdAt: string;
@@ -25,12 +25,12 @@ export interface EditMeta {
 /** Sort key of the "Last edited" column. */
 export const lastChangedAt = (item: EditTracked): number => Date.parse(item.updatedAt ?? item.createdAt);
 
-export function editMeta(item: EditTracked): EditMeta {
+export function editMeta(item: EditTracked, timeZone: string): EditMeta {
   const edited = item.updatedAt != null;
   const at = item.updatedAt ?? item.createdAt;
   const by = (edited ? item.updatedBy ?? item.createdBy : item.createdBy) ?? null;
   const verb = edited ? 'Edited' : 'Created';
-  const date = formatDate(at, 'd MMM y, HH:mm', 'en-US');
+  const date = formatInZone(at, 'd MMM y, HH:mm', timeZone);
   const when = `${verb} ${date}`;
   return {
     at,

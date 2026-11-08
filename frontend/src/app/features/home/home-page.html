@@ -34,9 +34,9 @@
         }
         <div class="up-next__main">
           <div class="date-tile" aria-hidden="true">
-            <span>{{ event.startsAt | date: 'EEE' }}</span>
-            <strong>{{ event.startsAt | date: 'd' }}</strong>
-            <span>{{ event.startsAt | date: 'MMMM' }}</span>
+            <span>{{ event.startsAt | appDate: 'EEE' }}</span>
+            <strong>{{ event.startsAt | appDate: 'd' }}</strong>
+            <span>{{ event.startsAt | appDate: 'MMMM' }}</span>
           </div>
           <div class="up-next__copy">
             <p class="up-next__label">Up next</p>
@@ -44,8 +44,8 @@
               <a [routerLink]="eventLink(event)">{{ event.title }}</a>
             </h2>
             <p class="up-next__meta">
-              <span class="visually-hidden">{{ event.startsAt | date: 'EEEE d MMMM' }}, </span>
-              {{ event.startsAt | date: 'HH:mm' }}, {{ event.location }}
+              <span class="visually-hidden">{{ event.startsAt | appDate: 'EEEE d MMMM' }}, </span>
+              {{ event.startsAt | appDate: 'HH:mm' }}, {{ event.location }}
             </p>
           </div>
         </div>
