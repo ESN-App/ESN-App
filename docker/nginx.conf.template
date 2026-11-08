@@ -1,6 +1,6 @@
 # Rendered by the nginx image's envsubst step at container start
 # (/etc/nginx/templates/*.template -> /etc/nginx/conf.d/). ${PORT} and ${API_UPSTREAM}
-# come from the environment; defaults live in docker/frontend.Dockerfile.
+# come from the environment (plus ${RENDER_GIT_COMMIT} below); defaults live in docker/frontend.Dockerfile.
 server {
     listen ${PORT};
     server_name _;
@@ -37,6 +37,14 @@ server {
 
     location ~ ^/(ngsw-worker\.js|ngsw\.json|safety-worker\.js|manifest\.webmanifest)$ {
         add_header Cache-Control "no-cache";
+    }
+
+    # Deployed frontend commit for the admin "App version" card. Render sets RENDER_GIT_COMMIT
+    # at runtime; the Dockerfile defaults it to "" so envsubst renders "" (shown as "dev").
+    location = /version.json {
+        default_type application/json;
+        add_header Cache-Control "no-store";
+        return 200 '{"commit":"${RENDER_GIT_COMMIT}"}';
     }
 
     # SPA fallback: let the Angular router handle everything else.

@@ -6,13 +6,14 @@ import { AdminApi } from '../../data-access/admin-api';
 import { AdminToast } from '../../utils/admin-toast';
 import { AdminFeatures } from '../admin-features/admin-features';
 import { AdminSaveLabel } from '../admin-save-label/admin-save-label';
+import { AdminVersion } from '../admin-version/admin-version';
 
 const SAVED_LABEL_MS = 2000;
 
-/** Admin "Settings" tab: the site time zone and the feature switches. */
+/** Admin "Settings" tab: the site time zone, the feature switches and the deployed versions. */
 @Component({
   selector: 'app-admin-settings',
-  imports: [AdminFeatures, AdminSaveLabel],
+  imports: [AdminFeatures, AdminSaveLabel, AdminVersion],
   templateUrl: './admin-settings.html',
   styleUrl: './admin-settings.scss',
 })
