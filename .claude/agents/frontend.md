@@ -1,6 +1,7 @@
 ---
 name: frontend
 description: Frontend specialist for the ESN Gdańsk PWA (Angular 22, standalone components, signals, zoneless, Angular Material, maplibre-gl). Use for new pages, components, data-access services, routing, guards, and frontend bug fixes under frontend/.
+model: sonnet
 tools: Read, Grep, Glob, Edit, Write, Bash
 skills:
   - angular-developer
