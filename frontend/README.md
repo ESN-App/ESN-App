@@ -1,20 +1,22 @@
 # ESN App — Frontend
 
-Angular 22 + Angular Material PWA. Full project documentation lives in the [root README](../README.md) and [docs/skeleton-implementation.md](../docs/skeleton-implementation.md); toolchain versions in [REQUIREMENTS.md](../REQUIREMENTS.md).
+React 19 + React Router 8 PWA built with Vite 8. Full project documentation lives in the [root README](../README.md); toolchain versions in [REQUIREMENTS.md](../REQUIREMENTS.md).
 
-Requires Node ≥ 24.15 (the Angular CLI refuses to run on older versions).
+Use Node 24 (same as CI and the Docker image).
 
 ```bash
 npm install
-npm start          # dev server on :4200; /api is proxied to http://localhost:5000
-npm run lint       # ESLint
-npm test           # vitest (add -- --watch=false for a single run)
-npm run build      # production build (dist/esn-app; API is same-origin via nginx proxy)
+npm start            # Vite dev server on :4200; /api is proxied to http://localhost:5000 (API_PROXY_TARGET overrides)
+npm run lint         # ESLint (typescript-eslint + react-hooks)
+npm test -- --run    # vitest (jsdom), single run
+npm run build        # tsc -b + production build into dist/ (API is same-origin via the nginx proxy)
 ```
 
-Structure (see root README "Where do I add my feature?"):
+Structure:
 
-- `src/app/core/` — AuthService, JWT interceptor, auth guard
-- `src/app/shared/` — reusable components (barrel export)
-- `src/app/features/{events,discounts,info,auth}/` — one lazy-loaded folder per module: `*-api.ts` service, list component, `*.routes.ts`
-- `src/environments/` — `environment.development.ts` is used by `ng serve` (fileReplacements in angular.json)
+- `src/main.tsx`, `src/App.tsx`, `src/routes.tsx` — bootstrap, app shell (toolbar + mobile navigation) and the route table (pages are lazy-loaded)
+- `src/core/` — auth store (`useAuth()`), `http` client that attaches the JWT, `AuthGuard` / `AdminGuard`
+- `src/shared/` — reusable components, hooks (`useAsync`, `useEscapeKey`, …), formatting helpers
+- `src/features/{home,events,partners,info,auth,admin}/` — one folder per feature: `data-access/` API module + models, `components/`, `pages/`
+
+Styling: every component keeps its own `.scss` file. The app was ported from Angular, so components render inside their original `app-*` host element (`shared/host.tsx`) and each stylesheet is wrapped in `@scope (app-x) to (:scope [data-ng-host] > *) { … }`, which reproduces Angular's per-component style encapsulation. Follow the same pattern for new components.

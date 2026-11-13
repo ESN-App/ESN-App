@@ -1,24 +1,11 @@
-// Include theming for Angular Material with `mat.theme()`.
-// This Sass mixin will define CSS variables that are used for styling Angular Material
-// components according to the Material 3 design spec.
-// Learn more about theming and how to use it for your application's
-// custom components at https://material.angular.dev/guide/theming
-@use '@angular/material' as mat;
+// Global styles. Component styles live next to each component and are scoped to the
+// component's host element with @scope (see src/shared/host.tsx).
+@use './material';
 
 html {
   background-color: #fff;
   height: 100%;
   min-height: 100%;
-  @include mat.theme(
-    (
-      color: (
-        primary: mat.$azure-palette,
-        tertiary: mat.$blue-palette,
-      ),
-      typography: 'Plus Jakarta Sans',
-      density: 0,
-    )
-  );
 }
 
 @media (min-width: 701px) {
@@ -33,12 +20,12 @@ body {
   // user's system settings.
   color-scheme: light;
 
-  // Set a default background, font and text colors for the application using
-  // Angular Material's system-level CSS variables. Learn more about these
-  // variables at https://material.angular.dev/guide/system-variables
+  // Default background, font and text colours (formerly Material's body-medium tokens).
   background-color: #fff;
-  color: var(--mat-sys-on-surface);
-  font: var(--mat-sys-body-medium);
+  color: #1a1b1f;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
   font-family: 'Plus Jakarta Sans', sans-serif;
 
   // Reset the user agent margin.
@@ -56,347 +43,353 @@ textarea {
   font-family: 'Plus Jakarta Sans', sans-serif;
 }
 
-app-admin-event-create,
-app-admin-event-edit,
-app-admin-partner-create,
-app-admin-partner-edit,
-app-admin-info-create,
-app-admin-info-edit,
-app-admin-news-create,
-app-admin-news-edit {
-  .status-field {
-    border: 0;
-    margin: 0;
-    min-width: 0;
-    padding: 0;
-  }
-
-  .status-field legend {
-    color: #444653;
-    font-size: 0.76rem;
-    font-weight: 800;
-    padding: 0;
-  }
-
-  .status-field > p {
-    color: #777985;
-    font-size: 0.7rem;
-    margin: 0.2rem 0 0.65rem;
-  }
-
-  .status-options {
-    display: grid;
-    gap: 0.45rem;
-  }
-
-  .status-option {
-    align-items: center;
-    background: #fff;
-    border: 1px solid #dedfe5;
-    border-radius: 0.7rem;
-    cursor: pointer;
-    display: flex;
-    gap: 0.7rem;
-    min-height: 3.5rem;
-    padding: 0.65rem 0.75rem;
-    transition: background 140ms ease, border-color 140ms ease, box-shadow 140ms ease;
-  }
-
-  .status-option:hover {
-    background: #fafafd;
-    border-color: #bfc1d9;
-  }
-
-  .status-option:has(input:checked) {
-    background: #f3f3fc;
-    border-color: #7276c9;
-    box-shadow: 0 0 0 2px rgb(83 88 189 / 10%);
-  }
-
-  .status-option:focus-within {
-    outline: 2px solid #5358bd;
-    outline-offset: 2px;
-  }
-
-  .status-option input {
-    height: 1px;
-    opacity: 0;
-    position: absolute;
-    width: 1px;
-  }
-
-  .status-option__dot {
-    background: #7a7c85;
-    border-radius: 50%;
-    box-shadow: 0 0 0 3px rgb(122 124 133 / 12%);
-    flex: 0 0 0.5rem;
-    height: 0.5rem;
-  }
-
-  .status-option--published .status-option__dot {
-    background: #35844d;
-    box-shadow: 0 0 0 3px rgb(53 132 77 / 12%);
-  }
-
-  .status-option--cancelled .status-option__dot {
-    background: #bc563f;
-    box-shadow: 0 0 0 3px rgb(188 86 63 / 12%);
-  }
-
-  .status-option__copy {
-    display: grid;
-    flex: 1;
-    gap: 0.1rem;
-  }
-
-  .status-option__copy strong {
-    color: #333540;
-    font-size: 0.78rem;
-  }
-
-  .status-option__copy small {
-    color: #777985;
-    font-size: 0.67rem;
-  }
-
-  .status-option__choice {
-    border: 1px solid #b6b8c1;
-    border-radius: 50%;
-    height: 1rem;
-    width: 1rem;
-  }
-
-  .status-option input:checked ~ .status-option__choice {
-    border: 0.3rem solid #5358bd;
-  }
-}
-
-.confirmation-backdrop {
-  align-items: center;
-  background: rgb(23 24 33 / 48%);
-  display: flex;
-  inset: 0;
-  justify-content: center;
-  padding: 1.25rem;
-  position: fixed;
-  z-index: 2000;
-}
-
-.confirmation-dialog {
-  background: #fff;
-  border: 1px solid #dedfe5;
-  border-radius: 1rem;
-  box-shadow: 0 24px 60px rgb(23 24 33 / 25%);
-  box-sizing: border-box;
-  max-width: 27rem;
-  padding: 1.5rem;
-  text-align: center;
-  width: 100%;
-}
-
-.confirmation-dialog h2 {
-  font-size: 1.2rem;
-  line-height: 1.4;
-  margin: 0 0 1.25rem;
-}
-
-.confirmation-error {
-  font-size: 0.82rem;
-  margin: 0 0 1.25rem;
-}
-
-.confirmation-error {
-  color: #b3261e;
-}
-
-.confirmation-actions {
-  display: flex;
-  gap: 0.65rem;
-  justify-content: center;
-}
-
-.confirmation-actions button {
-  border: 0;
-  border-radius: 0.65rem;
-  cursor: pointer;
-  font: inherit;
-  font-size: 0.76rem;
-  font-weight: 800;
-  min-height: 2.6rem;
-  padding: 0.6rem 0.9rem;
-}
-
-.confirmation-cancel {
-  background: #eff0f3;
-  color: #555762;
-}
-
-.confirmation-submit {
-  background: #5358bd;
-  color: #fff;
-}
-
-.confirmation-delete {
-  background: #bd3535;
-  color: #fff;
-}
-
-.confirmation-actions button:disabled {
-  cursor: wait;
-  opacity: 0.65;
-}
-
-.confirmation-cancel:hover {
-  background: #e4e5e9;
-}
-
-.confirmation-submit:hover {
-  background: #454aa7;
-}
-
-.confirmation-delete:hover:not(:disabled) {
-  background: #a52c2c;
-}
-
 app-root {
   display: block;
   min-height: 100%;
   min-height: 100dvh;
 }
 
-@media (max-width: 700px) {
-  app-events-list {
-    .mobile-date-calendar {
-      background: #f7f9f6;
-      border: 1px solid var(--events-accent);
-      border-radius: 1.4rem;
-      display: block !important;
-      margin: 1rem 0;
-      overflow: visible;
-      padding: 0.85rem 0.9rem 0.75rem;
-    }
-
-    .mobile-date-calendar__header {
-      align-items: center;
-      display: flex;
-      justify-content: space-between;
-      padding: 0 0 0.7rem;
-    }
-
-    .mobile-date-strip {
-      display: grid;
-      gap: 0.35rem;
-      grid-auto-columns: 3rem;
-      grid-auto-flow: column;
-      overflow-x: auto;
-      padding: 0 0 0.2rem;
-      scroll-padding-inline: 0;
-      scroll-snap-type: x proximity;
-      scrollbar-width: none;
-    }
-
-    .mobile-date-strip::-webkit-scrollbar {
-      display: none;
-    }
-
-    .mobile-date {
-      -webkit-tap-highlight-color: transparent;
-      align-items: center;
-      background: transparent;
+// Global rules that style elements inside components. In Angular, component styles carried an
+// extra [_ngcontent] attribute, so they beat these rules on equal selectors; @scope adds no such
+// specificity, so a cascade layer restores the same outcome (component styles win conflicts,
+// these still fill in the properties a component does not set).
+@layer component-overrides {
+  app-admin-event-create,
+  app-admin-event-edit,
+  app-admin-partner-create,
+  app-admin-partner-edit,
+  app-admin-info-create,
+  app-admin-info-edit,
+  app-admin-news-create,
+  app-admin-news-edit {
+    .status-field {
       border: 0;
-      color: #555b52;
-      cursor: pointer;
-      display: flex;
-      flex-direction: column;
+      margin: 0;
       min-width: 0;
       padding: 0;
-      position: relative;
-      scroll-snap-align: start;
     }
 
-    .mobile-date__number {
+    .status-field legend {
+      color: #444653;
+      font-size: 0.76rem;
+      font-weight: 800;
+      padding: 0;
+    }
+
+    .status-field > p {
+      color: #777985;
+      font-size: 0.7rem;
+      margin: 0.2rem 0 0.65rem;
+    }
+
+    .status-options {
+      display: grid;
+      gap: 0.45rem;
+    }
+
+    .status-option {
       align-items: center;
       background: #fff;
-      border: 1px solid #dce3d8;
-      border-radius: 50%;
+      border: 1px solid #dedfe5;
+      border-radius: 0.7rem;
+      cursor: pointer;
       display: flex;
-      font-size: 0.78rem;
-      font-weight: 800;
-      height: 2.35rem;
-      justify-content: center;
-      width: 2.35rem;
+      gap: 0.7rem;
+      min-height: 3.5rem;
+      padding: 0.65rem 0.75rem;
+      transition: background 140ms ease, border-color 140ms ease, box-shadow 140ms ease;
     }
 
-    .mobile-date__weekday {
-      font-size: 0.58rem;
-      font-weight: 750;
-      margin-top: 0.3rem;
-      text-transform: uppercase;
+    .status-option:hover {
+      background: #fafafd;
+      border-color: #bfc1d9;
     }
 
-    .mobile-date__dot {
-      background: var(--events-accent-dark);
-      border-radius: 50%;
-      height: 0.22rem;
-      position: absolute;
-      right: 0.18rem;
-      top: 0.12rem;
-      width: 0.22rem;
+    .status-option:has(input:checked) {
+      background: #f3f3fc;
+      border-color: #7276c9;
+      box-shadow: 0 0 0 2px rgb(83 88 189 / 10%);
     }
 
-    .mobile-date--has-events .mobile-date__number {
-      background: #eaf4e5;
-      border-color: #d2e7c8;
-      color: #315d18;
-    }
-
-    .mobile-date--today .mobile-date__number {
-      border-color: var(--events-accent-dark);
-      box-shadow: inset 0 0 0 1px var(--events-accent-dark);
-    }
-
-    .mobile-date--selected .mobile-date__number {
-      background: var(--events-accent-dark);
-      border-color: var(--events-accent-dark);
-      color: #fff;
-    }
-
-    .mobile-date--selected .mobile-date__dot {
-      background: #fff;
-    }
-
-    .mobile-date:focus-visible {
-      outline: 2px solid var(--events-accent);
+    .status-option:focus-within {
+      outline: 2px solid #5358bd;
       outline-offset: 2px;
     }
+
+    .status-option input {
+      height: 1px;
+      opacity: 0;
+      position: absolute;
+      width: 1px;
+    }
+
+    .status-option__dot {
+      background: #7a7c85;
+      border-radius: 50%;
+      box-shadow: 0 0 0 3px rgb(122 124 133 / 12%);
+      flex: 0 0 0.5rem;
+      height: 0.5rem;
+    }
+
+    .status-option--published .status-option__dot {
+      background: #35844d;
+      box-shadow: 0 0 0 3px rgb(53 132 77 / 12%);
+    }
+
+    .status-option--cancelled .status-option__dot {
+      background: #bc563f;
+      box-shadow: 0 0 0 3px rgb(188 86 63 / 12%);
+    }
+
+    .status-option__copy {
+      display: grid;
+      flex: 1;
+      gap: 0.1rem;
+    }
+
+    .status-option__copy strong {
+      color: #333540;
+      font-size: 0.78rem;
+    }
+
+    .status-option__copy small {
+      color: #777985;
+      font-size: 0.67rem;
+    }
+
+    .status-option__choice {
+      border: 1px solid #b6b8c1;
+      border-radius: 50%;
+      height: 1rem;
+      width: 1rem;
+    }
+
+    .status-option input:checked ~ .status-option__choice {
+      border: 0.3rem solid #5358bd;
+    }
   }
-}
 
-.page-heading {
-  align-items: center;
-  display: flex;
-  gap: 0;
-}
+  .confirmation-backdrop {
+    align-items: center;
+    background: rgb(23 24 33 / 48%);
+    display: flex;
+    inset: 0;
+    justify-content: center;
+    padding: 1.25rem;
+    position: fixed;
+    z-index: 2000;
+  }
 
-.page-heading img {
-  display: none;
-}
+  .confirmation-dialog {
+    background: #fff;
+    border: 1px solid #dedfe5;
+    border-radius: 1rem;
+    box-shadow: 0 24px 60px rgb(23 24 33 / 25%);
+    box-sizing: border-box;
+    max-width: 27rem;
+    padding: 1.5rem;
+    text-align: center;
+    width: 100%;
+  }
 
-@media (max-width: 700px) {
+  .confirmation-dialog h2 {
+    font-size: 1.2rem;
+    line-height: 1.4;
+    margin: 0 0 1.25rem;
+  }
+
+  .confirmation-error {
+    font-size: 0.82rem;
+    margin: 0 0 1.25rem;
+  }
+
+  .confirmation-error {
+    color: #b3261e;
+  }
+
+  .confirmation-actions {
+    display: flex;
+    gap: 0.65rem;
+    justify-content: center;
+  }
+
+  .confirmation-actions button {
+    border: 0;
+    border-radius: 0.65rem;
+    cursor: pointer;
+    font: inherit;
+    font-size: 0.76rem;
+    font-weight: 800;
+    min-height: 2.6rem;
+    padding: 0.6rem 0.9rem;
+  }
+
+  .confirmation-cancel {
+    background: #eff0f3;
+    color: #555762;
+  }
+
+  .confirmation-submit {
+    background: #5358bd;
+    color: #fff;
+  }
+
+  .confirmation-delete {
+    background: #bd3535;
+    color: #fff;
+  }
+
+  .confirmation-actions button:disabled {
+    cursor: wait;
+    opacity: 0.65;
+  }
+
+  .confirmation-cancel:hover {
+    background: #e4e5e9;
+  }
+
+  .confirmation-submit:hover {
+    background: #454aa7;
+  }
+
+  .confirmation-delete:hover:not(:disabled) {
+    background: #a52c2c;
+  }
+
+
+  @media (max-width: 700px) {
+    app-events-list {
+      .mobile-date-calendar {
+        background: #f7f9f6;
+        border: 1px solid var(--events-accent);
+        border-radius: 1.4rem;
+        display: block !important;
+        margin: 1rem 0;
+        overflow: visible;
+        padding: 0.85rem 0.9rem 0.75rem;
+      }
+
+      .mobile-date-calendar__header {
+        align-items: center;
+        display: flex;
+        justify-content: space-between;
+        padding: 0 0 0.7rem;
+      }
+
+      .mobile-date-strip {
+        display: grid;
+        gap: 0.35rem;
+        grid-auto-columns: 3rem;
+        grid-auto-flow: column;
+        overflow-x: auto;
+        padding: 0 0 0.2rem;
+        scroll-padding-inline: 0;
+        scroll-snap-type: x proximity;
+        scrollbar-width: none;
+      }
+
+      .mobile-date-strip::-webkit-scrollbar {
+        display: none;
+      }
+
+      .mobile-date {
+        -webkit-tap-highlight-color: transparent;
+        align-items: center;
+        background: transparent;
+        border: 0;
+        color: #555b52;
+        cursor: pointer;
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+        padding: 0;
+        position: relative;
+        scroll-snap-align: start;
+      }
+
+      .mobile-date__number {
+        align-items: center;
+        background: #fff;
+        border: 1px solid #dce3d8;
+        border-radius: 50%;
+        display: flex;
+        font-size: 0.78rem;
+        font-weight: 800;
+        height: 2.35rem;
+        justify-content: center;
+        width: 2.35rem;
+      }
+
+      .mobile-date__weekday {
+        font-size: 0.58rem;
+        font-weight: 750;
+        margin-top: 0.3rem;
+        text-transform: uppercase;
+      }
+
+      .mobile-date__dot {
+        background: var(--events-accent-dark);
+        border-radius: 50%;
+        height: 0.22rem;
+        position: absolute;
+        right: 0.18rem;
+        top: 0.12rem;
+        width: 0.22rem;
+      }
+
+      .mobile-date--has-events .mobile-date__number {
+        background: #eaf4e5;
+        border-color: #d2e7c8;
+        color: #315d18;
+      }
+
+      .mobile-date--today .mobile-date__number {
+        border-color: var(--events-accent-dark);
+        box-shadow: inset 0 0 0 1px var(--events-accent-dark);
+      }
+
+      .mobile-date--selected .mobile-date__number {
+        background: var(--events-accent-dark);
+        border-color: var(--events-accent-dark);
+        color: #fff;
+      }
+
+      .mobile-date--selected .mobile-date__dot {
+        background: #fff;
+      }
+
+      .mobile-date:focus-visible {
+        outline: 2px solid var(--events-accent);
+        outline-offset: 2px;
+      }
+    }
+  }
+
   .page-heading {
-    gap: 0.75rem;
-    padding: 1rem 0 1.25rem 0.5rem;
+    align-items: center;
+    display: flex;
+    gap: 0;
   }
 
   .page-heading img {
-    display: block;
-    height: 2.5rem;
-    object-fit: contain;
-    width: 2.5rem;
+    display: none;
   }
 
-  .page-heading h1 {
-    margin: 0;
+  @media (max-width: 700px) {
+    .page-heading {
+      gap: 0.75rem;
+      padding: 1rem 0 1.25rem 0.5rem;
+    }
+
+    .page-heading img {
+      display: block;
+      height: 2.5rem;
+      object-fit: contain;
+      width: 2.5rem;
+    }
+
+    .page-heading h1 {
+      margin: 0;
+    }
   }
 }
-/* You can add global styles to this file, and also import other style files */

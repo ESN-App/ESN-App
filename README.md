@@ -14,7 +14,7 @@ Documentation map:
 | Layer | Choice |
 |---|---|
 | Backend | .NET 10 Web API, Clean Architecture, EF Core 10 + PostgreSQL, Identity + JWT, Swagger |
-| Frontend | Angular 22 (standalone components) + Angular Material, PWA |
+| Frontend | React 19 + React Router 8 on Vite 8, PWA (vite-plugin-pwa) |
 | Containers | Docker Compose |
 | CI | GitHub Actions (PRs into `dev` — the primary/production branch) |
 
@@ -30,9 +30,10 @@ backend/
   src/EsnApp.Api/              # Controllers, Swagger, middleware, DI wiring.
   tests/                       # xUnit test projects (unit + WebApplicationFactory integration).
 frontend/
-  src/app/core/                # AuthService, JWT interceptor, auth guard.
-  src/app/shared/              # Reusable components (spinner, empty state).
-  src/app/features/            # events / discounts / info / auth — lazy-loaded routes.
+  src/core/                    # Auth store + useAuth hook, fetch-based http client, route guards.
+  src/shared/                  # Reusable components (spinner, badges, empty state), hooks, formatting.
+  src/features/                # home / events / partners / info / auth / admin — lazy-loaded pages.
+  src/routes.tsx               # React Router route table.
 docker/                        # Dockerfiles + nginx config.
 docs/                          # Architecture decisions, meeting notes.
 .github/workflows/             # backend-ci.yml, frontend-ci.yml.
@@ -97,9 +98,9 @@ Each module lives in the same relative spot in every layer. To extend (for examp
 2. `backend/src/EsnApp.Application/Events/` — DTOs, use cases (queries/commands), validators, repository interface.
 3. `backend/src/EsnApp.Infrastructure/Persistence/` — repository implementation, DbContext config, migration.
 4. `backend/src/EsnApp.Api/Controllers/EventsController.cs` — endpoints (keep Swagger annotations current).
-5. `frontend/src/app/features/events/` — API service, components, routes.
+5. `frontend/src/features/events/` — `data-access/` API module, components, pages (+ an entry in `src/routes.tsx`).
 
-Discounts (incl. Partners) and Info follow the identical pattern. Auth is already functional end-to-end (register/login → JWT → `[Authorize]` on POST endpoints, token attached by the Angular interceptor).
+Discounts (incl. Partners) and Info follow the identical pattern. Auth is already functional end-to-end (register/login → JWT → `[Authorize]` on POST endpoints, token attached by the frontend `http` client).
 
 ## Workflow
 

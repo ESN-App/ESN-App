@@ -1,0 +1,258 @@
+// Minimal stand-ins for the handful of Angular Material pieces the Angular app used
+// (toolbar, text button, icon, progress spinner). Values match the Material 3 defaults
+// the old theme produced, so component stylesheets keep rendering the same way.
+
+mat-toolbar {
+  align-items: center;
+  box-sizing: border-box;
+  display: flex;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 22px;
+  font-weight: 400;
+  height: 64px;
+  line-height: 28px;
+  padding: 0 16px;
+  white-space: nowrap;
+  width: 100%;
+}
+
+@media (max-width: 599px) {
+  mat-toolbar {
+    height: 56px;
+  }
+}
+
+.mat-mdc-button {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  border-radius: 9999px;
+  box-sizing: border-box;
+  color: #4347a7;
+  cursor: pointer;
+  display: inline-flex;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  height: 40px;
+  justify-content: center;
+  letter-spacing: 0.006rem;
+  line-height: 20px;
+  min-width: 64px;
+  outline: none;
+  overflow: visible;
+  padding: 0 12px;
+  position: relative;
+  text-decoration: none;
+  transition: background-color 120ms ease;
+  user-select: none;
+  white-space: nowrap;
+
+  &:hover {
+    background-color: rgb(26 27 31 / 8%);
+  }
+
+  &:focus-visible {
+    outline: 2px solid currentColor;
+    outline-offset: 2px;
+  }
+}
+
+mat-icon {
+  direction: ltr;
+  display: inline-block;
+  fill: currentColor;
+  font-family: 'Material Icons';
+  font-feature-settings: 'liga';
+  font-size: 24px;
+  font-style: normal;
+  font-weight: normal;
+  height: 24px;
+  letter-spacing: normal;
+  line-height: 1;
+  overflow: hidden;
+  text-transform: none;
+  user-select: none;
+  white-space: nowrap;
+  width: 24px;
+  word-wrap: normal;
+  -webkit-font-smoothing: antialiased;
+}
+
+@keyframes mat-spinner-rotate {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes mat-spinner-dash {
+  0% {
+    stroke-dasharray: 1 283;
+    stroke-dashoffset: 0;
+  }
+
+  50% {
+    stroke-dasharray: 200 283;
+    stroke-dashoffset: -35;
+  }
+
+  100% {
+    stroke-dasharray: 200 283;
+    stroke-dashoffset: -280;
+  }
+}
+
+mat-spinner {
+  color: #005cbb;
+  display: block;
+  overflow: hidden;
+  position: relative;
+
+  svg {
+    animation: mat-spinner-rotate 1.4s linear infinite;
+    display: block;
+    height: 100%;
+    width: 100%;
+  }
+
+  circle {
+    animation: mat-spinner-dash 1.4s ease-in-out infinite;
+    fill: none;
+    stroke: currentColor;
+    stroke-linecap: round;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  mat-spinner svg,
+  mat-spinner circle {
+    animation-duration: 3s;
+  }
+}
+
+// mat-calendar (month view only) — the events list renders the same DOM/classes.
+mat-calendar {
+  display: block;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 14px;
+  line-height: normal;
+  color: #1a1b1f;
+}
+
+.mat-calendar-content {
+  outline: none;
+  padding: 0 8px 8px;
+}
+
+.mat-calendar-table {
+  border-collapse: collapse;
+  border-spacing: 0;
+  width: 100%;
+}
+
+.mat-calendar-table-header th {
+  color: #44474e;
+  font-size: 11px;
+  font-weight: 500;
+  padding: 0 0 8px;
+  text-align: center;
+}
+
+.mat-calendar-table-header-divider {
+  height: 1px;
+  position: relative;
+
+  &::after {
+    background: #c4c6d0;
+    content: '';
+    height: 1px;
+    left: -8px;
+    position: absolute;
+    right: -8px;
+    top: 0;
+  }
+}
+
+.mat-calendar-body-label {
+  height: 0;
+  line-height: 0;
+  padding-left: 4.7142857143%;
+  text-align: start;
+}
+
+.mat-calendar-body-cell-container {
+  height: 0;
+  line-height: 0;
+  position: relative;
+  text-align: center;
+}
+
+.mat-calendar-body-cell {
+  background: none;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  height: 100%;
+  left: 0;
+  margin: 0;
+  outline: none;
+  padding: 0;
+  position: absolute;
+  text-align: center;
+  top: 0;
+  -webkit-tap-highlight-color: transparent;
+  width: 100%;
+}
+
+.mat-calendar-body-cell-content {
+  align-items: center;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  box-sizing: border-box;
+  color: #1a1b1f;
+  display: flex;
+  height: 90%;
+  justify-content: center;
+  left: 5%;
+  line-height: 1;
+  position: absolute;
+  top: 5%;
+  width: 90%;
+  z-index: 1;
+}
+
+.mat-calendar-body-today:not(.mat-calendar-body-selected) {
+  border-color: var(--mat-datepicker-calendar-date-today-outline-color, #005cbb);
+}
+
+.mat-calendar-body-selected {
+  background-color: var(--mat-datepicker-calendar-date-selected-state-background-color, #005cbb);
+  color: var(--mat-datepicker-calendar-date-selected-state-text-color, #fff);
+}
+
+.mat-calendar-body-cell:not(.mat-calendar-body-disabled):hover
+  > .mat-calendar-body-cell-content:not(.mat-calendar-body-selected) {
+  background-color: rgba(26, 27, 31, 0.04);
+}
+
+.mat-calendar-body-disabled {
+  cursor: default;
+
+  > .mat-calendar-body-cell-content {
+    color: rgba(26, 27, 31, 0.38);
+  }
+}
+
+.cdk-visually-hidden {
+  border: 0;
+  clip: rect(0 0 0 0);
+  height: 1px;
+  margin: -1px;
+  outline: 0;
+  overflow: hidden;
+  padding: 0;
+  position: absolute;
+  white-space: nowrap;
+  width: 1px;
+}

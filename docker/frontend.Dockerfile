@@ -10,5 +10,5 @@ RUN npm run build
 
 FROM nginx:alpine AS runtime
 COPY docker/nginx.conf /etc/nginx/conf.d/default.conf
-COPY --from=build /app/dist/esn-app/browser /usr/share/nginx/html
+COPY --from=build /app/dist /usr/share/nginx/html
 EXPOSE 80

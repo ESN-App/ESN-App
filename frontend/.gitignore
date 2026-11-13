@@ -4,6 +4,8 @@
 /dist
 /tmp
 /out-tsc
+/dev-dist
+*.tsbuildinfo
 /bazel-out
 
 # Node
@@ -30,7 +32,6 @@ yarn-error.log
 .history/*
 
 # Miscellaneous
-/.angular/cache
 .sass-cache/
 /connect.lock
 /coverage

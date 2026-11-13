@@ -1,13 +1,13 @@
 # Requirements
 
-Version policy for this project: **everything runs on the latest stable release.** When a new major of .NET, Angular, or any dependency ships, upgrading is a chore task, not a debate. Update this file whenever versions change.
+Version policy for this project: **everything runs on the latest stable release.** When a new major of .NET, React, or any dependency ships, upgrading is a chore task, not a debate. Update this file whenever versions change.
 
 ## Toolchain (what every developer needs installed)
 
 | Tool | Required version | Notes |
 |---|---|---|
 | .NET SDK | **10.0.x** (latest) | https://dotnet.microsoft.com/download |
-| Node.js | **24.x LTS, minimum 24.15.0** | Angular CLI 22 requires `^22.22.3 \|\| ^24.15.0 \|\| >=26.0.0` |
+| Node.js | **24.x LTS, minimum 24.15.0** | Vite 8 requires Node `^20.19 \|\| >=22.12`; the project and CI standardize on 24 |
 | npm | **≥ 11** | Ships with Node 24 |
 | Docker Desktop | latest, Compose v2 | Only needed for `docker compose up` / running PostgreSQL |
 | Git | latest | |
@@ -31,15 +31,19 @@ No local PostgreSQL install — always use the `postgres` container (`docker com
 | xunit / runner / Test SDK | 2.9.3 / 3.1.4 / 17.14.1 |
 | dotnet-ef (local tool, `backend/dotnet-tools.json`) | 10.0.9 |
 
-### Frontend (Angular 22)
+### Frontend (React 19 + Vite 8)
 
 | Package | Version |
 |---|---|
-| @angular/* (core, cli, build, etc.) | ^22.0.0 |
-| @angular/material + cdk | ^22.0.0 |
-| TypeScript | ~6.0.0 (Angular 22 requires >=6.0 <6.1) |
-| angular-eslint | ^22.0.0 |
-| vitest | ^4 |
+| react + react-dom | ^19.3.1 |
+| react-router | ^8.5.1 |
+| vite + @vitejs/plugin-react | ^8.3.8 / ^6.3.0 |
+| vite-plugin-pwa | ^2.0.0 |
+| maplibre-gl | ^5.24.0 |
+| sass | ^1.108.2 |
+| TypeScript | ~6.0.0 |
+| eslint + typescript-eslint + eslint-plugin-react-hooks | ^10.3.0 / ^8.72.2 / ^7.1.1 |
+| vitest (+ jsdom) | ^5.1.0 (^28.0.0) |
 
 ### Infrastructure
 
@@ -58,9 +62,9 @@ cd backend
 dotnet add src/<Project> package <PackageName>
 dotnet tool update dotnet-ef
 
-# frontend — official migration path, run per major version
+# frontend — list outdated packages, then bump them (check each major's migration notes)
 cd frontend
-npx ng update @angular/cli @angular/core @angular/material angular-eslint
+npx npm-check-updates -u && npm install
 ```
 
-After any upgrade: `dotnet build && dotnet test` (backend), `npm run lint && npm test && npm run build` (frontend), and update the tables above.
+After any upgrade: `dotnet build && dotnet test` (backend), `npm run lint && npm test -- --run && npm run build` (frontend), and update the tables above.

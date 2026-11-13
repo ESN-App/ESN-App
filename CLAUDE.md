@@ -10,7 +10,7 @@ Background docs (originally the source of truth for decisions — **now historic
 
 - [docs/skeleton-implementation.md](docs/skeleton-implementation.md) — implementation notes as of the initial skeleton (dated 2026-07-07); API surface table and "auth is the only working feature" framing are stale, see Architecture below for current state
 - [docs/adr/](docs/adr) — decision records (ADR-001: latest-stable version policy, ADR-002: same-origin API proxy, ADR-003: `main` retired, `dev` is primary). Still current, but **no ADR has been written since** despite several architecture-level decisions since (Partners superseding Discounts, Home becoming the root route, role-based admin auth) — worth an ADR if those decisions need to be durable/explained later
-- [docs/architecture-decisions.md](docs/architecture-decisions.md) — why monorepo, Clean Architecture, Angular Material, scaffolded auth; module/feature lists in it are stale (missing News, Partners, Home, Admin)
+- [docs/architecture-decisions.md](docs/architecture-decisions.md) — why monorepo, Clean Architecture, Angular Material, scaffolded auth; module/feature lists in it are stale (missing News, Partners, Home, Admin), and the frontend has since been rewritten from Angular to React
 - [docs/meeting-summary.md](docs/meeting-summary.md) — confirmed stack, original MVP scope, GitHub workflow; scope section is a historical snapshot (e.g. lists the Map as deferred "Could Have" — it has since been built)
 - [claude-code-skeleton-prompt.md](claude-code-skeleton-prompt.md) — the spec the original skeleton was generated from
 - [DEV_SETUP_PLAN.md](DEV_SETUP_PLAN.md) — phased team quality-setup checklist (partially done; branch rules/Projects live on GitHub)
@@ -30,13 +30,13 @@ dotnet tool restore                           # installs pinned dotnet-ef
 dotnet ef migrations add <Name> --project src/EsnApp.Infrastructure --startup-project src/EsnApp.Api
 ```
 
-Frontend (from `frontend/`; Angular 22 + TypeScript 6 — requires Node ≥ 24.15, the Angular CLI hard-fails on older Node):
+Frontend (from `frontend/`; React 19 + React Router 8 on Vite 8, TypeScript 6 — use Node 24, same as CI and the Docker image):
 
 ```bash
-npm start        # dev server on http://localhost:4200, API base http://localhost:5000
-npm run lint     # ESLint (angular-eslint)
-npm test         # vitest via ng test; add --watch=false for single run (NOT run in CI, see Conventions)
-npm run build    # production build (apiBaseUrl '', nginx proxies /api same-origin)
+npm start        # Vite dev server on http://localhost:4200; /api is proxied to http://localhost:5000 (override with API_PROXY_TARGET)
+npm run lint     # ESLint (typescript-eslint + react-hooks)
+npm test         # vitest (jsdom); add -- --run for a single run (NOT run in CI, see Conventions)
+npm run build    # tsc -b + vite build into dist/ (API is same-origin; nginx proxies /api)
 ```
 
 Rebuild just the backend image and restart its container (leaves postgres and its data alone):
@@ -67,14 +67,14 @@ Key mechanics that span files:
 
 - Integration tests use `WebApplicationFactory<Program>` (hence `public partial class Program` in Program.cs) with environment "Testing" so no DB is touched. There are now two backend test projects: `EsnApp.Api.Tests` (integration) and `EsnApp.Application.Tests` (handler unit tests for Events/Info/Discounts-Partners) — **News has no test coverage yet**, worth adding when touching that module.
 
-Frontend: standalone components, signals, zoneless. `core/` has `AuthService` (token in localStorage, exposed as signals, including an `isAdmin` computed signal derived from the JWT's role claim), a functional JWT interceptor, `auth.guard.ts` (`authGuard`, any logged-in user) and `admin.guard.ts` (`adminGuard`, requires `isAdmin()`, redirects to `/` or `/auth?returnUrl=/admin`).
+Frontend: React 19 function components with hooks, React Router 8 data router (`src/routes.tsx`, lazy-loaded pages), no global state library. It was ported 1:1 from an earlier Angular version, so file layout, the component SCSS and the custom-element host tags (`app-*`) are kept: `shared/host.tsx` renders each page/component inside its old host tag and every stylesheet is wrapped in `@scope (app-x) to (:scope [data-ng-host] > *)` to reproduce Angular's view encapsulation; `_material.scss` holds the few Angular Material styles (toolbar, button, icon, spinner, calendar) the UI still relies on. Keep that pattern for new components. `core/` has `auth-store.ts` (token in localStorage, a subscribable store with an `isAdmin` flag derived from the JWT's role claim), `auth.ts` (`useAuth()` hook via `useSyncExternalStore`, `authApi`), `http.ts` (fetch wrapper that attaches the bearer token and throws `HttpError`) and `guards.tsx` (`AuthGuard`, any logged-in user; `AdminGuard`, requires admin, redirects to `/` or `/auth?returnUrl=/admin`).
 
-Feature folders under `features/`: `home` (root route `''`, pulls in News highlights via `home/data-access/news-api.ts` — News has no dedicated frontend feature folder of its own), `events` (includes the Calendar UI — a `MatCalendar` panel plus a custom mobile date strip, built into `events-list`, not a separate feature), `partners` (includes the map, `partners-map.ts`, built on `maplibre-gl`; `Partner` has `Latitude`/`Longitude`), `info`, `auth`, and `admin` (the admin panel — see below). There is **no `discounts` feature folder**; `/discounts` is a redirect to `/partners` (the product pivoted to "Partners" as the user-facing concept; `Discount` survives on the backend as a partner's *offers*, edited from the partner rows in the admin panel).
+Feature folders under `features/`: `home` (root route `''`, pulls in News highlights via `home/data-access/news-api.ts` — News has no dedicated frontend feature folder of its own), `events` (includes the Calendar UI — a month calendar (`month-calendar.tsx`, styled like the old `MatCalendar`) plus a custom mobile date strip, built into `events-list`, not a separate feature), `partners` (includes the map, `partners-map.tsx`, built on `maplibre-gl`; `Partner` has `Latitude`/`Longitude`), `info`, `auth`, and `admin` (the admin panel — see below). There is **no `discounts` feature folder**; `/discounts` is a redirect to `/partners` (the product pivoted to "Partners" as the user-facing concept; `Discount` survives on the backend as a partner's *offers*, edited from the partner rows in the admin panel).
 
-`features/admin/` is a cross-cutting UI aggregator, not tied to one backend domain: `pages/admin-panel` is a single dashboard with tabs for events/news/partners/info/admins (search, sort, pagination, multi-select, bulk status/delete, backed by `data-access/admin-api.ts`), `pages/admin-event-create` is the one dedicated create/edit form (Events only — News/Partners/Info are managed inline in the admin-panel table via status toggles and reorder, they don't have their own create/edit pages), and `components/admin-date-time-picker` is a shared widget used by the event form. All admin routes set `hideMobileNavigation: true` and are gated by `adminGuard`.
+`features/admin/` is a cross-cutting UI aggregator, not tied to one backend domain: `pages/admin-panel` is a single dashboard with tabs for events/news/partners/info/admins (search, sort, pagination, multi-select, bulk status/delete, backed by `data-access/admin-api.ts`), each module has a create/edit page pair (`admin-{event,news,info,partner,admin}-create`, `*-edit`) built on one shared editor component per module with a live preview (`components/admin-editor-layout`, `admin-preview-panel`), `components/admin-display-order-modal` handles partner/info reordering, and `components/admin-date-time-picker` is used by the event form. All admin routes set `handle.hideMobileNavigation` and are gated by `AdminGuard`.
 
 **Module symmetry**: still a useful default, but no longer universal — apply it deliberately rather than assuming it:
-- Events and Info are symmetric end-to-end (Domain/Application folder, public + Admin controller pair, Angular feature folder with its own data-access).
+- Events and Info are symmetric end-to-end (Domain/Application folder, public + Admin controller pair, frontend feature folder with its own data-access).
 - News is symmetric on the backend (Domain/Application/public+Admin controllers) but **not** on the frontend — its API/models live under `home/data-access/` instead of a `features/news/` folder.
 - Partners/Discounts is symmetric on the backend (public read-only controller + `Admin*Controller` pair for both `Partner` and `Discount`) but shares one frontend feature folder (`features/partners/`), with offer editing living in the admin panel rather than a `discounts` feature.
 - `admin` and `home` are intentionally cross-cutting composition features on the frontend with no single backend domain counterpart — don't look for a `Domain/Admin` or `Domain/Home`, there isn't one.
@@ -86,4 +86,4 @@ Feature folders under `features/`: `home` (root route `''`, pulls in News highli
 - Every endpoint keeps Swagger annotations (`ProducesResponseType`, XML summary).
 - Secrets only via environment variables / `.env` (gitignored); `.env.example` documents every variable. The JWT dev key and seed password in appsettings/compose defaults are dev-only placeholders.
 - CI (`.github/workflows/`) has three workflows, all triggered on PRs into `dev`: `backend-ci.yml` (restore/build/test on .NET 10), `frontend-ci.yml` (`npm ci`/lint/build on Node 24 — **note: frontend CI does not run `npm test`**, only lint+build), and `copilot-review.yml` (requests a Copilot code review on every non-draft PR, mirroring a repo ruleset — keep both in sync if either changes).
-- Version policy: latest stable for every framework/package; keep [REQUIREMENTS.md](REQUIREMENTS.md) in sync when versions change. `maplibre-gl` was added for the Partners map.
+- Version policy: latest stable for every framework/package; keep [REQUIREMENTS.md](REQUIREMENTS.md) in sync when versions change. `maplibre-gl` was added for the Partners map; the frontend moved from Angular 22 to React 19 + Vite (branch `react-front`).
