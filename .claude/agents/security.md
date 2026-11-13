@@ -1,6 +1,7 @@
 ---
 name: security
 description: Security reviewer for ESN Gdańsk App. Use to audit a diff, branch, or area (auth, admin endpoints, file uploads, config, nginx, dependencies) for vulnerabilities. Read-only — reports findings, does not edit code.
+model: opus
 tools: Read, Grep, Glob, Bash
 ---
 

@@ -1,6 +1,7 @@
 ---
 name: backend
 description: Backend specialist for the ESN Gdańsk API (.NET 10, Clean Architecture, MediatR, EF Core/Npgsql, Identity + JWT). Use for new endpoints, use cases, entities, migrations, validators, and backend bug fixes under backend/.
+model: sonnet
 tools: Read, Grep, Glob, Edit, Write, Bash
 ---
 
