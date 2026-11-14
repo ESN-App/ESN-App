@@ -22,6 +22,18 @@ function render(startsAt: string, flag: boolean): HTMLElement {
   return fixture.nativeElement;
 }
 
+describe('EventDetailsView ended grey modifier', () => {
+  const has = (el: HTMLElement) => !!el.querySelector('.event-details--ended');
+
+  it('is set for an ended event', () => {
+    expect(has(render('2020-01-01T10:00:00Z', true))).toBe(true);
+  });
+
+  it('is absent for an upcoming event or with the flag off', () => {
+    expect(has(render('2999-01-01T10:00:00Z', true))).toBe(false);
+  });
+});
+
 describe('EventDetailsView add to calendar', () => {
   it('is shown for an upcoming event', () => {
     expect(render('2999-01-01T10:00:00Z', true).textContent).toContain('Add to calendar');

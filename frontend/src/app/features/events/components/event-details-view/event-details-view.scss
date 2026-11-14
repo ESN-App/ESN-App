@@ -458,3 +458,38 @@
     display: none;
   }
 }
+
+// Ended (not cancelled): date tile and info card go grey; band, title, chip, About stay as is.
+// Date tile ink is a step darker/lighter than --app-ink-ended, which is below 4.5:1 on the tile.
+.event-details--ended {
+  --ended-fill: light-dark(#e3e6ef, #2a2c45);
+
+  --ended-tile-ink: light-dark(#5c5e72, #9a9cb2);
+
+  .date-tile {
+    background: var(--ended-fill);
+    color: var(--ended-tile-ink);
+  }
+
+  .info-row {
+    strong,
+    span:not(.icon-square):not(.visually-hidden),
+    .row-link {
+      color: var(--app-ink-ended);
+    }
+
+    .icon-square {
+      background: var(--ended-fill);
+      color: var(--app-ink-ended);
+    }
+  }
+
+  .progress span {
+    background: var(--app-ink-ended);
+  }
+
+  .free-sticker {
+    background: var(--ended-fill);
+    color: var(--ended-tile-ink);
+  }
+}
