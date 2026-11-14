@@ -919,6 +919,16 @@ app-root {
     top: 40px;
   }
 
+  // The head covers the whole hero cell (#67): let clicks through to the back button,
+  // its own text and links stay interactive.
+  .article-page > .article-head {
+    pointer-events: none;
+  }
+
+  .article-page > .article-head > * {
+    pointer-events: auto;
+  }
+
   .article-head {
     align-self: end;
     background: none;
