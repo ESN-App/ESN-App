@@ -43,6 +43,29 @@
   background: light-dark(#c9cbd8, #2a2c45);
 }
 
+// Ended: muted text and a struck-through title; only the photo fades, so the star keeps full opacity.
+.event-card--ended {
+  .event-time,
+  .event-title,
+  .event-location {
+    color: var(--app-ink-ended);
+  }
+
+  .event-title {
+    text-decoration: line-through;
+    text-decoration-thickness: 1px;
+  }
+
+  .event-tile {
+    background: light-dark(#c9cbd8, #2a2c45);
+
+    img {
+      filter: grayscale(1);
+      opacity: 0.6;
+    }
+  }
+}
+
 .event-copy {
   display: grid;
   gap: 4px;
