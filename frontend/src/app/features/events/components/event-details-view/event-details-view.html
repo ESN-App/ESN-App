@@ -126,7 +126,7 @@
       </section>
 
       <!-- On desktop in the side card, on a phone after About: reading order matches the screen. -->
-      <div class="cta cta--side"><ng-container [ngTemplateOutlet]="cta" /></div>
+      <div class="cta cta--side"><ng-container [ngTemplateOutlet]="cta" [ngTemplateOutletContext]="{ desktop: true }" /></div>
     </div>
 
     <section class="about" aria-labelledby="about-title">
@@ -143,28 +143,77 @@
   </div>
 </article>
 
-<ng-template #cta>
+<ng-template #cta let-desktop="desktop">
   @if (ended()) {
     <p class="thanks">
       <mat-icon aria-hidden="true">celebration</mat-icon>
       Thank you for coming
     </p>
-  } @else if (item.registrationUrl && item.status !== 2) {
-    @if (interactive()) {
-      <a
-        class="pill-button pill-button--primary pill-button--block register"
-        [href]="item.registrationUrl"
-        target="_blank"
-        rel="noopener noreferrer"
-      >
-        <mat-icon aria-hidden="true">open_in_new</mat-icon>
-        Register on the event page
-      </a>
-    } @else {
-      <div class="pill-button pill-button--primary pill-button--block register">
-        <mat-icon aria-hidden="true">open_in_new</mat-icon>
-        Register on the event page
-      </div>
+  } @else {
+    @if (item.registrationUrl && item.status !== 2) {
+      @if (interactive()) {
+        <a
+          class="pill-button pill-button--primary pill-button--block register"
+          [href]="item.registrationUrl"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <mat-icon aria-hidden="true">open_in_new</mat-icon>
+          Register on the event page
+        </a>
+      } @else {
+        <div class="pill-button pill-button--primary pill-button--block register">
+          <mat-icon aria-hidden="true">open_in_new</mat-icon>
+          Register on the event page
+        </div>
+      }
+    }
+    @if (calendarEvent()) {
+      @if (desktop) {
+        <button type="button" class="pill-button pill-button--block register" aria-haspopup="menu" [matMenuTriggerFor]="calMenu">
+          <mat-icon aria-hidden="true">calendar_month</mat-icon>
+          Add to calendar
+        </button>
+        <mat-menu #calMenu="matMenu" class="add-to-calendar-menu">
+          <ng-container [ngTemplateOutlet]="calHead" />
+          <a mat-menu-item [href]="googleUrl()" target="_blank" rel="noopener noreferrer">
+            <span class="cal-item"><strong>Google Calendar</strong><span>Opens in a new tab</span></span>
+          </a>
+          <button type="button" mat-menu-item (click)="downloadIcs()">
+            <span class="cal-item"><strong>Apple / Outlook (.ics)</strong><span>Downloads a file</span></span>
+          </button>
+        </mat-menu>
+      } @else {
+        <button type="button" class="pill-button pill-button--block register" aria-haspopup="dialog" (click)="openSheet()">
+          <mat-icon aria-hidden="true">calendar_month</mat-icon>
+          Add to calendar
+        </button>
+      }
     }
   }
 </ng-template>
+
+<ng-template #calHead>
+  <div class="cal-head">
+    <strong>Add to calendar</strong>
+    <span>{{ item.title }} · {{ item.startsAt | appDate: 'EEE d MMMM, HH:mm' }}</span>
+  </div>
+</ng-template>
+
+@if (calendarEvent()) {
+  <!-- eslint-disable-next-line @angular-eslint/template/click-events-have-key-events, @angular-eslint/template/interactive-supports-focus -->
+  <dialog #sheet class="cal-sheet" aria-labelledby="cal-sheet-title" (click)="onSheetClick($event)">
+    <div class="cal-sheet-body">
+      <div class="cal-head">
+        <strong id="cal-sheet-title">Add to calendar</strong>
+        <span>{{ item.title }} · {{ item.startsAt | appDate: 'EEE d MMMM, HH:mm' }}</span>
+      </div>
+      <a class="cal-option" [href]="googleUrl()" target="_blank" rel="noopener noreferrer" (click)="closeSheet()">
+        <span class="cal-item"><strong>Google Calendar</strong><span>Opens in a new tab</span></span>
+      </a>
+      <button type="button" class="cal-option" (click)="downloadIcs()">
+        <span class="cal-item"><strong>Apple / Outlook (.ics)</strong><span>Downloads a file</span></span>
+      </button>
+    </div>
+  </dialog>
+}
