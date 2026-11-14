@@ -52,3 +52,29 @@
 .external {
   color: var(--app-muted);
 }
+
+.article-main {
+  display: grid;
+  gap: 16px;
+  min-width: 0;
+}
+
+// Wide desktop only: below 1024px a 400px column would squeeze the text.
+@media (min-width: 1024px) {
+  .article-body--links {
+    align-items: start;
+    display: flex;
+    gap: 32px;
+    max-width: 1120px;
+
+    .article-main {
+      flex: 1;
+    }
+
+    .links {
+      flex: 0 0 400px;
+      gap: 20px;
+      margin-top: 0;
+    }
+  }
+}
