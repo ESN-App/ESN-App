@@ -19,6 +19,51 @@
 .day-strip {
   list-style: none;
   padding: 0;
+
+  > li {
+    display: flex;
+    flex: 1 0 44px;
+    max-width: 64px;
+  }
+}
+
+a.day-tile {
+  flex: 1 1 auto;
+  max-width: none;
+  text-decoration: none;
+  transition:
+    transform var(--motion-fast) var(--ease-standard),
+    background-color var(--motion-fast) var(--ease-standard);
+
+  &:hover {
+    background: rgb(255 255 255 / 85%);
+  }
+
+  &:active {
+    background: rgb(255 255 255 / 35%);
+    transform: scale(0.96);
+  }
+
+  &:focus-visible {
+    outline: 3px solid var(--ink-fixed);
+    outline-offset: 3px;
+  }
+
+  &.day-tile--active:hover {
+    background: color-mix(in srgb, var(--ink-fixed), #fff 12%);
+  }
+
+  &.day-tile--active:active {
+    background: var(--ink-fixed);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+
+    &:active {
+      transform: none;
+    }
+  }
 }
 
 .up-next {

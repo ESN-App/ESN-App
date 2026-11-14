@@ -7,19 +7,23 @@
 
         <ol class="day-strip" aria-label="This week">
           @for (day of week(); track day.key) {
-            <li
-              class="day-tile"
-              [class.day-tile--active]="day.isToday"
-              [attr.aria-current]="day.isToday ? 'date' : null"
-            >
-              <span class="visually-hidden">
-                {{ day.date | date: 'EEEE d MMMM' }}{{ day.hasEvents ? ', has events' : '' }}
-              </span>
-              <span class="day-name" aria-hidden="true">{{ day.date | date: 'EEE' }}</span>
-              <span class="day-number" aria-hidden="true">{{ day.date | date: 'd' }}</span>
-              @if (day.hasEvents) {
-                <span class="day-dot" aria-hidden="true"></span>
-              }
+            <li>
+              <a
+                class="day-tile"
+                [class.day-tile--active]="day.isToday"
+                [routerLink]="['/events']"
+                [queryParams]="{ day: day.key }"
+                [attr.aria-current]="day.isToday ? 'date' : null"
+                [attr.aria-label]="
+                  (day.date | date: 'EEEE d MMMM') + (day.hasEvents ? ', has events' : ', no events')
+                "
+              >
+                <span class="day-name" aria-hidden="true">{{ day.date | date: 'EEE' }}</span>
+                <span class="day-number" aria-hidden="true">{{ day.date | date: 'd' }}</span>
+                @if (day.hasEvents) {
+                  <span class="day-dot" aria-hidden="true"></span>
+                }
+              </a>
             </li>
           }
         </ol>
