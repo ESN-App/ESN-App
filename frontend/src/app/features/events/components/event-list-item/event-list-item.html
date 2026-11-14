@@ -3,6 +3,7 @@
   class="event-card card"
   [class.event-card--cancelled]="item.status === 2"
   [class.event-card--draft]="item.status === 0"
+  [class.event-card--ended]="ended() && item.status !== 2"
 >
   @if (item.price === 0 && item.status !== 2) {
     <span class="sticker sticker--magenta sticker--corner">Free!</span>
