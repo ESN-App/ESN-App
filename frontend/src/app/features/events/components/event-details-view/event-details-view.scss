@@ -162,6 +162,7 @@
 // Desktop menu panel lives in the overlay, outside this component's encapsulation.
 ::ng-deep .add-to-calendar-menu.mat-mdc-menu-panel {
   background: var(--app-card);
+  border: 1px solid var(--app-border);
   border-radius: 16px;
   margin-top: 8px;
   max-width: 376px;
@@ -279,7 +280,9 @@
 
 @media (prefers-reduced-motion: reduce) {
   .cal-sheet,
-  .cal-sheet::backdrop {
+  .cal-sheet[open],
+  .cal-sheet::backdrop,
+  .cal-sheet[open]::backdrop {
     transition: none;
   }
 }
