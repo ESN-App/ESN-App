@@ -464,9 +464,11 @@
 .event-details--ended {
   --ended-fill: light-dark(#e3e6ef, #2a2c45);
 
+  --ended-tile-ink: light-dark(#5c5e72, #9a9cb2);
+
   .date-tile {
     background: var(--ended-fill);
-    color: light-dark(#5c5e72, #9a9cb2);
+    color: var(--ended-tile-ink);
   }
 
   .info-row {
@@ -488,6 +490,6 @@
 
   .free-sticker {
     background: var(--ended-fill);
-    color: var(--app-ink-ended);
+    color: var(--ended-tile-ink);
   }
 }
