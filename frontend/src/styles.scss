@@ -29,6 +29,8 @@ html {
   --c-orange: #f47b20;
   // Text that sits on a solid section colour is always this ink, regardless of theme.
   --ink-fixed: #16172b;
+  // Text and the half-star sitting directly on a section-colour band: white in light, ink in dark.
+  --on-band: light-dark(#fff, var(--ink-fixed));
   // ESN dark blue, the one-colour brand variant.
   --c-dark-blue: #2e3192;
 
@@ -437,7 +439,7 @@ app-root {
 // One white ESN star at full opacity (2015 brand manual). Paint it on an ::after.
 @mixin esn-star-paint($size: 100%) {
   -webkit-mask: url('/images/esnstar.png') center / auto $size no-repeat;
-  background: #fff;
+  background: var(--on-band);
   content: '';
   mask: url('/images/esnstar.png') center / auto $size no-repeat;
   pointer-events: none;
@@ -485,7 +487,7 @@ app-root {
   --world-colour: var(--c-cyan);
   background: var(--world-colour);
   box-sizing: border-box;
-  color: var(--ink-fixed);
+  color: var(--on-band);
   isolation: isolate;
   margin-inline: calc(-1 * var(--bleed, 0px));
   overflow: hidden;
@@ -507,8 +509,8 @@ app-root {
   }
 
   .intro {
-    font-size: 15px;
-    font-weight: 500;
+    font-size: 19px;
+    font-weight: 700;
     line-height: 1.4;
     margin: 6px 0 0;
     max-width: 36rem;
@@ -528,16 +530,6 @@ app-root {
 .world-header--partners,
 .detail-hero--partners {
   --world-colour: var(--c-magenta);
-}
-
-// Only the large title and subtitle may sit on solid magenta, both in white.
-.world-header--partners {
-  color: #fff;
-
-  .intro {
-    font-size: 19px;
-    font-weight: 700;
-  }
 }
 
 // Detail pages: a short hero in the section colour with the back button, and a sheet
@@ -930,7 +922,7 @@ app-root {
     align-self: end;
     background: none;
     border-radius: 0;
-    color: var(--ink-fixed);
+    color: var(--on-band);
     margin: 0;
     padding: 108px 0 48px;
 
