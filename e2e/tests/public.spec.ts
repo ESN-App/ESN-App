@@ -1,5 +1,5 @@
-import { expect, test } from '@playwright/test';
-import { createPublishedEvent, deleteEvent } from './helpers';
+import { expect, test } from './fixtures';
+import { uniqueName } from './helpers';
 
 test('home loads and the navigation reaches Events, Partners and Info', async ({ page }) => {
   await page.goto('/');
@@ -18,35 +18,21 @@ test('home loads and the navigation reaches Events, Partners and Info', async ({
   }
 });
 
-test.describe('events', () => {
-  const title = `E2E public event ${Date.now()}`;
-  let eventId: string;
+test('events list opens the details page and Back returns to the list', async ({ page, admin }) => {
+  const title = uniqueName('public event');
+  await admin.event(title);
 
-  test.beforeAll(async ({ playwright, baseURL }) => {
-    const api = await playwright.request.newContext({ baseURL });
-    eventId = await createPublishedEvent(api, title);
-    await api.dispose();
-  });
+  await page.goto('/events');
+  await page.getByRole('searchbox', { name: 'Search events' }).fill(title);
+  await page.getByRole('link', { name: title }).click();
 
-  test.afterAll(async ({ playwright, baseURL }) => {
-    const api = await playwright.request.newContext({ baseURL });
-    await deleteEvent(api, eventId);
-    await api.dispose();
-  });
+  await expect(page).toHaveURL(/\/events\/.+/);
+  await expect(page.getByRole('heading', { level: 1, name: title })).toBeVisible();
+  await expect(page.getByText('E2E Hall').first()).toBeVisible();
 
-  test('list opens the details page and Back returns to the list', async ({ page }) => {
-    await page.goto('/events');
-    await page.getByRole('searchbox', { name: 'Search events' }).fill(title);
-    await page.getByRole('link', { name: title }).click();
-
-    await expect(page).toHaveURL(/\/events\/.+/);
-    await expect(page.getByRole('heading', { level: 1, name: title })).toBeVisible();
-    await expect(page.getByText('E2E Hall').first()).toBeVisible();
-
-    await page.getByRole('link', { name: 'Back to events' }).click();
-    await expect(page).toHaveURL(/\/events(\?.*)?$/);
-    await expect(page.getByRole('heading', { level: 1, name: 'Events' })).toBeVisible();
-  });
+  await page.getByRole('link', { name: 'Back to events' }).click();
+  await expect(page).toHaveURL(/\/events(\?.*)?$/);
+  await expect(page.getByRole('heading', { level: 1, name: 'Events' })).toBeVisible();
 });
 
 test('partners list shows the map and opens a partner with its offers', async ({ page }) => {

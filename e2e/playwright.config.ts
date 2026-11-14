@@ -1,4 +1,4 @@
-import { defineConfig } from '@playwright/test';
+import { defineConfig, devices } from '@playwright/test';
 
 export default defineConfig({
   testDir: './tests',
@@ -16,5 +16,7 @@ export default defineConfig({
   projects: [
     { name: 'mobile', use: { viewport: { width: 390, height: 844 }, hasTouch: true } },
     { name: 'desktop', use: { viewport: { width: 1280, height: 800 } } },
+    // iPhone 14 is 390x844 with isMobile/hasTouch on WebKit.
+    { name: 'webkit', use: { ...devices['iPhone 14'] } },
   ],
 });

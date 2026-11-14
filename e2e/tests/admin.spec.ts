@@ -1,4 +1,5 @@
-import { expect, Page, test } from '@playwright/test';
+import { Page } from '@playwright/test';
+import { expect, test } from './fixtures';
 import { ADMIN, loginAsAdmin, openAdminSection } from './helpers';
 
 test('anonymous visit to /admin redirects to login', async ({ page }) => {
@@ -43,7 +44,7 @@ test.describe('admin panel', () => {
     return page.getByRole('link', { name: title, exact: true });
   }
 
-  test('event: create draft, edit title, delete', async ({ page }) => {
+  test('event: create draft, edit title, delete', async ({ page, admin: _admin }) => {
     const title = `E2E admin event ${Date.now()}`;
     const edited = `${title} edited`;
 
@@ -75,7 +76,7 @@ test.describe('admin panel', () => {
     await expect(page.getByRole('link', { name: edited, exact: true })).toHaveCount(0);
   });
 
-  test('news: create draft and delete', async ({ page }) => {
+  test('news: create draft and delete', async ({ page, admin: _admin }) => {
     const title = `E2E admin news ${Date.now()}`;
 
     await openAdminSection(page, 'News');
