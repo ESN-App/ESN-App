@@ -13,13 +13,15 @@
     <p class="article-meta read-time">{{ minutes() }} min read</p>
   </header>
 
-  <div class="article-body">
+  <div class="article-body" [class.article-body--links]="loaded.externalLinks.length > 0">
+    <div class="article-main">
     @if (loaded.imagePath && !imageBroken()) {
       <div class="article-image" data-hero-target><img appImageFade [src]="loaded.imagePath" alt="" (error)="imageBroken.set(true)" /></div>
     } @else {
       <div class="article-image article-image--placeholder article-image--info star-fallback" data-hero-target aria-hidden="true"></div>
     }
     <p class="article-text">{{ loaded.content }}</p>
+    </div>
 
     @if (loaded.externalLinks.length > 0) {
       <section class="links" aria-labelledby="links-title">
