@@ -893,6 +893,13 @@ app-root {
     }
   }
 
+  // Same band height on every list page (Home keeps its own, taller band); content stays top-aligned.
+  .world-header--events,
+  .world-header--info,
+  .world-header--partners {
+    min-height: 298px;
+  }
+
   .detail-hero {
     border-radius: 0 0 48px 48px;
     min-height: 0;
