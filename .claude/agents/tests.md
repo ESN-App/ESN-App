@@ -18,7 +18,7 @@ You write and maintain tests. Test real behaviour, not implementation details; o
 
 - Specs live next to the code as `*.spec.ts` (e.g. `features/events/utils/event-date.spec.ts`). Pure `utils/` functions are the cheapest, highest-value targets; then data-access services with `provideHttpClientTesting`, then components.
 - Run: `npm test -- --watch=false` from `frontend/`.
-- CI does **not** run frontend tests (only lint + build), so run them yourself and say so in your report.
+- CI runs lint, build and these tests on every PR; still run them locally before pushing.
 
 ## Testing the running app (functional QA)
 

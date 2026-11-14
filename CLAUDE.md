@@ -37,7 +37,7 @@ Frontend (from `frontend/`; Angular 22 + TypeScript 6 — requires Node ≥ 24.1
 ```bash
 npm start        # dev server on http://localhost:4200, API base http://localhost:5080
 npm run lint     # ESLint (angular-eslint)
-npm test         # vitest via ng test; add --watch=false for single run (NOT run in CI — run it yourself)
+npm test         # vitest via ng test; add --watch=false for single run (also runs in CI)
 npm run build    # production build (apiBaseUrl '', nginx proxies /api same-origin)
 ```
 
@@ -104,5 +104,5 @@ Releases: the root `VERSION` file holds the semver version (started at 0.3.20). 
 - All DB changes via EF Core migrations (review generated SQL before applying); never edit the schema directly.
 - Every endpoint keeps Swagger annotations (`ProducesResponseType`, XML summary).
 - Secrets only via environment variables / `.env` (gitignored); `.env.example` documents every variable. The JWT dev key and seed password in appsettings/compose defaults are dev-only placeholders.
-- CI (`.github/workflows/`): `backend-ci.yml` (restore/build/test on .NET 10), `frontend-ci.yml` (`npm ci`/lint/build on Node 24 — **frontend CI does not run `npm test`**), `copilot-review.yml` (Copilot review on non-draft PRs, mirroring a repo ruleset) and `release.yml` (see Deployment). They trigger on PRs into `main` (and the legacy `dev`).
+- CI (`.github/workflows/`): `backend-ci.yml` (restore/build/test on .NET 10), `frontend-ci.yml` (`npm ci`/lint/build/`npm test` on Node 24), `copilot-review.yml` (Copilot review on non-draft PRs, mirroring a repo ruleset) and `release.yml` (see Deployment). They trigger on PRs into `main` (and the legacy `dev`).
 - Version policy: latest stable for every framework/package; keep [REQUIREMENTS.md](REQUIREMENTS.md) in sync when versions change. `maplibre-gl` was added for the Partners map.
