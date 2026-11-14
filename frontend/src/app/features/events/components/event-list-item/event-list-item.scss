@@ -57,7 +57,8 @@
   }
 
   .event-tile {
-    background: light-dark(#c9cbd8, #2a2c45);
+    --on-band: #fff;
+    background: light-dark(#c9cbd8, #66676b);
 
     img {
       filter: grayscale(1);
