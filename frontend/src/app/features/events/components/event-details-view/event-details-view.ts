@@ -53,7 +53,7 @@ export class EventDetailsView {
   /** Null when adding to a calendar makes no sense (cancelled, ended, no start, preview). */
   protected readonly calendarEvent = computed<CalendarEvent | null>(() => {
     const item = this.event();
-    if (!this.interactive() || item.status === 2 || this.ended() || !item.startsAt) {
+    if (!this.interactive() || item.status === 2 || hasEventEnded(item) || !item.startsAt) {
       return null;
     }
 
