@@ -59,8 +59,8 @@
   min-width: 0;
 }
 
-// Desktop: links move to a fixed right column (same breakpoint as the shared desktop block).
-@media (min-width: 701px) {
+// Wide desktop only: below 1024px a 400px column would squeeze the text.
+@media (min-width: 1024px) {
   .article-body--links {
     align-items: start;
     display: flex;
