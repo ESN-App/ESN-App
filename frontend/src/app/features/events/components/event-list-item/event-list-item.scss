@@ -165,6 +165,14 @@
   }
 }
 
+// Mobile: the Free! sticker sits top-left over the tile; desktop keeps the global top-right.
+@media (max-width: 700px) {
+  .sticker--corner {
+    left: 22px;
+    right: auto;
+  }
+}
+
 :host(.event-list-item--desktop) .event-tile {
   flex-basis: 128px;
   height: 128px;
