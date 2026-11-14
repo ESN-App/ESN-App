@@ -3,7 +3,7 @@ import { Component, computed, inject, input, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { AppDatePipe, ImageFade } from '../../../../shared';
 import { MatIconModule } from '@angular/material/icon';
-import { FeatureFlags, SiteSettings } from '../../../../core';
+import { AuthService, FeatureFlags, SiteSettings } from '../../../../core';
 import { relativeEventDay, spotsLeftLabel } from '../../utils/event-badges';
 import { hasEventEnded, isSameCalendarDay } from '../../utils/event-date';
 import { createEventSlug } from '../../utils/event-url';
@@ -43,8 +43,14 @@ export class EventListItem {
     return isSameCalendarDay(start, end, this.timeZone());
   }
   private readonly flags = inject(FeatureFlags);
+  private readonly auth = inject(AuthService);
   protected readonly ended = computed(
     () => this.flags.pastEventTag() && hasEventEnded(this.event()),
+  );
+
+  /** Students see only the ended chip on ended cards; cancelled cards and admins keep every chip. */
+  protected readonly onlyEnded = computed(
+    () => this.ended() && this.event().status !== 2 && !this.auth.isAdmin(),
   );
 
   /** Today/Tomorrow and spots-left only make sense for events that are still ahead. */
