@@ -9,8 +9,12 @@ changed=$(git diff --name-only origin/main...HEAD 2>/dev/null || git diff --name
 if [ -s "$HOME/.nvm/nvm.sh" ]; then . "$HOME/.nvm/nvm.sh"; nvm use --silent 24 >/dev/null 2>&1 || true; fi
 
 if echo "$changed" | grep -q '^backend/'; then
-  echo "pre-push: backend build + test"
-  dotnet test "$root/backend/EsnApp.sln" --configuration Release --nologo -v q
+  if ! dotnet --list-sdks 2>/dev/null | grep -q '^10\.'; then
+    echo "pre-push: WARNING .NET 10 SDK not installed, skipping backend checks (CI still runs them)"
+  else
+    echo "pre-push: backend build + test"
+    dotnet test "$root/backend/EsnApp.sln" --configuration Release --nologo -v q
+  fi
 fi
 
 if echo "$changed" | grep -q '^frontend/'; then
