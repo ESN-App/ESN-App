@@ -171,12 +171,17 @@ test('list tools: search, sort and pagination', async ({ page, admin }) => {
   await expect(page.locator('tbody .details-link')).toHaveCount(12);
 
   const titles = () => page.locator('tbody .details-link').allTextContents();
-  await page.getByRole('button', { name: 'News item' }).click();
-  const ascending = await titles();
-  await page.getByRole('button', { name: 'News item' }).click();
-  expect(await titles()).toEqual([...ascending].reverse());
-  const sorted = [...ascending].sort();
-  expect([sorted, [...sorted].reverse()]).toContainEqual(ascending);
+  const sorted = [...(await titles())].sort();
+  const reversed = [...sorted].reverse();
+  const sortButton = page.getByRole('button', { name: 'News item' });
+  // The first click sorts by title in one direction, the second flips it (poll: the table re-renders async).
+  await sortButton.click();
+  await expect
+    .poll(async () => [JSON.stringify(sorted), JSON.stringify(reversed)].includes(JSON.stringify(await titles())))
+    .toBe(true);
+  const first = await titles();
+  await sortButton.click();
+  await expect.poll(titles).toEqual([...first].reverse());
 
   await searchFor(page, `${tag} zzz`);
   await expect(page.getByRole('heading', { name: 'No news found' })).toBeVisible();
