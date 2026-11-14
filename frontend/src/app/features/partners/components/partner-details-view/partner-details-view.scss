@@ -190,21 +190,22 @@
 }
 
 @media (min-width: 701px) {
-  // Desktop: the hero holds only the logo; name and description sit below it.
+  // Desktop: the hero holds the back button and the logo below it; name and description sit under the hero.
   .detail-hero {
-    min-height: 200px;
+    min-height: 264px;
   }
 
-  // No back button in the desktop hero (S5); the top bar covers navigation.
+  // Same spot as the Info/News desktop hero (styles.scss .article-page).
   .detail-hero ::ng-deep [detailBack] {
-    display: none;
+    left: var(--bleed, 40px);
+    top: 40px;
   }
 
   .logo-square {
     font-size: 44px;
     height: 132px;
     left: 0;
-    top: 36px;
+    top: 100px; // 40 + 44 button + 16 gap
     transform: none;
     width: 132px;
 
