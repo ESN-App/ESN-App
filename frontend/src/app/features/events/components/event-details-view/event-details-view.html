@@ -1,5 +1,9 @@
 @let item = event();
-<article class="event-details" [class.event-details--cancelled]="item.status === 2">
+<article
+  class="event-details"
+  [class.event-details--cancelled]="item.status === 2"
+  [class.event-details--ended]="ended() && item.status !== 2"
+>
   @if (item.status === 0) {
     <app-draft-preview-banner />
   }
