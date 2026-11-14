@@ -5,7 +5,7 @@
   [class.event-card--draft]="item.status === 0"
   [class.event-card--ended]="ended() && item.status !== 2"
 >
-  @if (item.price === 0 && item.status !== 2) {
+  @if (item.price === 0 && item.status !== 2 && !onlyEnded()) {
     <span class="sticker sticker--magenta sticker--corner">Free!</span>
   }
 
@@ -68,7 +68,7 @@
       }
       @if (item.status === 2) {
         <span class="chip chip--red">Cancelled</span>
-      } @else {
+      } @else if (!onlyEnded()) {
         @if (relativeDay() === 'today') {
           <span class="chip chip--magenta"><span class="today-dot" aria-hidden="true"></span>Today</span>
         } @else if (relativeDay() === 'tomorrow') {
