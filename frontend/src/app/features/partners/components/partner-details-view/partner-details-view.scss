@@ -224,20 +224,23 @@
 
   .partner-body {
     align-items: start;
-    gap: 32px;
+    gap: 0 32px;
     grid-template-columns: minmax(0, 688px) minmax(0, 400px);
     justify-content: space-between;
     padding-top: 40px;
   }
 
   .contact {
+    // Row 2 = the first offer card's row; with no offers row 1 is empty (0 high), so it sits at the top.
     grid-column: 2;
-    grid-row: 1;
+    grid-row: 2;
     padding: 28px;
   }
 
   .offers {
+    display: grid;
     grid-column: 1;
-    grid-row: 1;
+    grid-row: 1 / span 2;
+    grid-template-rows: subgrid;
   }
 }
