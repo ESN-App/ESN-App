@@ -9,6 +9,8 @@ Context: **Stowarzyszenie ESN Gdańsk**, a registered association (KRS 000078338
 
 What exists today: `Event` already has `Price` (decimal) and `RegistrationUrl` (`backend/src/EsnApp.Domain/Events/Event.cs`). There is no Registration or Payment entity and no anonymous write endpoint besides login/reset-password. Everything runs on the Render free tier (`render.yaml`): the API sleeps after 15 min (~50 s cold start), the free Postgres expires after 30 days, and SMTP is blocked.
 
+> **Update (owner decision):** Stripe is **excluded because of its cost**, and Revolut because it pays out only to a Revolut account. The current ranking without Stripe is in section 9.3; the Stripe recommendation below is kept for reference.
+
 **Recommendation** (revised after the `skeptic` review, see section 7)
 
 1. **Step 0, a legal/tax gate that blocks the provider choice.** The association's accountant answers three questions: is participation-fee income paid statutory activity (*odpłatna działalność statutowa*) or business activity (which needs an entry in the KRS register of entrepreneurs); is the association a VAT payer; and does the cash-register exemption (item 37 of the exemption regulation: the service is paid in full through a bank/post office to the bank account, and each payment identifies the transaction) apply to payments that arrive through the chosen operator. Tax practice treats PayU/PayPal payments as bank payments for item 37 [19]; we found no ruling on Stripe.
@@ -300,66 +302,79 @@ Autopay facts in this section come from its official integration documentation [
 
 ## 9. Full comparison of viable providers
 
-Owner decision: Revolut is out, because its payouts go only to a Revolut account. Section 8 stays as the detailed Stripe/Autopay/PayU view; this section widens the field. "nzw." means not verified.
+Owner decisions: **Revolut is out** (payouts only to a Revolut account) and **Stripe is out** because it is too expensive; its data stays in sections 2 and 8 for reference. Prices below were re-checked on the official pages the owner sent (read on 2026-11-19):
+
+| Page | Read? |
+|---|---|
+| tpay.com/oferta [35] | yes |
+| mollie.com/pl/pricing [36] | yes |
+| poland.payu.com/oferta-handlowa [37] | yes; the linked full price-list PDF was not read |
+| przelewy24.pl/bramka-platnicza [38] | yes |
+| autopay.pl/oferta/platnosci-online | **unreadable (HTTP 403)**, so Autopay prices stay unverified |
+
+"nzw." means not verified.
 
 ### 9.1 Screening (must-haves)
 
 The must-haves are: (1) a hosted payment page, so no card data touches our side; (2) BLIK plus foreign cards; (3) payout to the Nest Bank PLN account; (4) the provider accepts a registered association (Stowarzyszenie ESN Gdańsk, KRS 0000783383); (5) a way to attach our registration ID and read the payment status (webhook or status API).
 
 **Excluded:**
+- **Stripe:** excluded by the owner (cost). The 1.00 PLN fixed fee gives ~1.30 PLN on a 20 PLN fee [1].
 - **Revolut Business:** excluded by the owner; payouts go only to a Revolut account.
 - **Nest Bank:** no online gateway, only the Nest POS softPOS [15].
-- **Paynow (mBank):** requires an mBank business account ("żeby korzystać z Paynow musisz mieć konto firmowe w mBanku") [31], so no payout to Nest Bank.
-- **imoje / ING gateway:** sold to ING business customers (orders through Moje ING / ING Business, terms written for "Twoja firma") [32]. A payout to a non-ING account is **nzw.**, so it is excluded until ING confirms otherwise.
-- **Viva.com:** money lands in a Viva account first (nzw.), no published PL fees, status/webhook details nzw. [13]. Excluded until verified.
-- **SumUp:** BLIK in payment links/online not confirmed, and no verified way to read status by our ID [14].
-- **eService:** no public e-commerce price list or API/notification docs; contract only through sales [11].
-- **PayPal:** BLIK acceptance and Polish merchant fees could not be verified (official pages return 403) [33]. PayPal is usually far more expensive for cross-border cards **(nzw.)**. Not ranked.
+- **Paynow (mBank):** requires an mBank business account [31].
+- **imoje / ING gateway:** sold to ING business customers [32]; a payout to a non-ING account is nzw.
+- **Viva.com:** money lands in a Viva account first (nzw.); no published PL fees [13].
+- **SumUp:** BLIK in payment links/online not confirmed; no verified status lookup by our ID [14].
+- **eService:** no public e-commerce price list or API docs [11].
+- **PayPal:** BLIK and Polish merchant fees could not be verified (403) [33].
 
-**Viable:** Stripe, PayU, Autopay, Przelewy24, tpay. Autopay and tpay pass the screen only on partly unverified facts (fees, onboarding); see the table.
+**Viable:** Przelewy24, PayU, tpay, Autopay and the new candidate **Mollie**. Mollie passes on: a hosted page; BLIK 1.30% + 0.50 PLN and all card types priced in PLN [36]; payment links included [36]; webhooks plus status by re-fetching the payment, with Payment Links supporting webhooks [39]. Two Mollie must-haves are still nzw.: a PLN payout to a Polish bank account (Nest Bank) and acceptance of an association. Its PLN price list for Poland suggests a PLN balance and payouts, but that is not confirmed.
 
-### 9.2 Comparison of the viable providers
+### 9.2 Comparison of the viable providers (Stripe dropped)
 
-| Criterion | Stripe | PayU | Autopay | Przelewy24 | tpay |
+Fees use list prices. For 20/50 PLN payments, "PL card" is a domestic consumer card, "EEA" an EEA consumer card and "non-EEA" an international card, all paid in PLN.
+
+| Criterion | Przelewy24 | PayU | tpay (Starter) | Mollie | Autopay |
 |---|---|---|---|---|---|
-| BLIK | 1.6% + 1.00 PLN [1] | 1.49% + 0.32 PLN [5] | nzw. (Shoper 1.58% + 0.39) [25] | 1.29% + 0.30 PLN [8] | nzw. (blogs 0.99%) [10] |
-| PL / EEA card | 1.5% + 1.00 (premium 1.9% + 1.00) [1] | nzw. (blogs 1.6% + 0.20) | nzw. | 1.29% + 0.30 PLN (Visa/MC/JCB with 3DS) [8] | nzw. (blogs from 1.4%) [10] |
-| Non-EEA card | 3.25% + 1.00 (+2% FX) [1] | nzw., individual | nzw. | nzw. | nzw. |
-| Pay-by-link | only via P24, event promotion excluded [4] | yes, fee nzw. | yes, fee nzw. | 1.29% + 0.30 PLN [8] | yes, fee nzw. |
-| Cost of a 20 / 50 PLN fee (BLIK) | 1.32 / 1.80 | 0.62 / 1.07 | ~0.71 / 1.18 (Shoper, nzw.) | 0.56 / 0.95 | ~0.20 / 0.50 + fixed fee? (nzw.) |
-| Fixed fees | none [1] | none (nzw. 2026) | nzw. (Shoper 49 PLN activation) | 59 PLN activation, refunded after 10 transactions; payouts 5+ per month 0.99 PLN [8] | none (blogs, nzw.) |
-| Link without code + our ID | **yes**: Payment Link + `client_reference_id` [26] | API only (`extOrderId`) [27] | not found [23] | not found natively [22] | nzw. |
-| Our ID field (API) | `client_reference_id` / `metadata` | `extOrderId` [27] | `OrderID` (up to 32 chars) [23] | `sessionId` (nzw.) | `crc` (`tr_crc`) [34] |
-| Notifications | HMAC-SHA256, retries up to 3 days [2] | MD5 signature, 20 tries over 72 h [6] | ITN XML + SHA256, retries ~8 days [23] | `urlStatus` + `sign`, mandatory `verify` call [9]; retries nzw. | JWS `X-JWS-Signature` (mandatory), 37 tries over ~1.8 days (our sum) [34] |
-| Status API | yes | `GET order` (nzw.) | `transactionStatus` [23] | nzw. | nzw. |
-| Confirmation time | card seconds, BLIK ≤60 s [3] | seconds; PBL seconds–minutes (est.) | ITN immediate [23] | seconds; PBL seconds–minutes (est.) | seconds (est.) |
-| Payer feedback | redirect/message + receipt e-mail [26] | `continueUrl`; e-mail nzw. [27] | return URL with hash [23]; e-mail nzw. | return URL (nzw.) | return URL (nzw.) |
-| Refunds | dashboard + API + webhooks; fee kept [1] | panel + API, partial, notification [28] | API full/partial + ISTN; BLIK ≤6 months [23] | free refunds [8]; API nzw. | API endpoint + "chargeback" status in notification [34] |
-| Payout to Nest Bank | first ~7 business days, then ~3 (EU default) [29] | nzw. | on request, up to 30 min [23] | to a PL account, first 4/month free [8]; timing nzw. | nzw. |
-| Onboarding of the association | online KYC; association option in the form nzw. [20] | statute + KRS extract [7] | nzw. | nzw. | KYB 1–3 days (blog, nzw.) [10] |
-| Sandbox | yes + CLI [2] | yes (nzw.) | yes [23] | yes (nzw.) | yes (nzw.) |
-| .NET / REST quality | official `Stripe.net`, best docs | JSON REST, good docs | form POST + XML, long docs | REST, community SDKs | REST + JWS, decent docs (nzw.) |
-| English payment page | yes, automatic [26] | yes (nzw.) | PL/EN/DE/CS/ES/FR/IT, non-PL languages agreed during integration [23] | yes (nzw.) | yes (nzw.) |
-| Fiscal receipts | none | none (nzw.) | none (nzw.) | none (nzw.) | none (nzw.) |
+| BLIK | 1.29% + 0.30 PLN [38][8] | 1.1% + 0.32 PLN shown; the page also shows "1.49%" without a label [37] (T&C: standard 1.49% + 0.32 [5]) | 1.59% + 0.41 PLN [35] | 1.30% + 0.50 PLN [36] | nzw. (Shoper reseller 1.58% + 0.39 [25]) |
+| Cards | 1.29% + 0.30 PLN; the page also shows "1.9%" without a label [38] | 1.1% + 0.30 PLN (also "1.49%") [37]; no PL/EEA/non-EEA split | 1.59% + 0.39 PLN for all cards, no split [35] | PL 1.20% + 1, EEA 1.80% + 1, EEA commercial 2.90% + 1, non-EEA 3.25% + 1 PLN [36] | nzw. |
+| Non-EEA card | no split for PLN payments; card payments in EUR 2%, GBP/USD 3.6% [38] | nzw. | same as all cards [35] | 3.25% + 1 PLN [36] | nzw. |
+| 20 PLN: BLIK / PL card / EEA / non-EEA | 0.56 / 0.56 / 0.56 / 0.56 (non-EEA nzw.) | 0.54 / 0.52 / 0.52 / nzw. (1.49%: 0.62 / 0.60) | 0.73 / 0.71 / 0.71 / 0.71 | 0.76 / 1.24 / 1.36 / 1.65 | ~0.71 (nzw.) |
+| 50 PLN: BLIK / PL card / EEA / non-EEA | 0.95 / 0.95 / 0.95 / 0.95 (non-EEA nzw.) | 0.87 / 0.85 / 0.85 / nzw. (1.49%: 1.07 / 1.05) | 1.21 / 1.19 / 1.19 / 1.19 | 1.15 / 1.60 / 1.90 / 2.63 | ~1.18 (nzw.) |
+| Activation / monthly | 59 PLN activation, refunded after 10 transactions in 2 months; 0 monthly [38] | one-off 29 PLN registration ("was 199"); monthly not listed [37] | 99 PLN activation; 0 monthly (Business plan: 99 PLN/month) [35] | no setup or monthly fee online [36] | nzw. |
+| Payouts | first 4 PLN payouts per month free, then 0.99 PLN; timing not stated [38] | not on the page (nzw.) | 2 PLN per payout (free on Business) [35] | first 5 free, then 1.05 PLN (under 2 M PLN/yr); daily, weekly or monthly schedule [36] | on request, up to 30 min [23] |
+| Refund fees | free [38] | nzw. | non-card 1 PLN; card refund charged at the card rate [35] | not listed | nzw. |
+| Payment link without code | "Generator linku" listed as a feature [38] | API only (`extOrderId`) [27] | link generator in every package [35] | payment links included [36] | not found [23] |
+| Our ID + status | `sessionId` (nzw.) + `urlStatus` notification with `sign` + mandatory `verify` call [9] | `extOrderId` + signed notifications, 20 tries / 72 h [27][6] | `crc` + JWS notifications, 37 tries / ~1.8 days [34] | `metadata` (nzw.) + webhook carrying only the payment `id`; we re-fetch the status (no signature needed); 10 tries / 26 h, 15 s timeout [39] | `OrderID` + ITN, ~8 days of retries, `transactionStatus` [23] |
+| Onboarding of the association | nzw. | statute + KRS extract [7]; payments up to 2,500 PLN accepted before verification [37] | KYB (nzw.) | nzw. | nzw. |
+| .NET / REST quality | REST, community SDKs | JSON REST, good docs | REST + JWS | clean REST; community .NET SDK (nzw.) | form POST + XML |
+| Fiscal receipts | none (nzw.) | none (nzw.) | none (nzw.) | none (nzw.) | none (nzw.) |
 
-None of them prints Polish fiscal receipts. With the association's cash register, either each payment is entered on the register or the accountant confirms the item 37 exemption [19].
+At our volume (~2,500 PLN per month, estimate), tpay's Business plan (0.99%, 99 PLN/month) costs more than Starter. tpay also lists TpayGO (0.99% + 0.39 PLN, 1 PLN activation, 1 PLN per payout) [35], but it is described as a phone-based plan; whether it covers online payment links is nzw. Mollie's 15 s webhook timeout is shorter than Render's ~50 s cold start, so the first attempt can fail; the retries at 1, 2 and 4 min cover that [39].
 
-### 9.3 Ranking (top 3)
-
-**Easiest start**
-1. **Stripe:** the only one with a verified no-code reusable link that returns our registration ID.
-2. **PayU:** online contract with documented association documents, panel refunds, simple JSON order API with `extOrderId`.
-3. **Przelewy24:** no monthly fee and a clear price list, but links need the API.
+### 9.3 Ranking without Stripe (top 3)
 
 **Cheapest** (verified list prices)
-1. **Przelewy24:** 0.56 PLN on a 20 PLN fee, the same rate for every method.
-2. **PayU:** 0.62 PLN for BLIK.
-3. **tpay / Autopay:** possibly as cheap or cheaper, but neither price list is verified. Stripe is the most expensive (1.30–1.38 PLN).
+1. **PayU:** 0.52–0.54 PLN on a 20 PLN fee if the page's 1.1% is the current rate. If the unlabeled 1.49% (the standard rate in the T&C) applies, it is 0.60–0.62 PLN. Plus a one-off 29 PLN.
+2. **Przelewy24:** a flat 0.56 / 0.95 PLN for every method; activation refunded, refunds free, 4 free payouts per month.
+3. **tpay Starter:** 0.71–0.73 PLN, plus 99 PLN activation and 2 PLN per payout.
+
+Mollie is competitive only for BLIK (0.76 PLN); on cards its 1 PLN fixed fee puts it close to Stripe.
+
+**Easiest to integrate**
+1. **PayU:** JSON order API with `extOrderId`, documented association documents, sandbox, panel refunds.
+2. **Mollie:** the simplest webhook model (only the ID arrives, then we re-fetch, so no signature code) and payment links with webhooks. Its Nest Bank payout and association onboarding are still nzw.
+3. **tpay:** link generator in every package and JWS-signed notifications (verification is mandatory).
+
+Przelewy24 comes 4th: notification checksum plus a mandatory `verify` call.
 
 **Best automation**
-1. **Stripe:** official .NET SDK, CLI webhook forwarding, signed JSON events, our ID passes through.
-2. **PayU:** JSON REST, refund notifications, 72 h of retries.
-3. **Autopay:** clean `OrderID` = our ID, status API and ~8 days of retries; held back by its XML/hash protocol.
+1. **PayU:** status and refund notifications (refund `FINALIZED`/`CANCELED`), 72 h of retries, refunds by API.
+2. **Mollie:** webhooks for payments, refunds and chargebacks, 26 h of retries; re-fetching means the status is always current.
+3. **Autopay:** ~8 days of retries, `transactionStatus`, refund ISTN; held back by XML and its unreadable price list.
+
+**Overall:** PayU is the best fit unless its 1.1% turns out to be a time-limited promotion, in which case Przelewy24 is a close second on cost.
 
 ## Sources
 
@@ -397,3 +412,8 @@ None of them prints Polish fiscal receipts. With the association's cash register
 32. ING online payment gateway (imoje redirects here): https://www.ing.pl/bramka-platnicza-imoje
 33. PayPal Poland merchant fees (403 to automated fetch): https://www.paypal.com/pl/webapps/mpp/merchant-fees
 34. tpay notifications (JWS signature, retry schedule, md5sum with `tr_crc`, refunds): https://docs-api.tpay.com/en/webhooks/
+35. tpay offer and price list: https://tpay.com/oferta
+36. Mollie pricing, Poland: https://www.mollie.com/pl/pricing
+37. PayU commercial offer: https://poland.payu.com/oferta-handlowa/
+38. Przelewy24 payment gateway offer: https://www.przelewy24.pl/bramka-platnicza
+39. Mollie webhooks (id-only payload, retries, timeout, Payment Links): https://docs.mollie.com/reference/webhooks
