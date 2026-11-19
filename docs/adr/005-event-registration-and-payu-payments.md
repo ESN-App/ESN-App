@@ -2,7 +2,7 @@
 
 ## Status
 
-Proposed (2026-11-19). Needs the owner's decision, a `skeptic` review and a `security` review before it is Accepted. Amends the "public controllers are GET-only" rule in [CLAUDE.md](../../CLAUDE.md) (two named exceptions, see Decision).
+Proposed (2026-11-19), revised after the `security` and `skeptic` reviews (both: accept with changes; see "Review: objections and responses"). Needs the owner's choice between v1 paths P1 and P2 before it is Accepted. Amends the "public controllers are GET-only" rule in [CLAUDE.md](../../CLAUDE.md) (two named exceptions, see Decision).
 
 Refs [#105](https://github.com/ESN-App/ESN-App/issues/105) (registration without accounts), [#106](https://github.com/ESN-App/ESN-App/issues/106) (payments). Provider research: `docs/research/payments.md` (PR #107). Current architecture: `docs/architecture/` (PR #108); this ADR does not repeat it.
 
@@ -12,7 +12,11 @@ Refs [#105](https://github.com/ESN-App/ESN-App/issues/105) (registration without
 
 - `Event` ([Event.cs](../../backend/src/EsnApp.Domain/Events/Event.cs)) already has `Price` (`numeric(10,2)`), `MinimumParticipants`, `MaximumParticipants`, `CurrentParticipants` (typed by hand in the admin form) and `RegistrationUrl` (an external link). There is no registration or payment entity.
 - Every public controller is anonymous and GET-only; writes live under `api/admin/*` with `[Authorize(Roles = "Admin")]`. The only anonymous non-GET endpoints are `POST /api/auth/login` and `POST /api/auth/reset-password`.
-- No rate limiting in the API, and no `ForwardedHeaders` middleware, so the API does not see the real client IP. nginx ([nginx.conf.template](../../docker/nginx.conf.template)) already sends `X-Forwarded-For` / `X-Real-IP`.
+- No rate limiting in the API, and no `ForwardedHeaders` middleware, so the API does not see the real client IP. nginx ([nginx.conf.template](../../docker/nginx.conf.template), line 17) forwards `X-Forwarded-For` with `$proxy_add_x_forwarded_for`, which **appends** to whatever the client sent, so the left-most entries are attacker-controlled. On Render `$remote_addr` is Render's own proxy, not the student.
+- `esn-gdansk-api` also has its own public `onrender.com` URL, so anyone can bypass nginx and call the API directly.
+- Login has no lockout ([IdentityService.cs](../../backend/src/EsnApp.Infrastructure/Identity/IdentityService.cs) `LoginAsync` uses `CheckPasswordAsync` only).
+- The frontend [retryInterceptor](../../frontend/src/app/core/retry.interceptor.ts) retries **GETs only**; a POST that hits a sleeping API fails with 502/504.
+- [ExceptionHandlingMiddleware](../../backend/src/EsnApp.Api/Middleware/ExceptionHandlingMiddleware.cs) logs the request `{Path}` on unhandled errors, so a token in the path would land in the logs.
 - Hosting is the Render free tier ([render.yaml](../../render.yaml)): both services sleep after 15 min (about 50 s cold start), SMTP is blocked (#25), the disk is ephemeral (#24) and the free Postgres expires after 30 days (#26).
 
 ### Owner decisions already made
@@ -78,8 +82,8 @@ As B, but no `notifyUrl`. Status is pulled with `GET /api/v2_1/orders/{orderId}`
 
 ### Combinations
 
-- **A + B (recommended, see below):** B for paid events, plus the A toggle for cash/transfer exceptions (a student pays at the office).
-- **C first, then B:** ship order creation + reconcile-on-read + admin sync (C) first, add the webhook as a separate small step. This is how the implementation plan is ordered, so each step ships alone.
+- **A + B with pull (target):** B for paid events, the pull path from C as a safety net, plus the A toggle for cash/transfer exceptions.
+- **A first, then B with pull (path P1, recommended):** ship registrations with manual payments, then add PayU as one stage. Both reviews preferred this over shipping C as a separate step.
 
 ### Not considered further
 
@@ -87,36 +91,72 @@ Ticketing platforms (pretix etc.) and payment links without our form: excluded b
 
 ## Decision (proposed)
 
-**B with C's pull path built in, plus the A toggle for exceptions.** In one sentence: the server creates a PayU order per sign-up; status arrives by signed notification and, as a safety net, is pulled from PayU when the student's status page polls or an admin presses Sync; admins can still mark cash payments by hand.
+**Target architecture: B with the pull path built in ("B with pull"), plus the A toggle for exceptions.** The server creates a PayU order per sign-up; status arrives by signed notification and, as a safety net, is pulled from PayU when the student's status page polls or an admin presses Sync on one payment; admins can still mark cash/transfer payments by hand. C alone is not enough (both reviews agree): without the webhook, payments of students who close the browser stay Pending until someone remembers to sync.
 
-Why: the webhook is what makes capacity and "paid" trustworthy without volunteer work, and PayU's 72-hour retry schedule tolerates our sleeping API. The pull path costs little (the same `GET order` call) and covers the cases a webhook alone does not (a cold start racing a returning student, a notification lost for 72 h).
+Why: the webhook makes capacity and "paid" trustworthy without volunteer work, and PayU's 72-hour retry schedule tolerates our sleeping services. The pull path costs one extra call (`GET order`) and covers a cold start racing a returning student.
 
-What would change this: if the board's PayU contract is delayed or refused, ship A now (it is step 1–3 of the plan anyway) and switch the client to Przelewy24 later; if a semester shows fewer than ~5 paid events, C without the webhook is enough.
+**v1 scope is the owner's choice between two paths.** Both use the same steps (see the implementation plan); they differ only in where v1 ends.
+
+| | **P1: registrations + manual payment first, PayU as stage 2** | **P2: registrations + PayU "B with pull" in v1** |
+|---|---|---|
+| v1 contains | Steps 1–7: paid DB, hardening, free registration (BE + FE), retention, manual payments (per-event payment instructions: transfer with a registration reference code, cash, or a payment link made by hand in the PayU panel if the panel offers one, **unverified**) and admin "mark paid / refunded" | Steps 1–10: everything in P1 plus PayU order creation, notify webhook, pull on status poll, single-payment Sync, return page |
+| Stage 2 | Steps 8–10 when the PayU contract and sandbox are ready | Refunds API (step 11) only if panel refunds become a burden |
+| Rough effort to v1 (estimate, one part-time volunteer dev per side) | ~3–4 weeks | ~5–7 weeks |
+| Depends on PayU contract | No | Yes (sandbox for development, contract for go-live) |
+| Admin work per paid event | Match payments by reference code, mark paid | Almost none; refunds in the PayU panel + one click in the app |
+| New anonymous POSTs | 1 (sign-up) | 2 (sign-up, notify) |
+
+**Recommendation: P1.** It ships #105 without waiting for the board's PayU contract, every step is reused by P2 unchanged, and a semester of manual matching tells us whether the PayU integration is worth it. Choose P2 if the PayU sandbox and contract are already in hand and several paid events are planned for the coming semester. In both paths, refunds in v1 are done in the PayU panel (which has its own login) and recorded in the app with "Mark refunded"; the refunds API is not built.
+
+What would change this: if the PayU contract is refused, P1 still stands and stage 2 switches to Przelewy24 behind the same `IPaymentGateway`; if a semester has fewer than ~5 paid events, stage 2 may never be needed.
 
 ### Amended invariant
 
-> Public controllers stay GET-only and anonymous. The only anonymous non-GET endpoints are `POST /api/auth/login`, `POST /api/auth/reset-password`, **`POST /api/events/{eventId}/registrations`** (`EventRegistrationsController`) and **`POST /api/payments/payu/notify`** (`PayUNotificationsController`). An allow-list test in `EsnApp.Api.Tests` enumerates all anonymous non-GET actions through the endpoint data source and fails on any other.
+> Public controllers stay GET-only and anonymous. The only anonymous non-GET endpoints are `POST /api/auth/login`, `POST /api/auth/reset-password`, **`POST /api/events/{eventId}/registrations`** (`EventRegistrationsController`) and, from stage "PayU", **`POST /api/payments/payu/notify`** (`PayUNotificationsController`). An allow-list test in `EsnApp.Api.Tests` enumerates all anonymous non-GET actions through the endpoint data source and fails on any other.
 
-How each exception is protected:
+### Edge hardening (applies to all anonymous endpoints, including login)
+
+- **Real client IP.** `UseForwardedHeaders` with `ForwardedHeaders.XForwardedFor` and a fixed `ForwardLimit` equal to the number of trusted hops (Render edge → nginx → Render edge → API); the client IP is the entry at that position **counted from the right**, never the left-most one. The hop count is **measured on Render** (log the raw `X-Forwarded-For` once in sandbox) before limits are enabled; `KnownProxies` cannot be listed statically on Render, so the networks are cleared and the limit alone decides. nginx keeps `$proxy_add_x_forwarded_for` (it must, to preserve Render's entry); the API, not nginx, picks the right entry.
+- **No nginx bypass.** nginx adds a shared-secret header (`X-Proxy-Auth`, value from env `API_PROXY_SECRET` on both services); in Production the API rejects every `/api` request without it (403). `/health` stays open for Render's health check. A Render private service would remove the public API URL, but private services are not on the free plan (**unverified**), so the header is the v1 answer.
+- **Rate limits** (ASP.NET Core built-in limiter, no new package), partitioned by client IP with IPv6 addresses bucketed per `/64`:
+  - sign-up: 30 per 10 min per IP (a university NAT or eduroam puts many students behind one address) **and** a global limit per endpoint (e.g. 300/min) as a flood guard;
+  - status GET: 60/min per IP;
+  - notify: global 120/min only;
+  - login: 10 per 10 min per IP, plus ASP.NET Identity lockout (`lockoutOnFailure: true`, 5 attempts, 15 min).
+- **Headers:** nginx adds `Referrer-Policy: no-referrer` for the app (the status token is in the URL). Requests on the new endpoints are JSON only (`[Consumes("application/json")]`, 415 otherwise).
+- **Logs:** `ExceptionHandlingMiddleware` and request logging write the route template (`api/registrations/{statusToken}`) instead of the raw path, so tokens never reach the logs.
+
+### How each exception is protected
 
 | Protection | Sign-up POST | PayU notify POST |
 |---|---|---|
-| Input validation | FluentValidation: names 1–100 chars, e-mail format and ≤254, phone E.164 (`+` and 8–15 digits), consent must be true, unknown fields rejected | Parse only after the signature check; reject bodies without `order.extOrderId`/`order.orderId` |
-| Body size limit | `[RequestSizeLimit(4 KB)]` | `[RequestSizeLimit(16 KB)]` |
-| Rate limiting | ASP.NET Core built-in rate limiter (in the framework, no new package): per client IP, e.g. 5 per 10 min and 30 per hour; needs `UseForwardedHeaders` trusting only the nginx hop | Generous global limit (e.g. 120/min) only to stop floods; never lower than PayU's retries need |
-| Bot protection | Honeypot field + minimum fill time (form token issued by the GET event details is not needed; a hidden field and a client timestamp are enough for v1). Cloudflare Turnstile only if spam shows up (a new external service, so not in v1) | Not applicable |
-| Authenticity | n/a (anonymous by design) | `OpenPayu-Signature` over the raw body (`EnableBuffering`, read before binding), constant-time compare, algorithm must be MD5 or SHA-256 (reject others); optional IP allow-list as defence in depth, off by default because it depends on correct forwarded headers through Render + nginx |
-| Never trust the payload | Amount comes from `Event.Price`; the client sends no amount | After the signature check, re-read the order with `GET /api/v2_1/orders/{orderId}` and compare `totalAmount`, `currencyCode`, `extOrderId` with our `Payment` row |
-| Idempotency | Partial unique index on `(EventId, lower(Email))` for active registrations; a repeat submit while Pending returns the same status token and `redirectUri` | Forward-only state machine (a late `PENDING` never overwrites `Paid`); a duplicate notification is a no-op that returns 200 |
-| Capacity race | Inside one transaction: `SELECT … FOR UPDATE` on the event row, count active seats, insert | n/a |
-| Logging | No personal data in logs (registration id only) | Never log the body or the signature; log `extOrderId`, PayU status and the outcome |
-| Errors | 400 ProblemDetails (existing middleware), 409 for full/closed/duplicate, 429 for rate limit | 200 for valid + processed or duplicate; 400 for a bad signature; 500 only for our own failure (PayU retries) |
+| Input validation | FluentValidation: names 1–100 chars, e-mail format and ≤254, phone E.164 (`+` and 8–15 digits), consent must be true, unknown fields rejected | Parse only after the signature check; reject bodies without `order.orderId` |
+| Body size | `[RequestSizeLimit(4 KB)]` | `[RequestSizeLimit(16 KB)]` |
+| Rate limiting | See edge hardening | See edge hardening |
+| Fake sign-ups / bots | Honeypot field + minimum fill time; **Cloudflare Turnstile ready from v1 behind a feature flag** (`registrationCaptcha`, off by default; server-side token check against Turnstile when on; secret in env). **Hold cap:** at most `max(5, 20% of capacity)` concurrent `PendingPayment` holds per event, so a bot cannot hold a whole event with unpaid sign-ups. Admin **bulk-cancel** on the attendee list. Free events are confirmed without an e-mail check (residual risk, accepted for v1; e-mail verification comes with #25) | n/a |
+| Authenticity | n/a (anonymous by design) | Signature verification, steps below. No IP allow-list: PayU's IPs cannot be checked reliably behind Render + nginx (kept off) |
+| Never trust the payload | Amount comes from `Event.Price`; the client sends no amount | Re-read the order from PayU and compare, steps below |
+| Duplicate submit / enumeration | Partial unique index on `(EventId, lower(Email))` for active registrations. A duplicate gets **the same `202` shape as a closed event** with a generic text ("We couldn't create a new sign-up. If you already signed up, use the link from your confirmation page or contact ESN"), **no token, no 409**. The response for a new sign-up differs (it carries a token), so a residual "this e-mail is registered" signal remains; it is rate limited and accepted | Forward-only state machine; a duplicate notification is a no-op that returns 200 |
+| Capacity race | One transaction: `SELECT … FOR UPDATE` on the event row, count seats and holds, insert | n/a |
+| Logging | Registration id only, no personal data | Never the body or the signature; `PayUOrderId`, PayU status, outcome |
+| Errors | 400 ProblemDetails, 202 generic for closed/full/duplicate, 429, 415 | 200 for processed or duplicate; 400 for a bad signature; 500 only for our own failure (PayU retries) |
 
-`GET /api/registrations/{statusToken}` is a GET with a side effect (it may call PayU and update the row). That is allowed because the update is idempotent and derived only from PayU's authoritative state; it is rate limited per IP and only calls PayU when the payment is Pending and the last sync is older than 15 s.
+**Notify verification steps** (one code path, unit-tested with captured sandbox bodies):
+1. Read the raw body (`EnableBuffering`, before model binding).
+2. Parse `OpenPayu-Signature` as `;`-separated `key=value` pairs, independent of order; require `signature` and `algorithm` ∈ {`MD5`, `SHA-256`}; anything else → 400.
+3. Compute hash(raw body bytes + second key), lowercase hex; compare with the lowercased header value using `CryptographicOperations.FixedTimeEquals`; mismatch → 400.
+4. Take `order.orderId` from the body and look up **our** `Payment` by stored `PayUOrderId` (not by the body's `extOrderId`); unknown → 200 and log (nothing to do, stop retries).
+5. `GET /api/v2_1/orders/{orderId}` and require: `merchantPosId` == our `PosId`, `orderId` == stored `PayUOrderId`, `extOrderId` == our `Payment.Id`, `totalAmount` == `AmountMinor`, `currencyCode` == `Currency`. Any mismatch → do not change state, log at error level, flag for admin, return 200.
+6. Apply the forward-only transition from the re-fetched status, return 200.
+7. Refund notifications in v1 are verified (steps 1–3) and acknowledged with 200 but change nothing; when the refunds API is built (step 11) they follow the same path, re-fetching the refund and matching our stored `PayURefundId`.
+
+The same step 5 checks run in the pull path (status poll, admin Sync).
+
+`GET /api/registrations/{statusToken}` is a GET with a side effect (it may call PayU and update the row). That is allowed because the update is idempotent and derived only from PayU's authoritative state; it only calls PayU when the payment is Pending and the last sync is older than 15 s. The response contains status, event title, date, amount and `payAgainUrl` only, **never name, e-mail or phone**.
 
 ## Target design
 
-### Sequence: sign-up to paid
+### Sequence: sign-up to paid (PayU stage)
 
 ```mermaid
 sequenceDiagram
@@ -127,40 +167,43 @@ sequenceDiagram
     participant D as Postgres
     participant P as PayU
 
-    S->>W: POST /api/events/{id}/registrations {firstName, lastName, email, phone, consent, honeypot}
-    W->>A: proxy (same origin, ADR-002, X-Forwarded-For)
-    A->>A: rate limit, validate, honeypot
-    A->>D: BEGIN; SELECT event FOR UPDATE; check enabled, deadline, capacity
+    S->>W: GET /health (pre-warm when the form opens, retried by the frontend)
+    W->>A: proxy (wakes both services, up to ~100 s on a double cold start)
+    S->>W: POST /api/events/{id}/registrations {firstName, lastName, email, phone, consent, honeypot, turnstile?}
+    W->>A: proxy (same origin, ADR-002, X-Forwarded-For, X-Proxy-Auth)
+    A->>A: proxy header, rate limit, validate, honeypot (+ Turnstile if flag on)
+    A->>D: BEGIN; SELECT event FOR UPDATE; check enabled, deadline, capacity, hold cap
     A->>D: INSERT Registration(PendingPayment) + Payment(Pending, AmountMinor = Price*100, ExpiresAt); COMMIT
     A->>P: POST /pl/standard/user/oauth/authorize (client_credentials, cached token)
     A->>P: POST /api/v2_1/orders {extOrderId = Payment.Id, totalAmount, currencyCode PLN, customerIp, notifyUrl, continueUrl, validityTime, buyer.email}
     P-->>A: 302 + {orderId, redirectUri}
     A->>D: store PayUOrderId, RedirectUri
     A-->>S: 201 {statusToken, redirectUrl}
+    S->>S: check redirectUrl host is secure.payu.com (or secure.snd.payu.com outside Production)
     S->>P: redirect, pays (BLIK / card / pay-by-link)
     P-->>S: redirect to continueUrl /events/{id}/registration/{statusToken}
-    par notification (API may be asleep)
+    par notification (web and API may both be asleep)
         P->>W: POST /api/payments/payu/notify (OpenPayu-Signature)
-        W->>A: proxy (first attempt may time out on a cold start; PayU retries after 1, 2, 5, 10 min)
+        W->>A: proxy (first attempts may time out; PayU retries after 1, 2, 5, 10 min)
         A->>A: verify signature on raw body
         A->>P: GET /api/v2_1/orders/{orderId}
-        A->>D: amount/currency/extOrderId match; Payment Paid, Registration Confirmed (forward-only)
+        A->>D: checks match; Payment Paid, Registration Confirmed (forward-only)
         A-->>P: 200
     and return page polling
         loop every 3 s for up to 2 min, then every 15 s
             S->>A: GET /api/registrations/{statusToken}
             alt Pending and last sync older than 15 s
                 A->>P: GET /api/v2_1/orders/{orderId}
-                A->>D: same forward-only update
+                A->>D: same checks, same forward-only update
             end
-            A-->>S: {status, eventTitle, amount, payAgainUrl?}
+            A-->>S: {status, eventTitle, amount, payAgainUrl?} (no personal data)
         end
     end
 ```
 
-Free events (`Price = 0`) skip PayU: the registration is `Confirmed` immediately and the response has no `redirectUrl`.
+Free events (`Price = 0`) skip PayU: the registration is `Confirmed` immediately and the response has no `redirectUrl`. With manual payments (P1, or PayU disabled), a paid sign-up returns the status token and the status page shows the event's payment instructions and the registration's reference code.
 
-### State diagram
+### State diagram (v1)
 
 Registration and payment are separate on purpose: a registration can exist without a payment (free event, cash), and its status is what capacity and the attendee list read.
 
@@ -168,34 +211,34 @@ Registration and payment are separate on purpose: a registration can exist witho
 stateDiagram-v2
     direction LR
     state "Payment" as Pay {
-        [*] --> Pending: PayU order created
-        Pending --> Paid: COMPLETED (notify or pull), amount matches
-        Pending --> Canceled: CANCELED from PayU
-        Pending --> Expired: now > ExpiresAt and PayU not COMPLETED
-        Expired --> Paid: late COMPLETED (accepted, flagged for admin)
-        Canceled --> Paid: late COMPLETED (same)
-        Paid --> RefundPending: admin starts refund
-        RefundPending --> Refunded: refund FINALIZED
-        RefundPending --> Paid: refund CANCELED
+        [*] --> Pending: PayU order created, or manual sign-up
+        Pending --> Paid: COMPLETED (notify or pull) and checks match, or admin marks paid
+        Pending --> Canceled: CANCELED from PayU, or order creation failed
+        Pending --> Expired: now > ExpiresAt (PayU only)
+        Expired --> Paid: late COMPLETED (flag OverCapacity if over limit)
+        Paid --> Refunded: admin "Mark refunded" after refunding in the PayU panel / by transfer
         Refunded --> [*]
+        Canceled --> [*]
     }
     state "Registration" as Reg {
         [*] --> PendingPayment: paid event sign-up
-        [*] --> Confirmed: free event, or admin marks paid
+        [*] --> Confirmed: free event
         PendingPayment --> Confirmed: payment Paid
         PendingPayment --> Expired: payment Canceled or Expired
         Expired --> Confirmed: late payment Paid
-        Confirmed --> Cancelled: admin cancels (refund separately)
+        PendingPayment --> Cancelled: admin cancels (single or bulk)
+        Confirmed --> Cancelled: admin cancels
         Expired --> [*]
         Cancelled --> [*]
     }
 ```
 
 Notes:
-- **Seats held:** `Confirmed` + `PendingPayment` with `ExpiresAt > now`. `Expired` and `Cancelled` hold nothing. Expiry is evaluated on read (capacity check, status poll, admin list), so no scheduler is needed; a stale `Pending` row is moved to `Expired` the next time anything reads it.
-- **Hold vs PayU validity:** `validityTime` = 20 min, our `ExpiresAt` = created + 30 min, so PayU stops accepting new payment attempts before we release the seat. A slow bank transfer started at minute 19 can still complete later; that late `COMPLETED` is accepted (we never reject money), the registration becomes `Confirmed` and the admin list flags "over capacity" if it exceeds the limit. The admin decides whether to refund.
-- **Pay again:** a `PendingPayment` registration returns its stored `redirectUri` while `ExpiresAt` has not passed. After that, the student submits the form again (an expired registration does not block the e-mail in the unique index). No extra endpoint.
-- `Refunded` also moves the registration to `Cancelled` if it was not already.
+- **Seats held:** `Confirmed` + `PendingPayment` that has not expired. Expiry is evaluated on read (capacity check, status poll, admin list), so no scheduler is needed.
+- **Manual payments** have no `ExpiresAt`; unpaid manual sign-ups hold seats until an admin cancels them (bulk-cancel helps). The hold cap applies to them too.
+- **Hold vs PayU validity:** `validityTime` = 20 min, our hold = 30 min. Whether PayU can still move an order from `PENDING` to `COMPLETED` after `validityTime` (slow pay-by-link) is **unverified; test it in the sandbox before building anything beyond the single `Expired → Paid` transition**. If it happens, we accept the money (`OverCapacity` flag, admin decides). The flag alone may be enough; no further states are planned.
+- **Pay again:** while a `PendingPayment` hold is valid, the status page (reached only with the token) shows `payAgainUrl` = the stored `redirectUri`. If order creation failed, the payment is `Canceled` at once, the seat is released and the student submits the form again (an expired/cancelled registration does not block the e-mail). There is no "resend my link" by e-mail address.
+- `Refunded` also moves the registration to `Cancelled`.
 
 ### Data model sketch
 
@@ -203,28 +246,31 @@ Notes:
 erDiagram
     Events ||--o{ Registrations : "has"
     Registrations ||--o| Payments : "paid by"
+    Registrations ||--o{ RegistrationAuditEntries : "admin actions"
 
     Events {
         decimal Price "existing, numeric(10,2); the fee, 0 = free"
         int MaximumParticipants "existing; reused as capacity, null = unlimited"
-        int CurrentParticipants "existing; becomes computed from Registrations when RegistrationEnabled"
+        int CurrentParticipants "existing; computed from Registrations when RegistrationEnabled"
         bool RegistrationEnabled "new, default false"
         timestamptz RegistrationDeadline "new, nullable; null = until StartsAt"
+        text PaymentInstructions "new, nullable; shown for manual payments"
         string RegistrationUrl "existing external link; hidden when RegistrationEnabled"
     }
     Registrations {
         uuid Id PK
         uuid EventId FK "restrict delete while Paid payments exist"
+        string Reference "8 chars, unique, human-readable; transfer title"
         string FirstName "100"
         string LastName "100"
         string Email "254; unique (EventId, lower(Email)) where Status in PendingPayment, Confirmed"
         string Phone "E.164, 16"
         timestamptz ConsentAt
-        string ConsentVersion "e.g. 2026-11; which privacy text was shown"
+        string ConsentVersion "which privacy text was shown"
         int Status "PendingPayment, Confirmed, Expired, Cancelled"
-        bytea StatusTokenHash "SHA-256 of a 32-byte random token; the token itself is only in the URL"
+        bytea StatusTokenHash "SHA-256 of a 32-byte random token"
         bool OverCapacity "set on a late payment"
-        timestamptz AnonymizedAt "nullable, retention"
+        timestamptz AnonymizedAt "nullable"
         timestamptz CreatedAt
         timestamptz UpdatedAt
     }
@@ -232,26 +278,33 @@ erDiagram
         uuid Id PK "also the PayU extOrderId"
         uuid RegistrationId FK "unique"
         string Provider "payu or manual"
-        long AmountMinor "grosze, copied from Event.Price at creation"
+        long AmountMinor "grosze, copied from Event.Price"
         string Currency "PLN"
-        int Status "Pending, Paid, Canceled, Expired, RefundPending, Refunded"
+        int Status "Pending, Paid, Canceled, Expired, Refunded"
         string PayUOrderId "nullable, unique"
         string RedirectUri "nullable, 2000"
-        timestamptz ExpiresAt
+        timestamptz ExpiresAt "nullable (manual)"
         timestamptz PaidAt "nullable"
-        string PayURefundId "nullable"
         timestamptz RefundedAt "nullable"
         timestamptz LastSyncedAt "nullable, throttles pull"
-        string MarkedBy "admin snapshot for manual payments"
-        uint xmin "row version (Npgsql concurrency token)"
+        uint xmin "row version"
+    }
+    RegistrationAuditEntries {
+        uuid Id PK
+        uuid RegistrationId FK
+        string Action "MarkPaid, MarkRefunded, Cancel, BulkCancel, Sync, Anonymize, Delete"
+        string AdminId "snapshot, 450"
+        string AdminName "snapshot, 120"
+        timestamptz At
+        string Detail "nullable, no personal data"
     }
 ```
 
 Decisions inside the model:
-- **Reuse** `Price` as the fee and `MaximumParticipants` as capacity instead of adding `Fee`/`Capacity` columns. `Price` must have at most two decimals and be 0 or between 1.00 and 10 000 PLN (validator); conversion to grosze is `decimal * 100` checked to be an integer.
-- `MinimumParticipants` stays informational.
-- `Payment` is 1:0..1 per registration (a new attempt is a new registration). No `ProcessedWebhookEvent` table: the forward-only status update is the idempotency, because PayU notifications carry the whole order state, not an event id.
-- The status token is stored hashed, so a database leak does not expose working status links.
+- **Reuse** `Price` as the fee and `MaximumParticipants` as capacity. `Price` is 0 or 1.00–10 000 PLN with at most two decimals; conversion to grosze is checked to be an integer.
+- `Payment` is 1:0..1 per registration (a new attempt is a new registration). No `ProcessedWebhookEvent` table: the forward-only update is the idempotency, because PayU notifications carry the whole order state.
+- The status token is stored hashed; the token exists only in the URL the student holds.
+- `RegistrationAuditEntries` is append-only (no update/delete endpoints); deleting a registration on request anonymizes the row, so its audit trail survives. Automatic state changes (notify, pull) are not audited there; they are logged.
 
 ### Component placement (Clean Architecture)
 
@@ -261,33 +314,36 @@ flowchart TB
         RC[EventRegistrationsController<br/>POST api/events/:id/registrations<br/>anonymous, rate limited]
         SC[RegistrationStatusController<br/>GET api/registrations/:token]
         NC[PayUNotificationsController<br/>POST api/payments/payu/notify<br/>raw body, signature]
-        AC[AdminRegistrationsController<br/>api/admin/events/:id/registrations, CSV,<br/>api/admin/registrations/:id/cancel, mark-paid,<br/>api/admin/payments/:id/sync, refund]
+        AC[AdminRegistrationsController<br/>api/admin/events/:id/registrations, CSV, bulk-cancel,<br/>api/admin/registrations/:id/cancel, mark-paid, mark-refunded,<br/>api/admin/payments/:id/sync]
+        PX[ProxyAuth + ForwardedHeaders + RateLimiter middleware]
     end
     subgraph Application
-        UC[Registrations/: CreateRegistration, GetRegistrationStatus,<br/>Administration/: list, export, cancel, mark paid, delete, anonymize]
-        PU[Payments/: ApplyProviderOrderState, SyncPayment,<br/>HandlePayUNotification, RefundPayment]
-        IF[IPaymentGateway: CreateOrder, GetOrder, Refund, VerifyNotification<br/>IRegistrationRepository, IPaymentRepository]
+        UC[Registrations/: CreateRegistration, GetRegistrationStatus,<br/>Administration/: list, export, cancel, bulk cancel, mark paid/refunded, delete, anonymize]
+        PU[Payments/: ApplyProviderOrderState, SyncPayment, HandlePayUNotification]
+        IF[IPaymentGateway: CreateOrder, GetOrder, VerifyNotification<br/>ICaptchaVerifier, IRegistrationRepository, IPaymentRepository]
     end
     subgraph Domain
         E[Events/Event + Registration, RegistrationStatus<br/>Payments/Payment, PaymentStatus + transition rules]
     end
     subgraph Infrastructure
         PC[Payments/PayU/PayUGateway: typed HttpClient, token cache,<br/>no auto-redirect, PayUOptions]
+        TS[Captcha/TurnstileVerifier]
         RP[Repositories + EF configurations + migrations<br/>SELECT FOR UPDATE on event]
     end
+    PX --> RC & SC & NC
     RC & SC & AC --> UC
     NC --> PU
     UC --> PU
     UC & PU --> IF
     UC & PU --> E
-    PC -.implements.-> IF
-    RP -.implements.-> IF
+    PC & TS & RP -.implements.-> IF
 ```
 
-- Transition rules (forward-only, amount check) live in `Payment` in Domain so they are unit-tested without HTTP.
-- `IPaymentGateway` keeps PayU behind an interface, so the Przelewy24 fallback is one new Infrastructure class.
-- No official PayU .NET SDK is assumed; the client is a small typed `HttpClient` (four calls). No new NuGet package.
-- Frontend: sign-up form and status page in `features/events` (`pages/event-registration-status`, form component on event details); attendee list in `features/admin` (a registrations view per event). Designed in Penpot first.
+- Transition rules (forward-only, amount and identity checks) live in `Payment` in Domain and are unit-tested without HTTP.
+- `IPaymentGateway` keeps PayU behind an interface, so the Przelewy24 fallback is one Infrastructure class.
+- The PayU client is a small typed `HttpClient` (three calls in v1). No new NuGet package.
+- CSV export prefixes any cell that starts with `=`, `+`, `-`, `@`, tab or CR with `'` (CSV injection).
+- Frontend: sign-up form and status page in `features/events`; attendees view in `features/admin`. The form pre-warms the API with a retried `GET /health` when it opens and disables Submit until it answers. Designed in Penpot first.
 
 ### Configuration and secrets
 
@@ -296,96 +352,131 @@ Environment variables only (Render dashboard with `sync: false`; documented in `
 | Variable | Example / note |
 |---|---|
 | `Payments__PayU__BaseUrl` | `https://secure.snd.payu.com` (sandbox) or `https://secure.payu.com` (production) |
-| `Payments__PayU__PosId` | POS id (merchantPosId) |
-| `Payments__PayU__ClientId` | OAuth client id (often equal to POS id) |
-| `Payments__PayU__ClientSecret` | OAuth secret |
-| `Payments__PayU__SecondKey` | MD5 "second key" for notification signatures |
+| `Payments__PayU__PosId` | POS id (`merchantPosId`) |
+| `Payments__PayU__ClientId` / `ClientSecret` | OAuth client credentials |
+| `Payments__PayU__SecondKey` | second key for notification signatures |
 | `Payments__OrderValiditySeconds` | `1200` |
 | `Payments__SeatHoldMinutes` | `30` |
-| `Email__FrontendBaseUrl` (existing, `FRONTEND_BASE_URL` in compose) | reused to build `continueUrl` and `notifyUrl` (`{base}/api/payments/payu/notify`, via nginx, same origin) |
+| `Registrations__MaxHoldPercent` | `20` |
+| `Turnstile__SiteKey` / `Turnstile__SecretKey` | only used when the `registrationCaptcha` flag is on |
+| `API_PROXY_SECRET` | same random value on web (nginx) and API; API reads it as `Proxy__Secret` |
+| `Email__FrontendBaseUrl` (existing, `FRONTEND_BASE_URL` in compose) | reused to build `continueUrl` and `notifyUrl` (`{base}/api/payments/payu/notify`, via nginx) |
 
-- If `PosId` is empty, PayU is **disabled**: paid events accept sign-ups as `PendingPayment` with provider `manual` and no expiry, and admins mark them paid (option A). This is also the local-dev default.
-- Sandbox and production use different POS ids and keys; production keys are entered on Render only by the treasurer or a board-appointed admin. Local dev uses the public sandbox POS. The notify URL on a laptop is unreachable from PayU; local testing relies on the pull path, or a tunnel if someone needs it.
-- Startup check: if `BaseUrl` is production but `ASPNETCORE_ENVIRONMENT` is not `Production`, log an error and disable PayU.
+- If `PosId` is empty, PayU is **disabled** and paid events use manual payments (P1 behaviour, also the local-dev default).
+- **In Production, PayU is enabled only if `BaseUrl` is exactly `https://secure.payu.com`**; any other value logs an error and disables PayU (no sandbox orders in Production). Outside Production, the production URL is refused the same way.
+- Production keys are entered on Render only by the treasurer or a board-appointed admin. Local dev uses the public sandbox POS; a laptop's notify URL is unreachable from PayU, so local tests rely on the pull path.
 
 ## Failure modes
 
 | Situation | What happens | Mitigation |
 |---|---|---|
-| API (and nginx) asleep when PayU notifies | First attempt times out during the ~50 s cold start | PayU retries after 1, 2, 5, 10 min; meanwhile the returning student's status poll wakes the API and pulls the order. The frontend `retryInterceptor` already covers the cold start for the sign-up POST. |
-| Duplicate or out-of-order notifications | Same order delivered several times, `PENDING` after `COMPLETED` | Forward-only transitions; duplicate returns 200 with no change. |
-| Forged notification | Attacker POSTs a fake `COMPLETED` | Signature check fails → 400. Even a valid-looking body is never trusted: we re-read the order from PayU. |
-| Amount mismatch | PayU order amount differs from our row (bug or tampering) | Do not mark Paid; log at error level, flag for admin; return 200 so PayU stops retrying. |
-| Student closes the browser after paying | No return page, no poll | Notification (with retries over 72 h) updates the row. Admin Sync is the manual backstop. |
-| Student closes the browser before paying | Order stays unpaid | PayU `validityTime` ends payments at 20 min, our hold ends at 30 min, the seat returns on the next read. |
-| PayU order creation fails (outage, bad config) | Sign-up cannot get a `redirectUri` | Registration and payment rows are kept as `Pending` with no order; the response is 503 with "try again in a few minutes"; the row expires normally. Resubmitting the same e-mail retries order creation for the existing row. Admins can switch the event to manual payment by clearing PayU config if the outage is long. |
-| PayU outage after the student paid | Notification and `GET order` both fail | Notifications continue for 72 h after recovery; admin Sync afterwards. |
-| Late payment after expiry on a full event | Money arrives for a released seat | Accepted, registration `Confirmed`, `OverCapacity = true`, highlighted for the admin (refund or squeeze in). |
-| Refund | Admin presses Refund on a Paid registration | `POST /api/v2_1/orders/{orderId}/refunds` (full amount, our refund id as `extRefundId` for idempotency), status `RefundPending`; the refund notification or Sync moves it to `Refunded` or back to `Paid`. Partial refunds out of scope for v1. Fees kept by PayU on refunds: unverified. |
-| Event cancelled | Paid registrations remain | Admin bulk refund is a later step; v1: refund each from the list. |
-| Reconciliation | Our DB vs PayU panel vs bank | Admin CSV export per event (registration, PayU order id, amount, paid at, status); the treasurer compares with the PayU panel monthly and records receipts on the cash register. "Sync all pending" for an event is one admin action. |
-| Free DB expires (#26) | Loss of payment records | Prerequisite: paid Postgres with backups before the first real payment. |
-| Redeploy during payment | API restarts | Stateless apart from the DB; the OAuth token cache is rebuilt. |
+| API asleep when a student opens the form | A POST to a sleeping API returns 502/504; `retryInterceptor` does not retry POSTs | The form pre-warms with a retried `GET /health` and enables Submit once it answers. The POST itself is not retried automatically (a timed-out POST may have succeeded). |
+| Web and API asleep when PayU notifies | The notify goes through nginx then the API: two cold starts, up to ~100 s, so the first attempts fail | PayU retries after 1, 2, 5, 10 min; meanwhile the returning student's status poll pulls the order. |
+| Duplicate or out-of-order notifications | `PENDING` after `COMPLETED`, repeats | Forward-only transitions; duplicate returns 200 with no change. |
+| Forged notification | Fake `COMPLETED` | Signature check fails → 400; even a valid body is re-checked against `GET order`. |
+| Sandbox keys in Production | Free "payments" | Production accepts only the production base URL; `merchantPosId` must equal our POS id. |
+| Amount or identity mismatch | PayU order differs from our row | Not marked Paid; error log, admin flag; 200 to stop retries. |
+| Student closes the browser after paying | No return page | Notification (retries over 72 h); admin Sync on the payment as backstop. |
+| Student closes the browser before paying | Order unpaid | PayU validity ends at 20 min, our hold at 30 min. |
+| PayU order creation fails | No `redirectUri` | Payment `Canceled` at once, seat released, 503 "try again in a few minutes"; the student resubmits. Long outage: admins clear PayU config, events fall back to manual payments. |
+| PayU outage after the student paid | Notify and `GET order` fail | Notifications resume for 72 h; admin Sync afterwards. |
+| Late payment after expiry on a full event | Money for a released seat | Accepted, `Confirmed`, `OverCapacity` flag; admin refunds or squeezes in. Behaviour to be confirmed in the sandbox. |
+| Bot fills an event | Many fake sign-ups | Hold cap, rate limits, honeypot, Turnstile flag, bulk-cancel. Free events remain exposed until e-mail verification (#25). |
+| Refund | Admin refunds in the PayU panel (or by transfer for manual payments), then clicks "Mark refunded" | Audited; registration `Cancelled`. Refunds API is step 11, not v1. |
+| Reconciliation | DB vs PayU panel vs bank | CSV export per event (reference, PayU order id, amount, paid at, status); the treasurer compares monthly and records receipts on the cash register. |
+| Free DB expires (#26) | Loss of personal and payment data | Step 1 (paid Postgres) is a dependency of the first step that stores personal data. |
 | Seeder | `DbSeeder` re-adds seed events at every start | Seed events keep `RegistrationEnabled = false`; never seed registrations or payments in Production. |
 
 ## GDPR and data retention
 
-- **Data collected:** first and last name, e-mail, phone, consent timestamp and consent text version. Nothing else (no ESNcard, university, country in v1 unless the owner asks).
-- **Legal basis and notice:** a privacy notice linked next to the consent checkbox names the controller (the association), purpose (event organisation and payment), recipients (**PayU S.A.** as payment operator, Render as hosting processor), retention and rights. Drafted and approved by the board; the app shows the text and stores its version.
-- **Data sent to PayU:** `buyer.email` (and names, which PayU may use for receipts/fraud checks; **to confirm** whether the e-mail alone is enough) and `customerIp`. No phone.
-- **Retention (recommended, to confirm with the accountant):** registrations are anonymized (names, e-mail, phone cleared) 30 days after the event ends. Payment rows keep amount, dates, PayU order id and provider, without personal data, for the accounting period (Polish practice is 5 years from the end of the financial year; **not legal advice**). Anonymization runs as an admin action and opportunistically when the admin opens the registrations list (no cron on the free tier).
-- **Rights:** admins can delete a single registration on request (deletion of a paid one anonymizes instead, to keep the payment trail).
-- **Access:** only admins see attendee data; the CSV export is a personal-data file and the admin UI says so.
-- **Logs:** no personal data or PayU bodies in logs.
+- **Data collected:** first and last name, e-mail, phone, consent timestamp and version. Nothing else in v1.
+- **Notice:** a privacy notice next to the consent checkbox names the controller (the association), purpose, recipients (PayU S.A. as payment operator from the PayU stage, Render as hosting processor, Cloudflare if Turnstile is switched on), retention and rights. Drafted and approved by the board; the app stores the text version.
+- **Data sent to PayU:** `buyer.email` and `customerIp`; names only if PayU requires them (**to confirm** in the sandbox). No phone.
+- **Retention (recommended, to confirm with the accountant):** names, e-mail and phone are anonymized 30 days after the event ends; payment rows keep amount, dates, reference, PayU order id and provider for the accounting period (Polish practice is 5 years from the end of the financial year; **not legal advice**). Anonymization runs on **API startup** (the free API restarts often), when an admin opens the registrations list, and as an explicit admin action.
+- **Backups** of the paid database keep personal data for the backup retention window after anonymization; the privacy notice says so.
+- **Rights:** admins can delete a registration on request (anonymizes if a payment exists).
+- **Access:** only admins see attendee data; the CSV is a personal-data file and the UI says so.
+- **Logs:** no personal data, no tokens (route templates only), no PayU bodies.
 
 ## Out of scope
 
-Student accounts and login (#22), tickets/QR/check-in, waitlist (unless the owner wants it), partial refunds, discount codes / ESNcard pricing, multiple price tiers, invoices, fiscal receipts in the app (done on the cash register), ESNcard or membership fees, confirmation e-mails before #25 is solved, Turnstile/CAPTCHA (only if spam appears), a background scheduler.
+Student accounts (#22), tickets/QR/check-in, waitlist, the refunds API and `RefundPending` state (refund in the PayU panel in v1), "Sync all pending", partial refunds, discount codes / ESNcard pricing, price tiers, invoices, fiscal receipts in the app, ESNcard or membership fees, confirmation e-mails before #25, a background scheduler, a separate refund role (see review M6), making Swagger private in Production (existing issue, tracked separately).
 
 ## Consequences
 
-- The GET-only rule gains two named exceptions guarded by an allow-list test; CLAUDE.md and `docs/architecture/backend.md` must be updated when the endpoints land.
-- New personal and financial data in the DB makes #26 (paid, backed-up Postgres) a blocker for production payments. Monthly cost rises by about $6 (DB); the API can stay on the free plan.
-- The API gains forwarded-headers handling and a rate limiter (useful for login too).
-- `CurrentParticipants` stops being a hand-typed number for events with in-app registration.
-- PayU sits behind `IPaymentGateway`, so the Przelewy24 fallback is a contained change.
-- The volunteer team owns: PayU panel access (two board members, 2FA), sandbox/production keys, monthly reconciliation, refunds.
+- The GET-only rule gains one named exception in P1 v1 and a second with the PayU stage, guarded by an allow-list test; CLAUDE.md and `docs/architecture/backend.md` are updated when the endpoints land.
+- Personal and financial data make #26 (paid, backed-up Postgres, about $6/month) a blocker for the first registration step. The API can stay on the free plan.
+- The API gains forwarded-headers handling, a proxy secret, rate limiting and login lockout; this also hardens the existing login.
+- `CurrentParticipants` stops being hand-typed for events with in-app registration.
+- PayU sits behind `IPaymentGateway`; the Przelewy24 fallback is contained.
+- The volunteer team owns PayU panel access (two board members, 2FA in the panel), keys, monthly reconciliation and refunds.
 
 ## Open questions for the owner
 
 Each has a recommended answer; the plan assumes the recommendation.
 
-1. **Form fields beyond name, phone, e-mail, consent?** (ESNcard number, university, country, dietary needs.) Recommended: none in v1; add a per-event optional "comment" field later only if events need it.
-2. **Capacity and waitlist?** Recommended: capacity yes (reuse `MaximumParticipants`), waitlist no in v1; when full the form shows "Full" and the external `RegistrationUrl`, if set, can point to a waitlist form.
-3. **Seat hold for unpaid sign-ups?** Recommended: 30 min (PayU validity 20 min).
-4. **Confirmation e-mail?** Depends on #25 (SMTP blocked on free Render). Recommended: v1 has no e-mail from us; the status page (bookmarkable link) is the confirmation, and PayU's own payment confirmation reaches the payer (**unverified**, check in sandbox). Add our e-mail once #25 picks an HTTP e-mail API.
-5. **Student self-cancellation and refund rules?** Recommended: no self-service cancel in v1; the student writes to ESN, an admin cancels and refunds per the terms of sale written by the board.
-6. **Retention?** Recommended: personal data anonymized 30 days after the event; payment records kept without personal data for the accounting period (confirm with the accountant).
-7. **Does in-app registration replace the external link?** Recommended: per event, `RegistrationEnabled` hides `RegistrationUrl`'s button; both stay possible.
-8. **Who can refund?** Recommended: any admin in the app (the refund is logged with the admin snapshot); the board may restrict this later with a second role.
-9. **Paid DB (#26) budget approved?** Recommended: yes, Basic-256mb (~$6/month) before real payments; API stays free.
+1. **v1 path: P1 or P2?** Recommended: P1 (registrations + manual payment first, PayU as stage 2).
+2. **Form fields beyond name, phone, e-mail, consent?** Recommended: none in v1.
+3. **Capacity and waitlist?** Recommended: capacity yes (reuse `MaximumParticipants`), no waitlist; when full, the form says "Full".
+4. **Seat hold and hold cap?** Recommended: 30 min hold (PayU validity 20 min), at most 20% of capacity (minimum 5) held unpaid at once.
+5. **Confirmation e-mail?** Recommended: none from us until #25; the bookmarkable status page is the confirmation; PayU's own payment e-mail reaches the payer (**unverified**).
+6. **Student self-cancellation and refund rules?** Recommended: no self-service cancel; the student writes to ESN, an admin cancels and refunds per the board's terms of sale.
+7. **Retention?** Recommended: anonymize 30 days after the event; keep payment records without personal data for the accounting period.
+8. **Replace the external link?** Recommended: per event, `RegistrationEnabled` hides the `RegistrationUrl` button.
+9. **Who can mark paid/refunded?** Recommended: any admin, audited; revisit a separate role if the refunds API is ever built.
+10. **Paid DB (#26) budget?** Recommended: yes, Basic-256mb (~$6/month), before step 4.
 
 ## Implementation plan (for `pm`)
 
-Each step is a separate branch + PR into `main` and is shippable alone. Prerequisites first. "Owner" steps are not agent work.
+Each step is a separate branch + PR into `main` and ships alone. **P1 v1 = steps 1–7; PayU stage = steps 8–10. P2 v1 = steps 1–10.** Step 11 is not planned.
 
 | # | Task | Agent | Scope and files likely touched | Acceptance criteria | Bump | Depends on |
 |---|---|---|---|---|---|---|
-| 0 | Board/owner prerequisites | owner | PayU contract (statute + KRS), sandbox account, terms of sale, privacy notice, accountant on receipts and retention, answers to open questions | Sandbox keys exist; texts approved | n/a | — |
-| 1 | Paid Postgres + backups (#26) | backend (+ owner on Render) | `render.yaml` (`plan`), `docs/architecture/deployment.md`, data move runbook | Production DB on a paid plan, backup restore tested once | patch | owner budget |
-| 2 | Penpot designs | ui-ux | Sign-up form on event details (states: open, full, closed, submitting, error), status page (pending/paid/expired/failed/free confirmed), admin event form fields, admin attendees view | Owner approves the boards | n/a | open questions 1–2, 7 |
-| 3 | Rate limiting + forwarded headers + anonymous-endpoint allow-list test | backend | `Program.cs`, `EsnApp.Api.Tests` (new allow-list test), apply limiter to `AuthController.Login` | Test lists exactly login + reset-password today; 429 after limit; real client IP visible behind nginx | patch | — |
-| 4 | Free registration backend | backend | `Domain/Events/Registration.cs`, `Event` (`RegistrationEnabled`, `RegistrationDeadline`), EF config + migration (review SQL), `Application/Registrations/*`, `EventRegistrationsController`, `RegistrationStatusController`, `AdminRegistrationsController` (list, CSV, cancel, delete), allow-list test updated, Swagger annotations | Free events only (`Price = 0`; paid events reject sign-up with 409 until step 6); capacity race test; duplicate e-mail → 409; honeypot rejected; `security` review passed | minor | 3 |
-| 5 | Free registration frontend | frontend | `features/events` form + status page, event details button logic, `features/admin` attendees view + event form fields, models/data-access | Matches Penpot; works on mobile; reduced-motion respected; `tests` + `ui-ux` checked | minor | 2, 4 |
-| 6 | Manual payment for paid events (option A) | backend + frontend | `Domain/Payments/Payment.cs` + migration, `Provider = manual`, admin mark-paid/unpaid, status page shows payment instructions text set per event | Paid events take sign-ups as PendingPayment; admin marks paid; capacity counts them | minor | 4, 5 |
-| 7 | PayU gateway + order creation + pull sync (option C) | backend | `Infrastructure/Payments/PayU/*` (typed HttpClient, options, token cache), `IPaymentGateway`, create order in `CreateRegistration`, reconcile-on-read in status GET, admin `payments/{id}/sync` and "sync all pending", `.env.example`, `render.yaml` env keys (`sync: false`), state-transition unit tests | Sandbox payment goes Pending → Paid by polling; amount mismatch not marked Paid; PayU disabled when `PosId` empty; no secrets in repo | minor | 0 (sandbox), 1 before production keys, 6 |
-| 8 | PayU notify webhook (option B) | backend | `PayUNotificationsController`, raw-body signature verifier, allow-list test updated, `docs/architecture/backend.md`, CLAUDE.md invariant text | Valid signature → updated; bad signature → 400; duplicate → 200 no-op; works through nginx in sandbox; `security` review passed | minor | 7 |
-| 9 | Return page and admin payment UI | frontend | Status page polling (3 s then 15 s, stop on final state), pay-again button, admin payment status column, Sync / Refund buttons, over-capacity flag | `tests` runs a sandbox payment end to end; `ui-ux` checked | minor | 2, 7 (8 optional) |
-| 10 | Refunds | backend + frontend | `RefundPayment` (PayU refunds API, `extRefundId`), refund notification handling in step 8 controller, admin button state | Sandbox refund reaches Refunded; refund cancel goes back to Paid | minor | 8, 9 |
-| 11 | Retention / anonymization | backend + frontend | Admin "anonymize past registrations" action + opportunistic run, CSV export column notes | Personal data cleared N days after the event; payment rows kept | patch | 4, owner answer 6 |
-| 12 | Go-live | owner + backend | Production PayU keys in Render, switch `BaseUrl`, one real low-value payment and refund, update CLAUDE.md Deployment | Real payment visible in app and PayU panel; ADR status → Accepted | patch | 1, 8–11 |
+| 0 | Board/owner prerequisites | owner | Path choice, terms of sale, privacy notice, accountant on receipts and retention, answers to open questions; for the PayU stage: contract (statute + KRS) and sandbox | Texts approved; for PayU: sandbox keys exist | n/a | — |
+| 1 | Paid Postgres + backups (#26) | backend (+ owner on Render) | `render.yaml` (`plan`), data move runbook, `docs/architecture/deployment.md` | Production DB on a paid plan; one backup restore tested | patch | owner budget |
+| 2 | Penpot designs | ui-ux | Sign-up form (open, full, closed, warming up, submitting, generic duplicate message, error), status page (pending/manual instructions with reference/paid/expired/free confirmed), admin event form fields, attendees view with bulk-cancel and payment column | Owner approves the boards | n/a | open questions 2–3, 8 |
+| 3 | Edge hardening | backend | `Program.cs` (`UseForwardedHeaders` with measured `ForwardLimit`, proxy-secret check, rate limiter with IPv6 /64), `docker/nginx.conf.template` (`X-Proxy-Auth`, `Referrer-Policy`), `render.yaml` + `.env.example` (`API_PROXY_SECRET`), Identity lockout in `IdentityService`, route-template logging in `ExceptionHandlingMiddleware`, allow-list test in `EsnApp.Api.Tests` | Raw XFF measured on Render and documented; direct call to the API's onrender URL → 403; 429 after limits; login locks after 5 failures; allow-list test lists login + reset-password | patch | — |
+| 4 | Registration backend (free events) | backend | `Domain/Events/Registration.cs`, `Event` (`RegistrationEnabled`, `RegistrationDeadline`), `RegistrationAuditEntries`, EF config + migration (review SQL), `Application/Registrations/*`, `EventRegistrationsController`, `RegistrationStatusController`, `AdminRegistrationsController` (list, CSV with injection guard, cancel, bulk-cancel, delete), honeypot, Turnstile behind `registrationCaptcha` flag (`FeatureFlagKeys`), allow-list test updated, Swagger annotations | Paid events reject sign-up (generic 202) until step 7; capacity race test; duplicate → generic 202 without token; status response has no personal data; `security` review passed | minor | **1**, 3 |
+| 5 | Registration frontend | frontend | `features/events` form (pre-warm `GET /health`, Turnstile widget when flag on) + status page, `features/admin` attendees view + event form fields, models/data-access | Matches Penpot; mobile; reduced motion; `tests` + `ui-ux` checked | minor | 2, 4 |
+| 6 | Retention / anonymization | backend (+ small frontend) | Anonymize on startup, on admin list open and as an admin action; audit entries | Personal data cleared N days after the event; payment rows kept; audited | patch | 4, open question 7 |
+| 7 | Manual payments (option A) | backend + frontend | `Domain/Payments/Payment.cs` + migration (`Provider = manual`), `Event.PaymentInstructions`, `Registration.Reference`, hold cap, admin mark-paid / mark-refunded (audited), status page shows instructions + reference | Paid events take sign-ups as PendingPayment; hold cap enforced; admin marks paid/refunded; CSV has reference and payment columns | minor | 4, 5 |
+| 8 | PayU "B with pull" backend | backend | `Infrastructure/Payments/PayU/*` (typed HttpClient, token cache, no auto-redirect), `IPaymentGateway`, order creation in `CreateRegistration`, `PayUNotificationsController` with the verification steps, pull in status GET, admin single-payment Sync, Production base-URL guard, `merchantPosId` check, `.env.example`, `render.yaml` (`sync: false`), allow-list test, CLAUDE.md invariant text, `docs/architecture/backend.md`; **first** a sandbox check of late `COMPLETED` after `validityTime` | Sandbox payment reaches Paid by notify and, separately, by pull; bad signature → 400; duplicate → 200 no-op; mismatched amount/POS not Paid; PayU disabled when `PosId` empty; `security` review passed | minor | 0 (sandbox), 7 |
+| 9 | PayU frontend | frontend | Status page polling (3 s, then 15 s, stop on final state), pay-again, `redirectUrl` host check, admin payment status + Sync button, over-capacity flag | `tests` runs a sandbox payment end to end; `ui-ux` checked | minor | 2, 8 |
+| 10 | PayU go-live | owner + backend | Production keys in Render, base URL switch, one real low-value payment refunded in the panel and marked refunded, CLAUDE.md Deployment update | Real payment visible in app and panel; ADR status → Accepted | patch | 0 (contract), 8, 9 |
+| 11 | (not planned) Refunds API | backend + frontend | PayU refunds API, `RefundPending`, refund notifications matched by `PayURefundId` | Only if panel refunds become a burden | minor | 10 |
 
-Steps 3–6 deliver #105 and the manual part of #106 without PayU; steps 7–10 add PayU incrementally; each PayU step leaves the system working if the next one never ships.
+## Review: objections and responses
+
+Reviews by `security` and `skeptic` on PR #109, both "accept with changes".
+
+### Security
+
+| # | Objection | Response |
+|---|---|---|
+| H1 | Fake sign-ups can fill events; honeypot and a client timestamp are weak | **Accepted.** Hold cap of `max(5, 20%)` concurrent unpaid holds per event, Turnstile behind the `registrationCaptcha` flag from v1, admin bulk-cancel. Residual: free events are confirmed without e-mail verification until #25 (accepted risk, stated). |
+| H2 | Per-IP limits are bypassable: nginx appends client-supplied XFF, and the API has a public Render URL | **Accepted.** Right-counted XFF with a fixed hop count measured on Render, shared-secret header nginx → API (403 otherwise), IPv6 /64 buckets, login lockout added. PayU IP allow-list stays off (infeasible behind Render). |
+| H3 | Returning the same status token on a duplicate submit is impossible (hashed) and would leak the link to anyone who knows the e-mail; 409 confirms attendance | **Accepted.** Duplicate gets a generic 202 without a token; pay-again only through the existing token; failed order creation cancels the payment and the student resubmits. Residual signal (new sign-up returns a token, duplicate does not) is rate limited and accepted. |
+| M4 | Sandbox keys could run in Production | **Accepted.** Production requires the production base URL, else PayU is disabled; `merchantPosId` is checked on every re-fetch. |
+| M5 | Webhook verification needs explicit steps | **Accepted.** Seven numbered steps in Decision; lookup by stored `PayUOrderId`; `FixedTimeEquals` on lowercase hex; refund notifications acknowledged without state change in v1 and matched by `PayURefundId` when the refunds API exists. |
+| M6 | Admin actions need an audit trail; no 2FA, so consider a refund role | **Mitigated.** Append-only `RegistrationAuditEntries` for mark-paid, mark-refunded, cancel, bulk-cancel, sync, anonymize, delete. **Refund role rejected for v1:** the app does not move money in v1 (refunds happen in the PayU panel, which has its own login and 2FA); "Mark refunded" only records it. Revisit with step 11. |
+| M7 | CSV injection | **Accepted.** Cells starting with `=`, `+`, `-`, `@`, tab, CR are prefixed with `'`. |
+| M8 | Token in the URL leaks via Referer and logs; status must not return personal data | **Accepted.** `Referrer-Policy: no-referrer` in nginx, route-template logging (including `ExceptionHandlingMiddleware`), status response without name/e-mail/phone. |
+| L9 | Anonymization should also run on startup; backups keep personal data | **Accepted.** Startup run added; backup window stated in the privacy notice. |
+| L10 | Frontend should check the redirect host | **Accepted.** Only `secure.payu.com` (and `secure.snd.payu.com` outside Production). |
+| L11 | JSON only | **Accepted.** `[Consumes("application/json")]`, 415 otherwise. |
+| L12 | Swagger is public in Production | **Rejected for this ADR** (not caused by it): an existing limitation listed in `docs/architecture/known-limitations.md`; to be handled in its own change. The new endpoints carry no secrets in their Swagger descriptions. |
+
+### Skeptic
+
+| # | Objection | Response |
+|---|---|---|
+| 1 | Steps 4–5 store personal data in a DB that expires around 2026-12-06 | **Accepted.** Step 1 (#26) is now a hard dependency of step 4. |
+| 2 | On Render `$remote_addr` is Render's proxy, and eduroam/office NAT would hit 5 per 10 min at registration opening | **Accepted.** Measured XFF hop count (see H2), per-IP limit raised to 30 per 10 min plus a global per-endpoint limit; the hold cap, not the IP limit, is the main defence against filling an event. |
+| 3 | The claim that `retryInterceptor` covers the sign-up POST is false; the webhook faces two cold starts (~100 s) | **Accepted.** Text corrected; the form pre-warms with a retried `GET /health`; the double cold start is covered by PayU retries and the status poll. |
+| 4 | 13 PRs are too much for volunteers | **Accepted.** Cut from v1: refunds API, `RefundPending`, `Canceled → Paid`, "Sync all pending". Plan regrouped into P1 (7 steps to v1) and P2 (10). |
+| 5 | Token leak on duplicate submit | **Accepted.** Same fix as H3. |
+| 6 | Late `PENDING → COMPLETED` after expiry is unverified | **Accepted.** Step 8 starts with a sandbox check; only the single `Expired → Paid` transition with a flag is planned. |
+| View | C alone is not enough; B with pull is cheap and right; A stays; cheaper v1 is steps 3–6 + manual payment, then PayU as one stage without refunds | **Accepted.** That is P1, the recommended path. |
 
 ## References
 
