@@ -9,23 +9,34 @@ Context: ESN Gdańsk (Polish *stowarzyszenie*, KRS/NIP, account in Nest Bank) se
 
 What exists today: `Event` already has `Price` (decimal) and `RegistrationUrl` (`backend/src/EsnApp.Domain/Events/Event.cs`). There is no Registration or Payment entity and no anonymous write endpoint besides login/reset-password. Everything runs on the Render free tier (`render.yaml`): the API sleeps after 15 min (~50 s cold start), the free Postgres expires after 30 days, and SMTP is blocked.
 
-**Recommendation**
+**Recommendation** (revised after the `skeptic` review, see section 7)
 
-| Goal | Pick | Why |
-|---|---|---|
-| Best overall (start with links, grow into checkout) | **Stripe** (Payment Links now, Checkout + webhook later) | One provider for level A and B, so no re-onboarding later. Cards from any country, Apple/Google Pay, BLIK, and Payment Links at no extra charge. Best docs, a sandbox, a CLI for local webhooks, an official .NET SDK (`Stripe.net`), and HMAC-SHA256 signed webhooks retried for up to 3 days. |
-| Easiest to start | **Stripe Payment Links** (level A) | One link per event, created in the dashboard in minutes. Stripe collects the e-mail (plus optional custom fields), shows the payment in the dashboard and can e-mail a receipt. App change: one URL field and a button. |
-| Cheapest Polish alternative | **Przelewy24** (or PayU) | P24 lists 1.29% + 0.30 PLN for BLIK, pay-by-link and cards, no monthly fee, and a 59 PLN activation fee refunded after 10 transactions. Cheaper per ticket than Stripe at our ticket sizes, but weaker for foreign cards and English UX, with plainer APIs and docs. |
-| No code, also replaces #105 | **pretix Hosted** (ticketing platform) | Sign-up form, capacity, waitlist, e-mail tickets, check-in and payments (via Stripe) in one. 2.5% fee capped at EUR 15/ticket, with special non-profit pricing. The app just links to the shop for each event. |
+1. **Step 0, a legal/tax gate that blocks the provider choice.** The association's accountant answers three questions: is ticket income paid statutory activity (*odpłatna działalność statutowa*) or business activity (which needs an entry in the KRS register of entrepreneurs); is the association a VAT payer; and does the cash-register exemption (item 37 of the exemption regulation: the service is paid in full through a bank/post office to the bank account, and each payment identifies the transaction) apply to payments that arrive through the chosen operator. Tax practice treats PayU/PayPal payments as bank payments for item 37 [19]; we found no ruling on Stripe.
+2. **Step 1, owner pre-checks (free, no contract).** (a) Start Stripe's free account setup to confirm that a Polish *stowarzyszenie* can be selected as an entity type (Stripe's Poland agreement admits "non-profit organisations" [20], but the legal form in the form is unconfirmed) and that PLN payouts to the Nest Bank account work. (b) Publish a terms/refund/contact page (address, NIP, KRS, refund policy, privacy policy, terms), which Stripe activation and P24 require [4] and which the PWA does not have yet. (c) Measure the payer mix (foreign card vs BLIK) on one event, e.g. with a single question in the current sign-up form.
+3. **Level A, zero code.** For each paid event, paste the provider's payment link into the existing `Event.RegistrationUrl` field. The payment page then is the sign-up: name, phone and e-mail are collected, a terms checkbox is required, and the link deactivates after N payments, which caps capacity (all verified for Stripe Payment Links [21]). A separate `PaymentUrl` field is added only together with #105.
+4. **Provider for level A:**
+   - Default: **Stripe Payment Links**, if the pre-checks pass and foreign cards are a large share. Native reusable links with a payment limit, custom fields, receipts and terms consent; payout to Nest Bank.
+   - Fallback: **PayU payment links**, if Stripe onboarding fails, the accountant rejects Stripe for item 37, or most payers use BLIK. Cheaper per ticket (BLIK 1.49% + 0.32 PLN).
+   - Przelewy24 is the cheapest (1.29% + 0.30 PLN), but we found **no confirmed native payment-link feature without a shop or integration** [22], so it fits level A only if P24 confirms one.
+5. **Growth path is level C (pretix), not B, and only if pretix replaces #105.** Level B (own checkout + webhooks) is dropped from the recommendation. Reconsider it only if manual reconciliation takes more than ~2 h per event after one semester.
 
-Estimated provider cost for 300 tickets x 50 PLN = 15,000 PLN per semester **(estimate, list prices)**: P24 ~284 PLN, PayU BLIK ~320 PLN, SumUp link ~293 PLN, Stripe ~525–540 PLN, pretix ~375 PLN + Stripe fees. The difference (~250 PLN per semester) is small compared with the volunteer time manual reconciliation takes.
+Cost per ticket at list prices **(estimate)**:
+
+| Ticket | Stripe EEA card (1.5% + 1.00) | Stripe premium EEA card (1.9% + 1.00) | Stripe BLIK (1.6% + 1.00) | PayU BLIK (1.49% + 0.32) | P24 (1.29% + 0.30) |
+|---|---|---|---|---|---|
+| 20 PLN | 1.30 (6.5%) | 1.38 (6.9%) | 1.32 (6.6%) | 0.62 (3.1%) | 0.56 (2.8%) |
+| 50 PLN | 1.75 (3.5%) | 1.95 (3.9%) | 1.80 (3.6%) | 1.07 (2.1%) | 0.95 (1.9%) |
+| 100 PLN | 2.50 (2.5%) | 2.90 (2.9%) | 2.60 (2.6%) | 1.81 (1.8%) | 1.59 (1.6%) |
+
+Per semester (300 tickets x 50 PLN = 15,000 PLN) **(estimate)**: P24 ~284 PLN, PayU BLIK ~320 PLN, SumUp link ~293 PLN, Stripe ~525–585 PLN, **pretix ~900 PLN in total** (375 PLN pretix fee + ~525 PLN Stripe, about 6% of turnover). The fixed 1.00 PLN fee makes Stripe relatively expensive for cheap tickets.
 
 **What would change the recommendation**
-- Most payers turn out to be Poles paying with BLIK/pay-by-link, and cost matters more than foreign cards: pick Przelewy24 or PayU.
-- Stripe refuses or restricts the association during onboarding (it reviews the business category). Note that Stripe lists "Entertainment and event promotion services" as prohibited **for Przelewy24 via Stripe**, but not for cards or BLIK. In that case fall back to PayU or P24.
-- The board wants a Revolut Business account for other reasons and Revolut confirms BLIK acceptance: Revolut payment links become attractive (low card fees, Revolut Pay is popular with Erasmus students) **(unverified)**.
-- The owner decides #105 should not be built in-house: go with pretix (or Ticket Tailor) and skip payment code entirely.
-- Before taking money on level B, the API and DB must leave the free tier (expiring DB, sleeping API). Without budget for that, stay on level A or C.
+- The accountant's answer to step 0, for example if item 37 is only safe with a Polish payment institution: then PayU (or P24, if it has links).
+- The measured payer mix: mostly BLIK means PayU; mostly foreign cards means Stripe.
+- Stripe does not accept the association's legal form: PayU.
+- The board wants a Revolut Business account for other reasons and Revolut confirms BLIK acceptance: Revolut payment links **(unverified)**.
+- The owner decides #105 should not be built in-house: pretix (level C) with no payment code at all.
+- Manual reconciliation takes more than ~2 h per event after a semester: reopen level B (needs paid Render plans, an ADR and a security review).
 
 ## 2. Comparison
 
@@ -33,7 +44,7 @@ Estimated provider cost for 300 tickets x 50 PLN = 15,000 PLN per semester **(es
 
 | Provider | Methods relevant to us | Fees (list price) | Confirmation time | Payout | Payment links | API / SDK / sandbox | Webhook (signature, retries) | Onboarding for an association |
 |---|---|---|---|---|---|---|---|---|
-| **Stripe** | Cards (any country), Apple/Google Pay, BLIK, P24 (see restriction) | EEA cards 1.5% + 1.00 PLN; UK 2.5% + 1.00 PLN; international 3.25% + 1.00 PLN (+2% FX); BLIK 1.6% + 1.00 PLN; P24 1.9% + 1.00 PLN. Refunds are free, but the original fee is kept [1] | Cards: seconds. BLIK: "immediate", result normally within 60 s [3]. P24: immediate, the customer has 1 h to authorise [4] | To any PL bank account (Nest Bank) on a rolling, weekly or monthly schedule [1]. P24 settles T+2 [4]. Default PL delay **(unverified)** | Yes, at no extra charge [1] | REST + official .NET SDK `Stripe.net` **(well known, not re-checked)**. Full sandbox; the CLI forwards webhooks to localhost [2] | HMAC-SHA256 `Stripe-Signature` with a timestamp (5 min tolerance). Retries for up to 3 days in live mode, a few over hours in sandbox. Manual resend up to 15/30 days. No ordering guarantee; dedupe by event ID [2] | Online KYC. The website must meet the activation requirements. P24 via Stripe excludes event promotion [4] |
+| **Stripe** | Cards (any country), Apple/Google Pay, BLIK, P24 (see restriction) | Standard EEA cards 1.5% + 1.00 PLN; premium EEA cards 1.9% + 1.00 PLN; UK 2.5% + 1.00 PLN; international 3.25% + 1.00 PLN (+2% FX); BLIK 1.6% + 1.00 PLN; P24 1.9% + 1.00 PLN. Refunds are free, but the original fee is kept [1] | Cards: seconds. BLIK: "immediate", result normally within 60 s [3]. P24: immediate, the customer has 1 h to authorise [4] | To any PL bank account (Nest Bank) on a rolling, weekly or monthly schedule [1]. P24 settles T+2 [4]. Default PL delay **(unverified)** | Yes, at no extra charge [1] | REST + official .NET SDK `Stripe.net` **(well known, not re-checked)**. Full sandbox; the CLI forwards webhooks to localhost [2] | HMAC-SHA256 `Stripe-Signature` with a timestamp (5 min tolerance). Retries for up to 3 days in live mode, a few over hours in sandbox. Manual resend up to 15/30 days. No ordering guarantee; dedupe by event ID [2] | Online KYC. The website must meet the activation requirements. P24 via Stripe excludes event promotion [4] |
 | **PayU** | BLIK, pay-by-link (all PL banks), cards, Apple/Google Pay | BLIK 1.49% + 0.32 PLN from 1 June 2026 (official T&C) [5]. Card rate not confirmed **(unverified; blogs say 1.6% + 0.20 PLN)** | BLIK/cards: seconds. Pay-by-link: usually seconds to minutes **(estimate)** | To a PL bank account; timing **(unverified)** | Yes ("link do płatności" service) [7] | REST (OAuth client credentials), sandbox. No official .NET SDK **(unverified)** | `OpenPayu-Signature`: MD5 over body + second key. 20 attempts over 72 h (immediately, then 1, 2, 5, 10, 30 min, 1 h ... 72 h). Must answer 200; expect duplicates [6] | Online contract. An association attaches its statute and a KRS extract [7] |
 | **Przelewy24** | BLIK, pay-by-link, cards, Apple/Google Pay | 1.29% + 0.30 PLN for BLIK, transfers and cards. Activation 59 PLN (refunded after 10 transactions in 2 months), no monthly fee. First 4 PLN payouts per month free, then 0.99 PLN. Refunds free [8] | BLIK/cards: seconds. Pay-by-link: seconds to minutes **(estimate)** | To a PL bank account on withdrawal; timing **(unverified)** | **(unverified)** | REST, sandbox; community SDKs only. The merchant must call `transaction/verify` after the notification or the funds are not credited [9] | `urlStatus` notification with a `sign` checksum. Retry schedule **(unverified)** | Online registration; requirements for associations **(unverified)** |
 | **tpay** | BLIK, pay-by-link, cards | **(unverified)**: blogs quote 0.99% BLIK and cards from 1.4% (2026), or 1.59% + 0.39 PLN (older) [10] | As above **(estimate)** | **(unverified)** | **(unverified)** | REST, sandbox **(unverified)** | **(unverified)** | KYB takes 1–3 days **(unverified)** [10] |
@@ -61,13 +72,15 @@ Estimated provider cost for 300 tickets x 50 PLN = 15,000 PLN per semester **(es
 How it works: the admin creates one payment link per event in the provider dashboard (a Stripe Payment Link with a fixed price, plus custom fields such as name and phone; the provider collects the e-mail anyway) and pastes it into the event form. Event details show a "Pay" button. Admins check payments in the provider dashboard and, once #105 exists, mark attendees as paid by hand.
 
 Effort:
-- Backend: either reuse `Event.RegistrationUrl` (no work) or add `PaymentUrl` (string?, an absolute https URL validated by FluentValidation) to `Event`, the DTOs and the admin create/update command, with an EF migration.
-- Frontend: URL field in `admin-event-form`, "Pay" button on event details (designed in Penpot first).
+- Recommended: no code. Reuse `Event.RegistrationUrl` and let the payment page act as the sign-up (name, phone, e-mail, terms checkbox, and a payment limit that equals capacity [21]).
+- Only together with #105: add `PaymentUrl` (string?, an absolute https URL validated by FluentValidation) to `Event`, the DTOs and the admin create/update command (with an EF migration), plus a "Pay" button on event details (designed in Penpot first).
 - Later, with #105: an admin "mark as paid" toggle on the attendee list.
 
 Pros: hours of work, no new endpoint, no money logic, no PCI scope, works on the Render free tier, and the provider sends the receipt e-mail. Cons: a payment is linked to a registration only by matching names/e-mails; nothing stops someone paying for a full event; refunds and no-shows are handled by hand; the provider's page shows only generic text about the event. Risks: mismatched names/e-mails and payments for cancelled events. Both are tolerable at a few hundred payments per semester.
 
 ### Level B: hosted checkout + webhook updating our DB
+
+**Not recommended for the foreseeable future** (see section 7, objection 5). It is kept here as a reference in case manual reconciliation becomes too much work.
 
 How it works: the guest sign-up (#105) creates a `Registration` and a `Payment` (Pending) on the server. The amount comes from `Event.Price`, never from the client. The server creates a provider checkout session with our `paymentId` as metadata/reference and redirects the payer to the provider. The provider notifies our webhook. The handler verifies the signature, re-reads the session/order from the provider API, checks amount and currency, and moves the payment to Paid idempotently. The return page polls our status endpoint.
 
@@ -216,7 +229,7 @@ Field notes: `Event.PaymentUrl` is for level A only. `Phone` is stored in E.164 
 
 1. What is paid for: event tickets only, or also ESNcard/membership fees? (Recommended: tickets only for now.)
 2. Roughly what share of payers use foreign cards vs BLIK? (This decides Stripe vs P24/PayU.)
-3. Level A first with Stripe Payment Links, or a ticketing platform (level C) that also replaces #105? (Recommended: A now; decide B vs C after one semester of manual checking.)
+3. Level A (a payment link in `RegistrationUrl`, no code) or a ticketing platform (level C) that also replaces #105? (Recommended: A now. Move to C only if it replaces #105; reopen B only if reconciliation takes more than ~2 h per event.)
 4. Will the board sign the association up with Stripe (online KYC, with a board member as representative), or does it prefer a contract with a Polish operator?
 5. Is a separate Revolut Business account acceptable, given that payouts would not land in Nest Bank directly?
 6. Refund and cancellation rules: until when can a student cancel, is the refund full or partial, and what happens if the event is cancelled? Who presses "refund"?
@@ -224,6 +237,30 @@ Field notes: `Event.PaymentUrl` is for level A only. `Phone` is stored in E.164 
 8. Invoices/receipts: is the provider's receipt e-mail enough, or are invoices needed? Is the association a VAT payer, and does ticket income count as paid statutory activity or as business activity? Ask the accountant.
 9. Budget for leaving the Render free tier (paid API + DB) if level B is chosen.
 10. Terms of sale and privacy notice: who drafts and approves them, and how long attendee and payment data is kept.
+
+## 7. Review: objections and responses
+
+The `skeptic` agent reviewed this document (verdict: accept with changes). Each objection and the response:
+
+1. **The legal/tax questions must come first and block the provider choice.** **Accepted.** They are now step 0 in the recommendation. Item 37 of the cash-register exemption regulation requires the service to be paid in full through a bank, post office or SKOK, with each payment identifiable; tax practice treats PayU/PayPal payments as bank payments, while payments through other non-bank institutions may not qualify [19]. We found no ruling on Stripe. The owner asks the association's accountant (and, if needed, files for an individual tax interpretation from KIS).
+2. **Stripe's advantage rests on a payer mix nobody has measured.** **Accepted.** The premium EEA rate (1.9% + 1.00 PLN) [1] and a per-ticket cost table are now in section 1: on a 20 PLN ticket Stripe takes ~1.30 PLN (6.5%) against ~0.56 PLN (2.8%) at P24. "One provider for A and B" no longer counts as an argument, because B is dropped. Stripe stays the default only on the strength of verified Payment Links features [21], and only if the measured mix shows many foreign cards; otherwise the pick is PayU. Partly mitigated: P24's lower price helps level A only if P24 offers native payment links, which we could not confirm [22].
+3. **Stripe onboarding of a Polish stowarzyszenie is unconfirmed, and activation needs a public terms/refund page.** **Accepted.** Stripe's Poland services agreement admits non-profit organisations [20], but whether the legal form can be selected in the form is unverified. The owner does the free pre-onboarding (entity type, PLN payout to Nest Bank) before any ADR. The terms/refund/contact page is a prerequisite for any provider, not just Stripe (Stripe's P24 rules list the same items [4]).
+4. **The pretix cost is understated.** **Accepted.** The total is now stated: ~900 PLN per semester (~6% of turnover) against ~284 PLN at P24. pretix is recommended only if it replaces #105.
+5. **Level B is not worth it for the foreseeable future.** **Accepted.** B is dropped from the recommendation and marked "not recommended" in section 3. The growth path is C (pretix), and B is reopened only if reconciliation takes more than ~2 h per event after a semester. Verified: a Stripe Payment Link can be limited to N completed payments and then deactivates automatically, with a custom message [21], so capacity is covered at level A.
+6. **Level A has hidden operational work.** **Accepted.** Owners are listed below.
+
+   | Task | Owner (to be named by the board) |
+   |---|---|
+   | Terms of sale. They state that the right of withdrawal does not apply to leisure/entertainment services with a fixed date (art. 38 ust. 1 pkt 12 of the Polish consumer rights act; numbering **to be confirmed by the board's legal adviser**) and define the association's own cancellation/refund rules. | Board + legal adviser |
+   | GDPR clause naming the payment provider as a recipient of personal data; retention period | Board (GDPR contact) |
+   | Who holds dashboard access (at least two board members, 2FA on) | Treasurer |
+   | Who issues refunds, and when (note: Stripe keeps its fee on a refund [1]) | Treasurer / event coordinator |
+   | Monthly reconciliation of payouts against the accounting records | Treasurer + accountant |
+   | Creating and deactivating the link for each event, and pasting it into `RegistrationUrl` | Event coordinator (admin panel) |
+
+- **Skeptic's cheaper alternative (level A with zero code through `Event.RegistrationUrl`; `PaymentUrl` only with #105).** **Accepted** and adopted as the recommended level A (section 1, step 3; section 3).
+
+No objection was rejected.
 
 ## Sources
 
@@ -245,3 +282,7 @@ Field notes: `Event.PaymentUrl` is for level A only. `Phone` is stored in E.164 
 16. pretix Hosted pricing: https://pretix.eu/about/en/pricing
 17. Ticket Tailor pricing (third-party summaries): https://getpulsesignal.com/pricing/tickettailor and https://www.tickettailor.com/pricing
 18. Eventbrite organizer fees: https://www.eventbrite.com/help/en-us/articles/755615/
+19. Cash-register exemption item 37 and online payment operators (secondary sources, not legal advice): https://ksiegowosc.infor.pl/podatki/vat/kasy-fiskalne/759839,Sprzedaz-internetowa-a-zwolnienie-z-kasy-rejestrujacej.html and https://ksiegowosc.infor.pl/podatki/vat/kasy-fiskalne/294909,Nie-musisz-miec-kasy-fiskalnej-gdy-wszyscy-klienci-placa-ci-przelewem.html
+20. Stripe Services Agreement, Poland (eligibility: businesses and non-profit organisations located in Poland): https://stripe.com/en-fi/legal/ssa/pl
+21. Stripe Payment Links customisation (payment limit with auto-deactivation, phone/name/custom fields, terms of service consent): https://docs.stripe.com/payment-links/customize
+22. Przelewy24 payment links appear only through integrations such as Base.com/BaseLinker (no native panel link found): https://base.com/pl-PL/pomoc/wiedza/przelewy24/
