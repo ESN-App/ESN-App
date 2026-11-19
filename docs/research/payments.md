@@ -262,6 +262,43 @@ The `skeptic` agent reviewed this document (verdict: accept with changes). Each 
 
 No objection was rejected.
 
+## 8. Focused comparison: Stripe, Autopay, PayU
+
+Updated context from the owner. The association **has a cash register** (*kasa fiskalna*) and wants **its own registration form in the app** (#105), so pretix (level C) is out. Each payment must be linkable to our registration (a reference ID) and its status should reach our DB. Research only; no implementation plan.
+
+Autopay facts in this section come from its official integration documentation [23] unless marked otherwise. Autopay's price list could not be reached (autopay.pl returns 403 to automated fetch), and the Autopay–PKO BP terms say the fees are set in a separate price list [24].
+
+| Criterion | Stripe | Autopay (ex Blue Media) | PayU |
+|---|---|---|---|
+| BLIK | 1.6% + 1.00 PLN [1] | **(unverified)**; resellers quote 1.58% + 0.39 PLN (Shoper) [25] | 1.49% + 0.32 PLN from 1 June 2026 [5] |
+| PL / EEA card | Standard EEA 1.5% + 1.00 PLN, premium EEA 1.9% + 1.00 PLN (PL cards count as EEA) [1] | **(unverified)**; Shoper reseller rate 1.58% + 0.39 PLN [25] | **(unverified)**; blogs quote 1.6% + 0.20 PLN |
+| Non-EEA card | 3.25% + 1.00 PLN (+2% FX); UK 2.5% + 1.00 PLN [1] | **(unverified)**, individual | **(unverified)**, individual (blogs: ~2.5–3.5%) |
+| Pay-by-link (bank transfer) | Only via P24, 1.9% + 1.00 PLN, and P24 via Stripe excludes event promotion [1][4] | Core product; fee **(unverified)**, Shoper 1.58% + 0.39 PLN [25] | Core product; fee **(unverified)** |
+| Fee on a 20 / 50 PLN ticket (estimate) | Card 1.30 / 1.75; BLIK 1.32 / 1.80 PLN | ~0.71 / 1.18 PLN at the Shoper rate **(unverified)** | BLIK 0.62 / 1.07 PLN |
+| Monthly / setup fee | None [1] | **(unverified)**; Shoper: one-off activation 49 PLN gross [25] | None **(unverified for 2026)** |
+| Payment link without code + our registration ID | **Yes.** Reusable Payment Link from the dashboard; the app appends `?client_reference_id=<registrationId>` (up to 200 chars, alphanumeric, `-`, `_`), which comes back in `checkout.session.completed`; optional `prefilled_email`, redirect after payment [26] | **Not found.** Links appear only through integrators (Shoper) or the API "pre-transaction" [23]; no standalone panel link documented | **API only.** The documented payment link is an order created with `POST /api/v2_1/orders` with `extOrderId` and `validityTime` up to 3 months [27]; no panel generator documented |
+| Hosted checkout API | Checkout Sessions (`client_reference_id`, `metadata`, `expires_at`) | POST form to `pay.autopay.eu` with `ServiceID`, `OrderID` (our ID, up to 32 chars, unique per service), `Amount`, `CustomerEmail` and a SHA256 `Hash` [23] | `POST /api/v2_1/orders` (OAuth) with `extOrderId`, `notifyUrl`, `continueUrl` [27] |
+| Webhook / notification | HMAC-SHA256 `Stripe-Signature`; retries up to 3 days; dedupe by event ID [2] | ITN: Base64 XML POST, one transaction per message, SHA256 hash, must answer with a hashed `confirmationList` XML; retries every 3 min (x12), then 10 min (x144), hourly (x48), daily (x5), about 8 days in total (our sum) [23] | `OpenPayu-Signature` MD5(body + second key); 20 attempts over 72 h, first after 1, 2, 5, 10 min [6] |
+| Status polling API | Retrieve Checkout Session / list sessions of a Payment Link (standard API, not re-checked) | `POST /webapi/transactionStatus` by `ServiceID` + `OrderID` [23] | `GET /api/v2_1/orders/{orderId}` **(not re-checked)** |
+| Confirmation time | Cards: seconds. BLIK: normally within 60 s [3] | Notification sent immediately on status change [23]; per-method timing **(unverified)**: BLIK/cards seconds, pay-by-link seconds to minutes **(estimate)** | Notification on each status change [6]; BLIK/cards seconds, pay-by-link seconds to minutes **(estimate)** |
+| Payer feedback | Redirect or custom message after payment [26]; Stripe receipt e-mail (setting) | GET redirect to the return URL with `ServiceID`, `OrderID`, `Hash` (verify it; ITN is the only binding status) [23]; e-mail to payer **(unverified)** | `continueUrl` redirect [27]; PayU e-mail to payer **(unverified)** |
+| Refunds + notifications | Dashboard and API; `refund.updated` / `refund.failed` webhooks; fee kept [1][3] | API `transactionRefund` (full) and `transactionRefund/v3` (partial); ISTN notification with `isRefund=true`; window 12 months, **BLIK 6 months** [23] | Panel and `POST /api/v2_1/orders/{orderId}/refunds` (partial allowed); notification with `FINALIZED`/`CANCELED` [28] |
+| Payout to Nest Bank | PLN to a PL account; first payout delayed ~7 business days in many EU countries, then the market default (often ~3 business days) [29]; exact PL default **(unverified)** | Balance payout processed "up to 30 minutes" after the request [23]; automatic schedule **(unverified)** | **(unverified)**; blogs say D+1 to D+7 |
+| Onboarding a stowarzyszenie | Online KYC; the Poland agreement admits non-profits [20]; legal-form option in the form **(unverified)** | **(unverified)**; Autopay is a KNF-supervised national payment institution [25] | Online contract; statute + KRS extract [7] |
+| Sandbox | Full sandbox + CLI [2] | `testpay.autopay.eu`, `testcards.autopay.eu`, test scenarios [23] | Sandbox **(well known, not re-checked)** |
+| .NET SDK / REST quality | Official `Stripe.net`; best-in-class docs | No .NET SDK found; form POST + XML ITN, older style, very long single-page docs (PL/EN) [23] | No official .NET SDK **(unverified)**; JSON REST, decent docs (PL/EN) |
+| English UI for foreign payers | Yes, localised automatically, `locale` parameter [26] | Page languages PL, EN, DE, CS, ES, FR, IT; non-PL languages must be agreed during integration [23] | EN supported **(not re-checked)** |
+| Fiscal receipts | None (no Polish cash-register integration) | None found in the docs **(unverified)** | None found **(unverified)** |
+
+**Fiscal receipts with an existing cash register.** None of the three issues Polish fiscal receipts. Either each online payment is entered on the cash register (a manual step per ticket, or an e-receipt service), or the accountant confirms that these sales fall under the item 37 exemption [19]. That decision belongs to the accountant and does not depend on the provider, except that the Stripe question from section 7 still applies.
+
+**Getting the status into our DB without an anonymous webhook.** All three offer a status API, so a minimal variant is an **admin-only "sync payments" action**: the backend asks the provider for the status of each Pending registration (Stripe: sessions of the payment link filtered by `client_reference_id`; Autopay: `transactionStatus` by `OrderID`; PayU: order by ID). It runs under `api/admin/*`, so the GET-only invariant holds and no ADR exception is needed. Real-time status would need the webhook endpoint from section 5.
+
+**Verdict**
+- **Easiest to start:** **Stripe.** It is the only one of the three with a documented no-code reusable payment link that carries our registration ID (`client_reference_id`) back to us, plus the best .NET SDK and sandbox.
+- **Cheapest:** **PayU** on verified numbers (BLIK 0.62 PLN on a 20 PLN ticket against 1.32 PLN at Stripe). Autopay may be similar or cheaper, but its price list is **unverified**.
+- **Best automation:** **Stripe** for developer effort (SDK, CLI, signed JSON webhooks). **Autopay** has the most robust retries (~8 days) and a clean `OrderID` = our ID model, but its XML/hash protocol takes more work. PayU is in between.
+
 ## Sources
 
 1. Stripe pricing, Poland: https://stripe.com/pl/pricing
@@ -286,3 +323,10 @@ No objection was rejected.
 20. Stripe Services Agreement, Poland (eligibility: businesses and non-profit organisations located in Poland): https://stripe.com/en-fi/legal/ssa/pl
 21. Stripe Payment Links customisation (payment limit with auto-deactivation, phone/name/custom fields, terms of service consent): https://docs.stripe.com/payment-links/customize
 22. Przelewy24 payment links appear only through integrations such as Base.com/BaseLinker (no native panel link found): https://base.com/pl-PL/pomoc/wiedza/przelewy24/
+23. Autopay online payment gateway documentation (transaction start, ITN, retry scheme, transactionStatus, refunds, languages, test hosts): https://developers.autopay.pl/online/dokumentacja and overview https://developers.autopay.pl/online/
+24. Autopay terms for PKO BP (price list is a separate document): https://www.pkobp.pl/api/public/2d4af3f1-4c37-4ef1-899d-ba9094bc61c9.pdf
+25. Shoper Płatności with Autopay (reseller rates, KNF status): https://www.shoper.pl/systemy-platnosci/autopay
+26. Stripe Payment Links URL parameters (`client_reference_id`, redirect): https://docs.stripe.com/payment-links/url-parameters
+27. PayU payment link (order API, `extOrderId`, `validityTime`): https://developers.payu.com/europe/docs/payment-solutions/payment-link
+28. PayU refunds: https://developers.payu.com/europe/docs/payment-flows/refunds/
+29. Stripe default payout speeds in Europe: https://support.stripe.com/questions/default-payout-speeds-in-europe-and-canada
