@@ -1,6 +1,18 @@
 # Rendered by the nginx image's envsubst step at container start
 # (/etc/nginx/templates/*.template -> /etc/nginx/conf.d/). ${PORT} and ${API_UPSTREAM}
-# come from the environment (plus ${RENDER_GIT_COMMIT} below); defaults live in docker/frontend.Dockerfile.
+# come from the environment (plus ${GIT_COMMIT} / ${RENDER_GIT_COMMIT} below); defaults live in docker/frontend.Dockerfile.
+# Behind Caddy the incoming X-Forwarded-Proto is authoritative; direct hits (Render) use $scheme.
+map $http_x_forwarded_proto $forwarded_proto {
+    default $http_x_forwarded_proto;
+    ""      $scheme;
+}
+
+# Commit for /version.json: GIT_COMMIT (build arg / env), else Render's RENDER_GIT_COMMIT.
+map "${GIT_COMMIT}" $app_commit {
+    default "${GIT_COMMIT}";
+    ""      "${RENDER_GIT_COMMIT}";
+}
+
 server {
     listen ${PORT};
     server_name _;
@@ -15,7 +27,7 @@ server {
     proxy_set_header Host $proxy_host;
     proxy_set_header X-Real-IP $remote_addr;
     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_set_header X-Forwarded-Proto $forwarded_proto;
     proxy_ssl_server_name on;
 
     location /api/ {
@@ -45,7 +57,7 @@ server {
     location = /version.json {
         default_type application/json;
         add_header Cache-Control "no-store";
-        return 200 '{"version":"__APP_VERSION__","commit":"${RENDER_GIT_COMMIT}"}';
+        return 200 '{"version":"__APP_VERSION__","commit":"$app_commit"}';
     }
 
     # SPA fallback: let the Angular router handle everything else.
