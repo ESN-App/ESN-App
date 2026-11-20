@@ -3,16 +3,18 @@
 Status: research only. No decision yet; an ADR is written once the owner picks a tier and a provider.
 Date: 2026-11-20. Refs #24 (uploads lost on deploy), #25 (SMTP blocked), #26 (free DB expires), ADR-005 draft (PR #109, guest registrations + PayU webhooks).
 
-Prices are list prices without VAT, read on 2026-11-20 from the sources in section 9. **(est.)** marks my own arithmetic or a third-party figure; **(unverified)** marks something I could not confirm on an official page. Confirm every price in the provider's calculator before signing up. 1 month = 730 h.
+Prices are list prices without VAT, read on 2026-11-20 from the sources in section 12. **(est.)** marks my own arithmetic or a third-party figure; **(unverified)** marks something I could not confirm on an official page. Confirm every price in the provider's calculator before signing up. 1 month = 730 h.
 
 ## 1. Summary
 
-- **Top pick (T3):** one small managed setup in an EU region: the two existing Docker images on an always-on container service, a **managed PostgreSQL** with daily backups and 7+ days of point-in-time restore (PITR), object storage for uploaded images, Cloudflare (free) in front for DNS/TLS/CDN, an HTTP email API (Brevo free tier) and a free uptime monitor. About **$32–35/month** on Azure or DigitalOcean.
-  - **Azure** if the Microsoft nonprofit grant ($2,000 Azure credit per year, renewable [12]) is approved: the bill is then about $0, and it renews every year.
-  - **DigitalOcean** (Frankfurt) if the grant is refused or the team finds Azure too heavy. It is the simplest console and CLI of the managed options. A one-time nonprofit credit of up to $2,500 [14] would cover the first year.
-- **Budget pick (T0):** one **Hetzner** VPS in Germany running our existing `docker compose` (nginx, API, Postgres, uploads volume) with nightly encrypted `pg_dump` to object storage, about **€8–13/month**. This fixes #24/#25/#26 and the cold starts with almost no code change, but a volunteer then owns OS updates, Postgres and restore tests.
-- **What would change it:** no nonprofit credits and a hard ceiling under ~$15/month → T0. Nobody willing to SSH into a server → T3 managed, never T0. More than about 2,000 payments per semester, or a legal requirement for HA → T4.
-- **Not recommended:** scale-to-zero platforms (Cloud Run, Container Apps) at default settings, because PayU webhooks and the first visitor would hit cold starts again. Use them only with min instances ≥ 1. Also not recommended: GitHub Student Pack credits for production. They belong to one student's personal account, which is a bus-factor and ownership problem.
+Revised after the `skeptic` review (section 9). Prices below are **gross** (+23% VAT, assumed because the association is not an active VAT payer; to be confirmed with the accountant), converted at **1 USD ≈ 3.95 PLN and 1 EUR ≈ 4.25 PLN (est., mid-November 2026)**. Provider choice is based on cost **without** any grant; credits are a bonus.
+
+- **Top pick: DigitalOcean App Platform + Managed PostgreSQL (Frankfurt)**, about **$43 gross ≈ 170 PLN/month** (section 8). It is the closest thing to Render: deploys from GitHub Actions with an app spec in the repo, rollback in one click, built-in logs and alerts, no server to patch. It needs one code change first, storing images in Spaces, because the App Platform filesystem is ephemeral (#24).
+- **Budget pick: DigitalOcean Droplet T1** (the skeptic's proposal): our compose minus postgres on a 2 GB Droplet, Managed PostgreSQL 1 GB, Droplet backups, images on a volume. About **$36 gross ≈ 143 PLN/month**. No code change for #24, but a volunteer owns SSH, OS updates and Docker.
+- **Cheapest: Hetzner T0**: everything in compose on one server, nightly encrypted `pg_dump` off-site. About **€9–16 gross ≈ 37–68 PLN/month**. Its real risk is an untested restore, not the price.
+- **Edge:** Cloudflare **DNS-only** at the start. A CDN is not needed at ~1,000 visits/day (5,000 at peaks), and free Bot Fight Mode or an unlocked origin would break the ADR-005 assumptions (section 7).
+- **Azure** only if the owner wants it and the setup is written in Bicep in the repo, with a runbook and two or more owners. The nonprofit grant ($2,000/year) is a bonus. It is not a reason to choose Azure, because it must be renewed by hand every year and silently falls back to pay-as-you-go on the card on file.
+- **Not recommended:** scale-to-zero platforms (Cloud Run, Container Apps) unless min instances ≥ 1. GitHub Student Pack credits are a student's personal credits, so they are not for production.
 
 ## 2. What exists today
 
@@ -21,7 +23,7 @@ Prices are list prices without VAT, read on 2026-11-20 from the sources in secti
 - Images: four `*ImageStorage` services in `backend/src/EsnApp.Api/Services/` write uploads to `wwwroot/images/uploads/...` on local disk, served as `/api/images/uploads/...`. On Render this disk is ephemeral (#24). The local `docker-compose.yml` already mounts a named `uploads` volume.
 - Email: `SmtpEmailSender`. Render free blocks SMTP ports (#25).
 - Render coupling in code: `VersionController` reads `RENDER_GIT_COMMIT`, nginx serves it in `/version.json`, and `ConnectionStrings__DefaultConnection` accepts Render's `postgresql://` URI.
-- **Known production bug:** `Program.cs` runs `DbSeeder.SeedAsync` whenever `Database:ApplyMigrationsOnStartup` is true, and render.yaml sets it to `true`. So production gets the sample data, not only the migrations and the admin. The new production must run migrations and the admin seed **without** sample data. That needs a small backend change, a separate flag such as `Seed:SampleData` that defaults to false (see section 7).
+- **Known production bug:** `Program.cs` runs `DbSeeder.SeedAsync` whenever `Database:ApplyMigrationsOnStartup` is true, and render.yaml sets it to `true`. So production gets the sample data, not only the migrations and the admin. The new production must run migrations and the admin seed **without** sample data. That needs a small backend change, a separate flag such as `Seed:SampleData` that defaults to false (see section 10).
 - Data: production holds only mock/sample data, so **nothing is migrated**. The new environment starts empty.
 
 ## 3. Requirements
@@ -52,7 +54,7 @@ Prices are list prices without VAT, read on 2026-11-20 from the sources in secti
 | TLS / domain | Managed certificates, HTTPS only, HSTS | |
 | Secrets | Platform secret store or GitHub environment secrets; never in the repo; rotate the leaked Render-era values | Existing convention |
 | Observability | Container logs kept ≥ 7 days, `/health` uptime check every 5 min with e-mail/Discord alert, error log search | Volunteers learn about outages from a monitor, not from students |
-| Performance | p95 API < 300 ms at ~5,000 visits/day; 2 GB RAM for API + nginx + Postgres on one host (4 GB comfortable) | Load is tiny; any tier here is sized for 10× |
+| Performance | p95 API < 300 ms at ~1,000 visits/day (5,000 at peaks); 2 GB RAM for API + nginx + Postgres on one host (4 GB comfortable) | Load is tiny; any tier here is sized for 10× |
 | Staging | Optional. PR previews are not needed; the e2e workflow already runs the compose stack in CI | Cost |
 | Cost ceiling | Owner to set. Suggested: ≤ $40/month out of pocket, or ≈ $0 with credits | Non-profit |
 | Ops effort | ≤ 2 h/month routine for volunteers (updates, checking the monitor, the semester restore test) | Small rotating team |
@@ -84,7 +86,7 @@ flowchart LR
 
 - Deploy: GitHub Actions builds the images, pushes them to GHCR, then SSHes in and runs `docker compose pull && up -d`. Rollback = redeploy the previous tag.
 - Fixes #24 (volume), #25 (email API over HTTPS), #26 (own Postgres), and removes cold starts.
-- Risks: one machine, so a disk/host failure means restore from last night's dump (RPO 24 h). A volunteer must patch the OS and the Postgres image. Provider snapshot backups (+20% on Hetzner/DO) add a second safety net.
+- Risks: the main one is an **untested restore**, so script the restore and drill it once per semester. One machine, so a disk/host failure means restore from last night's dump (RPO 24 h). A volunteer must patch the OS and the Postgres image. Provider snapshot backups (+20% on Hetzner/DO) add a second safety net.
 
 ### T1: cheapest + managed PostgreSQL
 
@@ -108,7 +110,7 @@ flowchart LR
 
 ```mermaid
 flowchart LR
-  u[Students / admins] -->|HTTPS| cdn[CDN / DNS / TLS<br/>Cloudflare free]
+  u[Students / admins] -->|HTTPS| cdn[DNS + TLS<br/>Cloudflare DNS-only at start, see section 7]
   payu[PayU notify] --> cdn
   cdn --> web["frontend container<br/>(always on, min 1)"]
   web -->|/api same-origin, private| api["backend container<br/>(always on, min 1)"]
@@ -129,7 +131,7 @@ T2, minus anything that needs regular care, plus a written runbook:
 
 ```mermaid
 flowchart LR
-  u[Students / admins] -->|HTTPS app domain| cf["Cloudflare free<br/>DNS, TLS, cache static + images"]
+  u[Students / admins] -->|HTTPS app domain| cf["Cloudflare DNS-only<br/>(proxy only with section 7 hardening)"]
   payu[PayU notify<br/>POST /api/payments/payu/notify] --> cf
   subgraph eu["One provider, one EU region"]
     web["web: nginx image<br/>always on"] -->|private/internal URL<br/>+ X-Proxy-Auth| api["api: .NET image<br/>always on, min 1"]
@@ -143,7 +145,7 @@ flowchart LR
 ```
 
 - Single region, single instance per service, no staging (CI e2e covers the stack). A semester restore test into a temporary database is the one recurring chore.
-- Cloudflare in front adds one proxy hop. The client IP comes from `CF-Connecting-IP` or a fixed `ForwardLimit`, measured once (ADR-005).
+- Cloudflare stays DNS-only at the start (section 7). If it is proxied later, it adds a hop, and the origin must be locked before `CF-Connecting-IP` can be trusted.
 
 ### T4: rich ("na bogato")
 
@@ -189,7 +191,7 @@ flowchart TB
   obj -. replication .-> dr
 ```
 
-T5 is listed for completeness. For ~5,000 visits/day it is over-engineered: it costs hundreds of dollars a month and needs someone who knows the cloud platform well.
+T5 is listed for completeness. For ~1,000 visits/day (5,000 at peaks) it is over-engineered: it costs hundreds of dollars a month and needs someone who knows the cloud platform well.
 
 ## 5. Providers
 
@@ -206,7 +208,7 @@ T5 is listed for completeness. For ~5,000 visits/day it is over-engineered: it c
 
 ### 5.2 Monthly cost per tier (USD unless €; without VAT)
 
-Assumptions: 2 GB RAM is enough for one host running everything; DB < 10 GB; images < 5 GB; egress < 200 GB/month **(est.: 5,000 visits × ~1 MB uncached at peak, PWA shell cached by the service worker, images cached by Cloudflare)**. Cloudflare free, Brevo free and UptimeRobot free cost $0 in every tier.
+Assumptions: 2 GB RAM is enough for one host running everything; DB < 10 GB; images < 5 GB; egress < 200 GB/month **(est.: 5,000 visits × ~1 MB uncached on a peak day, PWA shell cached by the service worker, images cached by Cloudflare)**. Cloudflare free, Brevo free and UptimeRobot free cost $0 in every tier.
 
 | Tier | Azure | AWS | GCP | DigitalOcean | Hetzner | Hostinger / OVH / Contabo |
 |---|---|---|---|---|---|---|
@@ -255,17 +257,89 @@ Cost = monthly list price (section 5.2). Ops effort = routine volunteer hours pe
 | T4 | DigitalOcean / AWS | $110–550 | 3–5 h | 4 | yes |
 | T5 | AWS / GCP / Azure | $400–900 | 8+ h, needs a cloud specialist | 5 | yes |
 
-**Recommendation: T3.**
+**Recommendation:** see section 8 for the final head-to-head. In short: T3 shape on **DigitalOcean App Platform**, with the **DO Droplet T1** as budget pick and **Hetzner T0** as the cheapest option.
 
-1. Apply for the **Microsoft nonprofit grant** first (free, a few weeks). If approved → **T3 on Azure**: App Service Linux B1 plan hosting both containers (Always On), PostgreSQL Flexible Server B1ms (PITR 7 days or more) and a Blob container, in Poland Central or Germany West Central. Effective cost ≈ $0, and ~$33/month if the grant ever stops.
-2. If the grant is refused or slow → **T3 on DigitalOcean Frankfurt**: Droplet 2 GB with compose, or App Platform for the two images, plus Managed PostgreSQL 1 GB and Spaces. Apply for the DO nonprofit credit for year 1.
-3. **Budget pick, T0 on Hetzner**, if the ceiling is < $15/month and at least two volunteers are comfortable with Linux: compose on one server, nightly encrypted `pg_dump` + uploads to Hetzner Object Storage, provider backups on, semester restore test.
+Why a managed database and not T0 as default: once ADR-005 ships, the database holds payment state and guest PII. Managed PITR and patching cost about $15/month more and remove the riskiest volunteer chore. The restore is the part a volunteer team is least likely to have tested. Why not T4: at ~1,000 visits/day (5,000 at peaks), HA buys nothing that PayU's 72-hour retries and a 1-hour RTO don't already cover.
 
-Why T3 and not T0: once ADR-005 ships, the database holds payment state and guest PII. Managed PITR, patching and encrypted storage cost about $20/month more and remove the riskiest volunteer chore (Postgres backups/restore). Why not T4: HA for 5,000 visits/day buys nothing that PayU's 72-hour retries and a 1-hour RTO don't already cover.
+What would change my mind: (a) a ceiling under ~70 PLN/month → Hetzner T0 with a scripted restore test; (b) the owner rules out US-parent providers for GDPR → Hetzner T0/T1 or OVH; (c) the owner prefers Azure and two volunteers commit to Bicep + runbook → Azure App Service B1 + PG Flexible B1ms (~$33 net ≈ 160 PLN gross, ~$0 while the grant lasts).
 
-What would change my mind: (a) a grant on another provider (AWS/GCP) → same T3 shape there; (b) the owner rules out US-parent providers for GDPR → Hetzner T0/T1 or OVH; (c) nobody can review Azure IAM/billing → DigitalOcean.
+## 7. Edge configuration (ADR-005 constraints)
 
-## 7. Cut-over / fresh setup outline (no data migration)
+The ADR-005 hardening (fixed `ForwardLimit` counted from the right, `X-Proxy-Auth` from nginx, rate limits per client IP, PayU notifications at any time) only works if **every request reaches the app through a known chain of proxies** and nothing on the edge challenges PayU.
+
+- **Start with Cloudflare DNS-only** (grey cloud). It needs no edge rules, and the hop count is the platform's own. At ~1,000 visits/day the CDN is not needed; images are small and the PWA caches the shell.
+- **If Cloudflare proxying is turned on later**, all of these are required:
+  - Lock the origin, so only Cloudflare can reach it: on a VPS, a firewall that allows only the published Cloudflare IP ranges on 80/443, or a Cloudflare Tunnel (no open ports), or Authenticated Origin Pulls (mTLS). Otherwise anyone can call the Droplet IP or `*.azurewebsites.net` directly with a forged `X-Forwarded-For`, and the fixed `ForwardLimit` then picks an attacker-supplied entry.
+  - SSL mode **Full (strict)** with a valid origin certificate.
+  - **Bot Fight Mode off.** On the free plan it runs outside the ruleset engine and cannot be skipped with WAF custom rules, so it can challenge PayU's server-to-server POSTs [20]. Super Bot Fight Mode (skippable) needs a paid plan.
+  - The API takes the client IP from `CF-Connecting-IP`, and only on requests that came through the locked origin.
+- **Re-measure the hop count on the new host** (log the raw `X-Forwarded-For` and platform headers once in the PayU sandbox) before enabling rate limits, as ADR-005 already requires for Render.
+- **App Platform specifics:** DigitalOcean's edge adds `do-connecting-ip` with the client IP and documents `X-Forwarded-For` as the ingress server's address [21]. The API should read `do-connecting-ip`. Whether the edge **overwrites** a client-supplied `do-connecting-ip` is **unverified**; test it before trusting the header. Do not put a proxied Cloudflare zone in front of App Platform, because it already sits behind a CDN edge (a DNS-only CNAME is the usual custom-domain setup, unverified).
+
+## 8. DigitalOcean App Platform vs DO Droplet T1 vs Hetzner T0
+
+DO prices are from the official pricing pages [3][4][15][22]. The overview page [22] lists Spaces "from $5/month" and Volumes "from $10/month" without per-GiB detail. The Spaces bundle contents (storage and transfer included in $5) could not be read there and are **unverified**.
+
+### 8.1 App Platform: how our app maps onto it
+
+```mermaid
+flowchart LR
+  u[Students / admins] -->|HTTPS app domain<br/>Cloudflare DNS-only CNAME| edge[DO App Platform edge<br/>TLS, adds do-connecting-ip]
+  payu[PayU notify] --> edge
+  subgraph app["App esn-gdansk, app spec .do/app.yaml, FRA"]
+    web["service web: our frontend image<br/>nginx, apps-s-1vcpu-0.5gb $5<br/>route /"]
+    api["service api: our backend image<br/>apps-s-1vcpu-1gb-fixed $10<br/>no public route, internal port 8080"]
+    web -->|internal http://api:8080<br/>+ X-Proxy-Auth| api
+  end
+  edge --> web
+  api -->|trusted source| pg[("Managed PostgreSQL 1 GiB<br/>$15.15, daily backups + PITR")]
+  api -->|S3 API| sp[("Spaces bucket<br/>uploaded images, from $5")]
+  api --> brevo[Brevo email API]
+  gh["GitHub Actions release.yml"] -->|digitalocean/app_action<br/>image tag vX.Y.Z| app
+```
+
+- **Is our nginx still needed?** App Platform could serve the Angular build as a free static-site component and route `/api` to the API with an ingress rule. Our nginx, however, also sets the `no-cache` headers for `index.html` and the service-worker files (needed so new deploys reach users), serves `/version.json` and adds `X-Proxy-Auth`. Recommendation: **keep the existing frontend image as a $5 service** at the start. It needs no image change and keeps ADR-002 as it is, and the API gets no public route, so nobody can bypass nginx. Moving to a static-site component (saves $5) is a later option, only once its cache headers and SPA fallback on a custom domain are verified (a community report says catch-all routes failed on a custom domain, unverified).
+- **API size:** 512 MiB is tight for .NET 10 + EF Core. Use 1 GiB (`apps-s-1vcpu-1gb-fixed` $10, or `apps-s-1vcpu-1gb` $12) [15].
+- **Database:** Managed PostgreSQL 1 GiB $15.15 [4] attached to the app (connection string injected as an env var). The $7 dev database is not for production (backups/PITR for it unverified).
+- **Images:** the container filesystem is ephemeral, as on Render, so **Spaces is mandatory** here. It needs one backend PR: an S3 implementation behind the image-storage services. Spaces is S3-compatible, so the same code also works on Hetzner, AWS and others.
+- **Always on:** paid service containers do not sleep (no idle/sleep setting is documented [15]).
+- **Deploys and rollback:** the app spec lives in the repo (`.do/app.yaml`). release.yml builds both images, pushes them to GHCR or DOCR, then runs `digitalocean/app_action` (or `doctl apps update --spec` + `create-deployment`). Rollback is "Rollback" on a previous deployment in the console (unverified wording), or redeploying the previous tag. Logs: live logs and log forwarding are built in; retention is unverified.
+- **Migrations:** they keep running on API startup (with the seeder split from section 10). An App Platform pre-deploy job is possible later.
+
+### 8.2 Head-to-head
+
+| | **A. DO App Platform + Managed PG** | **B. DO Droplet T1 (skeptic)** | **C. Hetzner T0** |
+|---|---|---|---|
+| Parts | web $5 + api $10–12 + PG 1 GiB $15.15 + Spaces $5 | Droplet 2 GiB $12 + weekly backups $2.40 + PG 1 GiB $15.15; images on a volume | CX23/CPX €5.49–5.99 + backups 20% + off-site bucket (Hetzner Object Storage €4.99–6.49) |
+| Net / month | **$35.15–37.15** | **$29.55** | **€7.5–13** |
+| Gross / month (+23%) | **$43–46 ≈ 170–180 PLN** | **$36 ≈ 143 PLN** | **€9–16 ≈ 37–68 PLN** |
+| Code changes before cut-over | seeder split, email API, **Spaces image storage** | seeder split, email API | seeder split, email API |
+| Ops effort / month (est.) | ~0.5 h (alerts, semester PITR restore test into a fork) | ~1–1.5 h (unattended-upgrades, Docker/compose updates, disk, restore test) | ~2–4 h (all of B + Postgres updates, backup script, `pg_dump` restore drills) |
+| Bus factor | Best: console + app spec in repo; anyone added to the DO team can deploy/rollback | Medium: SSH keys, server layout, a runbook | Weakest: everything on one box, the restore depends on our own scripts |
+| release.yml change | build → push image → `digitalocean/app_action` with tag; DO API token secret | build → GHCR → SSH `docker compose pull && up -d`; SSH key secret | same as B |
+| Rollback | one click / redeploy previous tag | redeploy previous tag over SSH | same as B |
+| RPO / RTO | minutes / < 1 h (PITR) | DB minutes / < 1 h; images from the last weekly backup | ≤ 24 h / ≤ 4 h |
+| Client IP (ADR-005) | `do-connecting-ip` (overwrite unverified); API internal only | direct: Caddy/nginx sees the client; DB firewalled | direct |
+| Exit cost | low: same images; app spec is DO-specific | lowest: plain compose | lowest |
+
+**Final recommendation: A (DO App Platform + Managed PostgreSQL).** The owner's goals are integration, easy deploys/rollbacks and logs/monitoring with the least volunteer care, and A meets them for about 30–35 PLN/month more than B. A also removes SSH and OS patching from the bus-factor problem. The Spaces image-storage PR is real work, but it fixes #24 properly and makes any later move an image swap.
+**Choose B** if that PR cannot land before the move, or if the ceiling is ~150 PLN/month gross. **Choose C** only below ~70 PLN/month, and only with a scripted restore test on a calendar. In any case, apply for the DO nonprofit credit (up to $2,500 one-time [14]) as a bonus.
+
+## 9. Review: objections and responses
+
+Review by `skeptic` on PR #122: accept with changes.
+
+| # | Objection | Response |
+|---|---|---|
+| 1 | Cloudflare free Bot Fight Mode can't be skipped and would challenge PayU notify; an unlocked origin lets a fixed `ForwardLimit` pick an attacker-supplied `X-Forwarded-For` | **Accept.** Added section 7. Cloudflare starts DNS-only. Proxying later requires a locked origin (IP list / Tunnel / Authenticated Origin Pulls), Full (strict) TLS and Bot Fight Mode off, and the hop count is re-measured on the new host |
+| 2 | The Azure grant is renewed by hand every year (30-day window, compliance incl. M365); a lapse silently bills pay-as-you-go to the card on the billing profile, often a private card | **Accept.** Providers are now ranked by cost without grants, and credits are a bonus. For any provider: the association's card (not a private one), a $1 budget alert, and a board calendar reminder for renewals (open question 4) |
+| 3 | Azure is complex for volunteers (Entra tenant, subscription, RBAC, billing profile, two App Services, a public API hostname) | **Accept.** The default is DigitalOcean. Azure only with Bicep in the repo, a runbook and two or more owners |
+| 4 | Prices are net; an association without active VAT pays 23% | **Accept.** Gross PLN figures are in sections 1 and 8, and the VAT treatment is to be confirmed with the accountant. The tier tables in section 5 stay net (list prices) for comparability |
+| 5 | YAGNI: object storage on a Droplet; compose already has an uploads volume plus Droplet backups | **Accept for VPS/Droplet (B, C):** images stay on a volume. **Not applicable to App Platform (A):** its filesystem is ephemeral, so Spaces is required there and is counted in A's cost and effort |
+| 6 | Load is ~1,000 visits/day, not 5,000; T0's real risk is an untested restore | **Accept.** The baseline is 1,000/day with 5,000 at peaks. T0/C now names the restore test as its main risk and requires a scripted drill |
+| – | Skeptic's alternative: DO Droplet T1 ≈ $30 net / $37 gross | **Rejected as the top pick, kept as budget pick (B).** Reason: the owner asked for an App Platform comparison and prioritises deploy/rollback/log integration and low volunteer ops, where A is stronger for ~30–35 PLN/month more. B remains the answer if the Spaces PR or the budget is the constraint |
+
+## 10. Cut-over / fresh setup outline (no data migration)
 
 Production holds only mock data, so the new environment **starts empty**: migrations + admin seed, sample data only for a demo. No dump/restore, no image copy, no data-move downtime.
 
@@ -279,7 +353,7 @@ Production holds only mock data, so the new environment **starts empty**: migrat
 3. **Secrets:** generate new `Jwt__Key`, admin seed password, DB password, email API key, `API_PROXY_SECRET`; store them in the platform secret store / GitHub environment `production`. Do not reuse the Render values.
 4. **release.yml:** replace the two Render deploy-hook steps with: build both images → push to GHCR tagged `vX.Y.Z` + SHA → deploy (Azure `webapps-deploy` with OIDC / `doctl` / SSH + `compose pull`) → wait for `/health` → check that `/api/version` returns the new version. Keep `workflow_dispatch` for a redeploy, with an input for redeploying an older tag (rollback).
 5. **Smoke test** on the provider's default URL: home, events, partners map, admin login, image upload survives a redeploy, password-reset e-mail arrives, `/api/version`, client IP logged correctly (one request through Cloudflare).
-6. **Switch DNS:** point the app domain at the new service (Cloudflare proxied, low TTL set a day before), and update `Email__FrontendBaseUrl` and the PayU `notifyUrl`/`continueUrl` (if PayU is live by then).
+6. **Switch DNS:** point the app domain at the new service (Cloudflare DNS-only, low TTL set a day before; see section 7 before turning on proxying), and update `Email__FrontendBaseUrl` and the PayU `notifyUrl`/`continueUrl` (if PayU is live by then).
 7. **Watch** for 1–2 weeks (uptime monitor, logs, the first backup + a restore test).
 8. **Decommission Render:** delete the services and the DB, remove the deploy-hook secrets, delete `render.yaml`, and update `docs/architecture/deployment.md`, `CLAUDE.md` (Deployment) and `.env.example`.
 
@@ -288,16 +362,16 @@ Production holds only mock data, so the new environment **starts empty**: migrat
 
 **Repo changes summary:** remove `render.yaml`; add `docker-compose.prod.yml` (T0/T1) or IaC (`infra/` with Bicep/Terraform or an App Platform spec, T2+); change `release.yml` (registry + deploy step instead of hooks); add a backup workflow or cron (T0); add an ADR (hosting) that supersedes the Render parts of ADR-004's deployment notes; add a runbook `docs/operations/` (deploy, rollback, restore test, secret rotation).
 
-## 8. Open questions for the owner
+## 11. Open questions for the owner
 
-1. **Budget ceiling** per month out of pocket? (Recommended: ≤ $40, target $0 with credits.)
-2. **Who administers** the hosting account and can be on call (≥ 2 people)? Is anyone willing to look after a Linux server (decides T0 vs T3)?
+1. **Budget ceiling** per month, gross, out of pocket? (Recommended: ≤ 180 PLN, which allows App Platform; 150 PLN → Droplet T1; 70 PLN → Hetzner T0.) Is the association a VAT payer (accountant)?
+2. **Who administers** the hosting account and can be on call (≥ 2 people)? Is anyone willing to look after a Linux server (decides App Platform vs Droplet vs Hetzner)?
 3. **Domain:** does the association own `esngdansk.pl` (or another domain), who manages its DNS, and may we move DNS to Cloudflare (free)? Which subdomain for the app?
-4. **Credits:** may we apply for the Microsoft nonprofit grant (and DigitalOcean/AWS) in the association's name, and who signs (board member, KRS data, TechSoup Polska validation)?
+4. **Credits and billing:** may we apply for the DigitalOcean (and optionally Microsoft/AWS) nonprofit credits in the association's name, and who signs (board member, KRS data, TechSoup Polska validation)? Which association card pays, and who owns the yearly renewal reminder and the budget alert?
 5. **US-parent providers OK** for guest PII under GDPR (with EU region + DPA), or EU-only companies (Hetzner/OVH)?
 6. Is a **staging environment** wanted (≈ +$15–30/month), or is the CI e2e stack enough?
 
-## 9. Sources
+## 12. Sources
 
 1. Hetzner Cloud overview (starting prices: Regular Performance from €5.49, Cost-Optimized from €5.99): https://www.hetzner.com/cloud/
 2. Hetzner price adjustment 2026 (CAX11 €4.49 → €5.99 from 15 June 2026): https://docs.hetzner.com/general/infrastructure-and-availability/price-adjustment/ ; availability of cost-optimized plans (third party): https://www.bitdoze.com/hetzner-cloud-cost-optimized-plans/
@@ -318,3 +392,7 @@ Production holds only mock data, so the new environment **starts empty**: migrat
 17. Azure Retail Prices API, germanywestcentral, read 2026-11-20: PG Flexible B1ms $0.0199/h, storage $0.137/GB-month, backup LRS $0.103/GB-month, GP Ddsv5 $0.106 per vCore-hour; App Service Linux B1 $0.01802/h; Container Apps active vCPU $0.000024/s, idle vCPU and GiB $0.000003/s, environment management $0.10/h (applies to dedicated/workload-profile plans, unverified for consumption-only); Blob Hot LRS ~$0.0196/GB-month. Free monthly Container Apps grant 180,000 vCPU-s / 360,000 GiB-s / 2 M requests (pricing page). https://prices.azure.com/api/retail/prices , https://azure.microsoft.com/en-us/pricing/details/container-apps/
 18. Cloud SQL db-f1-micro Frankfurt, third-party figures that disagree ($9/month vs $0.0216/h): https://www.bytebase.com/dbcost/cloudsql/instance/db-f1-micro/ , https://sparecores.com/database/gcp/db-f1-micro ; official page (prices not readable by the tool): https://cloud.google.com/sql/pricing , https://cloud.google.com/run/pricing
 19. Email APIs: Brevo free plan 300 e-mails/day with API, EU servers: https://www.brevo.com/features/email-api/ ; Resend free tier 3,000/month, 100/day (via Brevo's comparison, unverified): https://www.brevo.com/resend/
+20. Cloudflare Bot Fight Mode on the free plan cannot be skipped with WAF custom rules: https://developers.cloudflare.com/bots/get-started/free/ , https://developers.cloudflare.com/waf/feature-interoperability
+21. DigitalOcean, client IP on App Platform (`do-connecting-ip`; `X-Forwarded-For` is the ingress server): https://docs.digitalocean.com/support/where-can-i-find-the-client-ip-address-of-a-request-connecting-to-my-app/
+22. DigitalOcean pricing overview (Spaces from $5/month, Volumes from $10/month, Droplet backups 20% weekly / 30% daily or usage-based from $0.01/GiB, App Platform 3 static sites free, Databases from $15/month; per-GiB Spaces/Volumes details not readable there): https://www.digitalocean.com/pricing#storage ; App Platform sizes ($5 512 MiB, $10 1 GiB fixed, $12 1 GiB, $25 2 GiB; outbound overage $0.02/GiB): https://docs.digitalocean.com/products/app-platform/details/pricing/
+23. Exchange rates (est., early/mid November 2026, USD/PLN ~3.9–4.0): https://www.currency.me.uk/convert/usd/pln?amount=1
