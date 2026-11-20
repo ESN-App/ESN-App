@@ -19,5 +19,8 @@ FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS runtime
 WORKDIR /app
 COPY --from=build /app/publish .
 COPY VERSION ./VERSION
+# Commit SHA shown by /api/version; pass --build-arg GIT_COMMIT=<sha> (empty means "dev").
+ARG GIT_COMMIT=""
+ENV GIT_COMMIT=${GIT_COMMIT}
 EXPOSE 8080
 ENTRYPOINT ["dotnet", "EsnApp.Api.dll"]

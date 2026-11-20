@@ -52,6 +52,16 @@ public class VersionTests(WebApplicationFactory<Program> factory)
     }
 
     [Fact]
+    public async Task Get_PrefersGitCommitOverRenderCommit()
+    {
+        var response = await Factory("render-sha").WithWebHostBuilder(b => b.UseSetting("GIT_COMMIT", "neutral-sha"))
+            .CreateClient().GetAsync("/api/version");
+
+        var body = (await response.Content.ReadFromJsonAsync<Body>())!;
+        Assert.Equal("neutral-sha", body.Commit);
+    }
+
+    [Fact]
     public async Task Post_IsNotAllowed()
     {
         var response = await Factory(null).CreateClient().PostAsync("/api/version", null);

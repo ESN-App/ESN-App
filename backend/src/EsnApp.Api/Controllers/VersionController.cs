@@ -12,13 +12,13 @@ public class VersionController(IConfiguration configuration) : ControllerBase
     // The Docker image copies the repo-root VERSION file next to the app (see docker/backend.Dockerfile).
     private static readonly string VersionFile = Path.Combine(AppContext.BaseDirectory, "VERSION");
 
-    /// <summary>Gets the release version (VERSION file, or "dev"), the deployed commit SHA (RENDER_GIT_COMMIT, or "dev") and the process start time.</summary>
+    /// <summary>Gets the release version (VERSION file, or "dev"), the deployed commit SHA (GIT_COMMIT, falling back to RENDER_GIT_COMMIT, or "dev") and the process start time.</summary>
     [HttpGet]
     [ProducesResponseType(typeof(VersionResponse), StatusCodes.Status200OK)]
     public IActionResult Get() =>
         Ok(new VersionResponse(
             System.IO.File.Exists(VersionFile) ? System.IO.File.ReadAllText(VersionFile).Trim() : "dev",
-            configuration["RENDER_GIT_COMMIT"] is { Length: > 0 } sha ? sha : "dev",
+            (configuration["GIT_COMMIT"] is { Length: > 0 } sha ? sha : configuration["RENDER_GIT_COMMIT"]) is { Length: > 0 } commit ? commit : "dev",
             StartedAt));
 
     public record VersionResponse(string Version, string Commit, DateTimeOffset DeployedAt);
