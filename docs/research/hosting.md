@@ -1,6 +1,6 @@
 # Hosting after Render: requirements, target tiers and provider comparison
 
-Status: research only. No decision yet; an ADR is written once the owner picks a tier and a provider.
+Status: research only. **Decided:** the owner chose **Hetzner T0** (one Hetzner Cloud server, everything in Docker Compose), priority lowest price; see [ADR-006](../adr/006-hosting-on-hetzner-cloud.md).
 Date: 2026-11-20. Refs #24 (uploads lost on deploy), #25 (SMTP blocked), #26 (free DB expires), ADR-005 draft (PR #109, guest registrations + PayU webhooks).
 
 Prices are list prices without VAT, read on 2026-11-20 from the sources in section 13. **(est.)** marks my own arithmetic or a third-party figure; **(unverified)** marks something I could not confirm on an official page. Confirm every price in the provider's calculator before signing up. 1 month = 730 h.
