@@ -32,7 +32,7 @@ Full comparison in [docs/research/hosting.md](../research/hosting.md) sections 4
 1. **Stay on Render, paid plans** (change least): cost per research section 5 (est.); keeps the PaaS comfort, still no persistent disk without a paid disk add-on.
 2. **DigitalOcean App Platform + Managed PostgreSQL** (research top pick, about 170 PLN gross): least ops, needs object storage for images.
 3. **DigitalOcean Droplet + Managed PostgreSQL** (budget pick, about 143 PLN gross).
-4. **Hetzner Cloud, one server, everything in Docker Compose** (cheapest, about 63 PLN gross). Chosen.
+4. **Hetzner Cloud, one server, everything in Docker Compose** (cheapest, about 34 PLN gross on CPX02). Chosen.
 
 The owner chose option 4 for price. The research named its main risk: an untested restore. This ADR makes the restore test automatic.
 
@@ -47,7 +47,7 @@ flowchart LR
   mon[UptimeRobot free<br/>/health and / every 5 min] -->|HTTPS| dns
   dns["Cloudflare DNS only<br/>(grey cloud, A + AAAA)"] --> fw
   fw["Hetzner Cloud Firewall<br/>in: 80, 443 (+ICMP)<br/>22 closed, opened per job"] --> caddy
-  subgraph vm["Hetzner CPX12, HEL1, Ubuntu LTS, Docker CE + compose"]
+  subgraph vm["Hetzner CPX02, HEL1, Ubuntu LTS, Docker CE + compose"]
     caddy["caddy:2<br/>:80/:443 published<br/>TLS (Let's Encrypt), HTTP→HTTPS, HSTS<br/>overwrites client X-Forwarded-For"]
     web["web: nginx + Angular<br/>(not published)<br/>/api, /health, /swagger → api<br/>adds X-Proxy-Auth"]
     api["api: .NET 10 :8080<br/>(not published)<br/>migrations + admin seed on start<br/>ForwardedHeaders, rate limits"]
@@ -78,9 +78,21 @@ flowchart LR
 
 The extra hop lives inside the VM and is deterministic, so it does not weaken ADR-005: the API uses `UseForwardedHeaders` with `XForwardedFor`, `KnownNetworks` = the compose network's fixed subnet (set in `docker-compose.prod.yml`, for example `172.30.0.0/24`), `KnownProxies` cleared and `ForwardLimit = 2`. #110 must still log the raw header once and confirm this. The API and Postgres publish no ports; only Caddy listens on the host. nginx keeps adding `X-Proxy-Auth` (it overwrites any client value) as defence in depth.
 
-**Plan: CPX12 (2 GB).** CPX02 (€5.49) has only 1 GB, too little for .NET + Postgres + nginx + Caddy with headroom. CPX12 is x86 (AMD), so images stay `linux/amd64`; no multi-arch build. Memory limits in compose (est.: api 768 MB, postgres 512 MB, web and caddy 64 MB each) plus a 2 GB swap file. Images are built in GitHub Actions, never on the server. If memory gets tight, rescale to CPX22 (€16.99 HEL1) keeping the disk size, which keeps a later downgrade possible.
+**Plan: start on CPX02 (1 GB), upgrade path CPX12, then CPX22.** Owner decision: price is the priority and production holds only mock data until guest registrations with PII (#112) go live. CPX02 is x86 (AMD), so images stay `linux/amd64`; no multi-arch build. Images are built in GitHub Actions, never on the server. Hetzner's page listed CPX02 as "currently unavailable" on 2026-11-20 (see Risks); if it cannot be created in HEL1, start on CPX12 (€9.99).
 
-**Location: HEL1 (Helsinki).** €2/month cheaper than FSN1/NBG1, EU (Finland), and CPX22 is listed there for the upgrade path (not in FSN1). Round-trip time from Gdańsk to Helsinki and to Frankfurt are both in the tens of milliseconds (est., not measured); the difference does not matter for this app. Fall back to NBG1 if HEL1 cannot create servers.
+Memory budget for 1 GB (est., to be measured after H7):
+
+| Part | Setting | Budget |
+|---|---|---|
+| api (.NET) | `DOTNET_GCHeapHardLimit` ~256-300 MB, `DOTNET_gcServer=0` (workstation GC); compose `mem_limit` 400m | ~300 MB |
+| postgres | `shared_buffers` 64-128 MB, `max_connections` 20, small `work_mem`/`effective_cache_size`; `mem_limit` 300m | ~200 MB |
+| nginx (web) + Caddy | `mem_limit` 64m each | ~64 MB |
+| OS + Docker | | ~150 MB |
+| Swap | 2 GB swap file, `vm.swappiness` low (10) | safety net only |
+
+**Upgrade to CPX12 (2 GB, €9.99 HEL1)** when any of these holds: the host check alerts RAM > 85% or swap in use for a sustained period; an OOM kill appears in `docker events`/`dmesg`/logs; p95 API latency (UptimeRobot or access log) degrades under load. **Mandatory upgrade before #112 ships** (real PII, load from registrations), done with the compose limits raised to the former budget (api 768 MB, postgres 512 MB). CPX22 (€16.99 HEL1) follows if CPX12 is also tight. The rescale keeps the disk size (rescale without upgrading the disk), so a later downgrade stays possible; expect a few minutes of downtime. The steps go into the runbook (H5): snapshot or confirm a fresh backup, power off, `hcloud server change-type --keep-disk`, power on, raise compose limits and the `.env`/GC settings, run the host check and a smoke test.
+
+**Location: HEL1 (Helsinki).** €2/month cheaper than FSN1/NBG1, EU (Finland), and CPX12/CPX22 are listed there for the upgrade path (CPX22 not in FSN1). Round-trip time from Gdańsk to Helsinki and to Frankfurt are both in the tens of milliseconds (est., not measured); the difference does not matter for this app. Fall back to NBG1 if HEL1 cannot create servers.
 
 **Data on the root disk, not on a Hetzner Volume.** `pgdata` and `uploads` are Docker named volumes on the server's 40 GB disk, because Hetzner backups do not include attached Volumes. This fixes #24 without object storage.
 
@@ -91,7 +103,7 @@ The extra hop lives inside the VM and is deterministic, so it does not weaken AD
 | # | Item | Who | Notes |
 |---|---|---|---|
 | P1 | Hetzner account in the association's name (association e-mail), 2FA, **≥ 2 project members** with their own logins | Board member + tech lead | One Hetzner project for production only, so an API token cannot touch anything else |
-| P2 | Association's payment card on the Hetzner account; budget awareness (expected ~€15 gross/month); calendar note to review the invoice monthly | Treasurer | Hetzner has no hard spending cap (unverified); the invoice review is the control |
+| P2 | Association's payment card on the Hetzner account; budget awareness (expected ~€8 gross/month); calendar note to review the invoice monthly | Treasurer | Hetzner has no hard spending cap (unverified); the invoice review is the control |
 | P3 | **DPA** signed in the Hetzner console | Board member | Also list Hetzner, Brevo and Cloudflare (encrypted backups) in the ADR-005 privacy notice |
 | P4 | Domain: who owns it, access to its DNS, decide the app hostname and a temporary one for the smoke test | Board member | Move DNS to Cloudflare (free) if it is not there |
 | P5 | Cloudflare account (association e-mail, 2FA, ≥ 2 members): DNS zone, R2 bucket `esn-backups` with a 30-day lifecycle rule, two R2 tokens (read+write for the server, read-only for the restore test) | Tech lead | R2 may require a card on file (unverified) |
@@ -106,7 +118,7 @@ GitHub secrets (names only). `production`: `HCLOUD_TOKEN`, `PROD_SSH_PRIVATE_KEY
 
 ### 3. Server baseline
 
-- **Provisioning: scripted, no Terraform.** `infra/hetzner/provision.sh` (hcloud CLI) creates the SSH key, the firewall and its rules, and the server (`cpx12`, `hel1`, latest Ubuntu LTS image Hetzner offers, `--enable-backup`, `--user-data-from-file infra/hetzner/cloud-init.yaml`). Reason: five resources that change about once a year do not justify Terraform state (a remote backend to secure, lock and back up) for volunteers; the script plus cloud-init in the repo is the documentation and can rebuild the server in minutes. Revisit Terraform if a second environment (staging) is added.
+- **Provisioning: scripted, no Terraform.** `infra/hetzner/provision.sh` (hcloud CLI) creates the SSH key, the firewall and its rules, and the server (`cpx02`, `hel1`, latest Ubuntu LTS image Hetzner offers, `--enable-backup`, `--user-data-from-file infra/hetzner/cloud-init.yaml`). Reason: five resources that change about once a year do not justify Terraform state (a remote backend to secure, lock and back up) for volunteers; the script plus cloud-init in the repo is the documentation and can rebuild the server in minutes. Revisit Terraform if a second environment (staging) is added.
 - **cloud-init:** user `deploy` (sudo, in group `docker`, SSH key only); `PermitRootLogin no`, `PasswordAuthentication no`; Docker CE + compose plugin from Docker's apt repository (not the one-click image, so it is reproducible); `/etc/docker/daemon.json` with the `local` log driver (`max-size 10m`, `max-file 3`); journald capped (`SystemMaxUse=200M`); `unattended-upgrades` for security updates with automatic reboot at 04:30 UTC (after the backup; containers use `restart: unless-stopped`); 2 GB swap file; `fail2ban` skipped (port 22 is closed by default); `/opt/esn` owned by `deploy`; time zone UTC (the app stores UTC; the site time zone stays a site setting).
 - **Firewall (Hetzner Cloud Firewall, stateful, free):** inbound TCP 80 and 443 from `0.0.0.0/0` and `::/0`, ICMP; **no SSH rule by default**; outbound unrestricted.
 - **SSH access: temporary firewall rule opened by the workflow.** Compared:
@@ -143,7 +155,7 @@ GitHub secrets (names only). `production`: `HCLOUD_TOKEN`, `PROD_SSH_PRIVATE_KEY
 
 **Maintenance.** `.github/dependabot.yml` for `github-actions`, `docker` (`docker/`), `npm` (`frontend/`, `e2e/`) and `nuget` (`backend/`), weekly. A weekly scheduled run of the build + deploy path rebuilds both images on fresh base layers and pulls patched `postgres:18` and `caddy:2`; it tags them `vX.Y.Z-bYYYYMMDD` so rollback tags stay immutable. Postgres major upgrades are a manual runbook step (dump, new major, restore). Alerts: UptimeRobot e-mail (site down), GitHub issue + e-mail (backup, restore, disk), Hetzner account e-mails (maintenance, abuse).
 
-**Coolify instead of this?** Rejected. Coolify is a self-hosted PaaS (UI, Git deploys, Traefik proxy, scheduled DB backups). On a 2 GB server its control plane competes with the app for memory; it is one more internet-facing admin UI to patch and secure; its own proxy changes the hop chain ADR-005 depends on; and our deploy, backups and restore test would live in its database instead of the repo. Plain compose plus GitHub Actions keeps everything reviewable in PRs. Reconsider Coolify only if volunteers cannot maintain the workflows.
+**Coolify instead of this?** Rejected. Coolify is a self-hosted PaaS (UI, Git deploys, Traefik proxy, scheduled DB backups). On a 1-2 GB server its control plane competes with the app for memory; it is one more internet-facing admin UI to patch and secure; its own proxy changes the hop chain ADR-005 depends on; and our deploy, backups and restore test would live in its database instead of the repo. Plain compose plus GitHub Actions keeps everything reviewable in PRs. Reconsider Coolify only if volunteers cannot maintain the workflows.
 
 ### 5. Cut-over plan (fresh setup, no data move)
 
@@ -177,7 +189,7 @@ Each task is one branch + one PR into `main` and ships alone. Agents per repo ru
 | H2 | Brevo HTTP email sender (#25) | backend | `Infrastructure/Email/*`, DI, `.env.example` | Provider switch Brevo/Smtp/Log; unit test with fake `HttpMessageHandler`; empty key → log, as today | – | minor | P6 for a live test |
 | H3 | Neutral commit id `GIT_COMMIT` (API side) | backend | `VersionController`, `docker/backend.Dockerfile` build arg | `/api/version` shows `GIT_COMMIT`, falls back to `RENDER_GIT_COMMIT` | – | patch | – |
 | H4 | nginx for the Caddy chain + `GIT_COMMIT` (web side) | frontend | `docker/nginx.conf.template`, `docker/frontend.Dockerfile` | `X-Forwarded-Proto` passed through when set, `$scheme` otherwise (Render keeps working); `/version.json` commit from `GIT_COMMIT`; e2e green | – | patch | – |
-| H5 | Production compose, Caddy, scripts, cloud-init, runbook | backend | `deploy/*`, `infra/hetzner/*`, `docs/operations/production.md` | `docker compose -f deploy/docker-compose.prod.yml config` valid; only caddy publishes ports; fixed subnet; healthchecks + memory limits; `backup.sh` encrypts before upload (shellcheck clean); runbook covers deploy, rollback, restore, rotation, rebuild | H1 | patch | – |
+| H5 | Production compose, Caddy, scripts, cloud-init, runbook | backend | `deploy/*`, `infra/hetzner/*`, `docs/operations/production.md` | `docker compose -f deploy/docker-compose.prod.yml config` valid; only caddy publishes ports; fixed subnet; healthchecks + memory limits; `backup.sh` encrypts before upload (shellcheck clean); runbook covers deploy, rollback, restore, rotation, rebuild, rescale CPX02 to CPX12 | H1 | patch | – |
 | H6 | Build and push images to GHCR | backend | `release.yml` (new build job; Render hooks stay) | Merge to `main` publishes both images tagged `vX.Y.Z` + `sha-…`, public | H3, H4 | patch | – |
 | H7 | Provision production (Hetzner, R2, DNS temp name, GitHub environments) | backend (with owner) | run `provision.sh`; record non-secret values in the runbook | Server reachable on 80/443 only; backups enabled; R2 lifecycle 30 days; environments and secrets exist | H5, P1–P10 | – (docs PR if runbook changes) | **yes** |
 | H8 | Deploy job with smoke test and automatic rollback | backend | `release.yml` deploy job, `workflow_dispatch` `tag` input | Merge deploys to the temp hostname; a broken image rolls back to the previous tag and fails the job; SSH rule removed afterwards | H6, H7 | patch | approve `production` |
@@ -190,7 +202,7 @@ Links to ADR-005: this ADR replaces ADR-005 step 1 ("Paid Postgres + backups", #
 
 ## Consequences
 
-- No cold starts, a persistent disk and our own Postgres: #24, #25 (with H2) and #26 are fixed for about **€14.75 gross/month (≈ 63 PLN, est. at 4.25 PLN/EUR)**: CPX12 HEL1 €9.99 + backups €2.00 = €11.99 net + 23% VAT. R2, Cloudflare DNS, Brevo, UptimeRobot and GHCR stay on free tiers (est. backup size well under 10 GB). The domain is not counted.
+- No cold starts, a persistent disk and our own Postgres: #24, #25 (with H2) and #26 are fixed for about **€8.11 gross/month (≈ 34 PLN, est. at 4.25 PLN/EUR)**: CPX02 HEL1 €5.49 + 20% backups €1.10 = €6.59 net + 23% VAT. After the upgrade to CPX12 (mandatory before #112): €9.99 + €2.00 = €11.99 net ≈ €14.75 gross ≈ 63 PLN. R2, Cloudflare DNS, Brevo, UptimeRobot and GHCR stay on free tiers (est. backup size well under 10 GB). The domain is not counted.
 - Volunteers now own a Linux server: OS updates are automatic, but someone reads `ops` issues and handles Postgres major upgrades. Estimated 1–2 h/month (est.).
 - Deploys become image-based and reproducible (tagged images in GHCR, rollback by tag); Render deploy hooks and `render.yaml` go away.
 - Backups and their restore are tested every week by CI instead of by memory.
@@ -204,7 +216,8 @@ Links to ADR-005: this ADR replaces ADR-005 step 1 ("Paid Postgres + backups", #
 | Restore does not work when needed | Weekly automated restore test; a manual drill once per semester following the runbook |
 | Hetzner refuses new servers for new customers / plan unavailable | Create the account and server early (H7 right after H5); fall back to NBG1, then to the DigitalOcean Droplet option from the research |
 | Hetzner raises prices again (twice in 2026) | Monthly invoice review; compose + scripts move to any VPS with Docker in a day |
-| 2 GB RAM pressure | Memory limits, swap, host check; rescale to CPX22 (€16.99) without growing the disk |
+| 1 GB RAM pressure (CPX02) | GC hard limit, tuned Postgres, memory limits, swap, host check with the upgrade triggers above; rescale to CPX12, then CPX22, keeping the disk size |
+| CPX02 "currently unavailable" in HEL1 (Hetzner page, 2026-11-20) | Retry later; otherwise start on CPX12 |
 | `HCLOUD_TOKEN` leak can delete or take over the server | Separate Hetzner project, token only in the `production` environment limited to `main`, rotation in the runbook, R2 copy is off-provider |
 | Server compromise also deletes R2 backups (read+write token) | Hetzner server backups as a second copy outside the VM; restore-test token is read-only |
 | Rollback after a schema migration | Expand/contract rule; pre-deploy dump to R2 before every deploy |
