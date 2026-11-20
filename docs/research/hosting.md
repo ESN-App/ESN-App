@@ -3,18 +3,19 @@
 Status: research only. No decision yet; an ADR is written once the owner picks a tier and a provider.
 Date: 2026-11-20. Refs #24 (uploads lost on deploy), #25 (SMTP blocked), #26 (free DB expires), ADR-005 draft (PR #109, guest registrations + PayU webhooks).
 
-Prices are list prices without VAT, read on 2026-11-20 from the sources in section 12. **(est.)** marks my own arithmetic or a third-party figure; **(unverified)** marks something I could not confirm on an official page. Confirm every price in the provider's calculator before signing up. 1 month = 730 h.
+Prices are list prices without VAT, read on 2026-11-20 from the sources in section 13. **(est.)** marks my own arithmetic or a third-party figure; **(unverified)** marks something I could not confirm on an official page. Confirm every price in the provider's calculator before signing up. 1 month = 730 h.
 
 ## 1. Summary
 
-Revised after the `skeptic` review (section 9). Prices below are **gross** (+23% VAT, assumed because the association is not an active VAT payer; to be confirmed with the accountant), converted at **1 USD ≈ 3.95 PLN and 1 EUR ≈ 4.25 PLN (est., mid-November 2026)**. Provider choice is based on cost **without** any grant; credits are a bonus.
+Revised after the `skeptic` review (section 10). Prices below are **gross** (+23% VAT, assumed because the association is not an active VAT payer; to be confirmed with the accountant), converted at **1 USD ≈ 3.95 PLN and 1 EUR ≈ 4.25 PLN (est., mid-November 2026)**. Provider choice is based on cost **without** any grant; credits are a bonus.
 
 - **Top pick: DigitalOcean App Platform + Managed PostgreSQL (Frankfurt)**, about **$43 gross ≈ 170 PLN/month** (section 8). It is the closest thing to Render: deploys from GitHub Actions with an app spec in the repo, rollback in one click, built-in logs and alerts, no server to patch. It needs one code change first, storing images in Spaces, because the App Platform filesystem is ephemeral (#24).
 - **Budget pick: DigitalOcean Droplet T1** (the skeptic's proposal): our compose minus postgres on a 2 GB Droplet, Managed PostgreSQL 1 GB, Droplet backups, images on a volume. About **$36 gross ≈ 143 PLN/month**. No code change for #24, but a volunteer owns SSH, OS updates and Docker.
 - **Cheapest: Hetzner T0**: everything in compose on one server, nightly encrypted `pg_dump` off-site. About **€9–16 gross ≈ 37–68 PLN/month**. Its real risk is an untested restore, not the price.
 - **Edge:** Cloudflare **DNS-only** at the start. A CDN is not needed at ~1,000 visits/day (5,000 at peaks), and free Bot Fight Mode or an unlocked origin would break the ADR-005 assumptions (section 7).
 - **Azure** only if the owner wants it and the setup is written in Bicep in the repo, with a runbook and two or more owners. The nonprofit grant ($2,000/year) is a bonus. It is not a reason to choose Azure, because it must be renewed by hand every year and silently falls back to pay-as-you-go on the card on file.
-- **Not recommended:** scale-to-zero platforms (Cloud Run, Container Apps) unless min instances ≥ 1. GitHub Student Pack credits are a student's personal credits, so they are not for production.
+- **Low-cost / free options** (section 9): Cloud Run + Cloud SQL with min 1 is the only managed, cold-start-free option cheaper than App Platform (~126–160 PLN gross), at the price of GCP complexity. Free tiers (Neon, Supabase, Oracle Always Free) are for demo/staging only. Scale-to-zero (Cloud Run ~2–5 s, ACA ~5–15 s, est.) does not break the ADR-005 holds or PayU, but it contradicts "no sleeping services" and needs the owner's OK.
+- **Not recommended:** scale-to-zero for the API once PayU is live (section 9.4). GitHub Student Pack credits are a student's personal credits, so they are not for production.
 
 ## 2. What exists today
 
@@ -23,7 +24,7 @@ Revised after the `skeptic` review (section 9). Prices below are **gross** (+23%
 - Images: four `*ImageStorage` services in `backend/src/EsnApp.Api/Services/` write uploads to `wwwroot/images/uploads/...` on local disk, served as `/api/images/uploads/...`. On Render this disk is ephemeral (#24). The local `docker-compose.yml` already mounts a named `uploads` volume.
 - Email: `SmtpEmailSender`. Render free blocks SMTP ports (#25).
 - Render coupling in code: `VersionController` reads `RENDER_GIT_COMMIT`, nginx serves it in `/version.json`, and `ConnectionStrings__DefaultConnection` accepts Render's `postgresql://` URI.
-- **Known production bug:** `Program.cs` runs `DbSeeder.SeedAsync` whenever `Database:ApplyMigrationsOnStartup` is true, and render.yaml sets it to `true`. So production gets the sample data, not only the migrations and the admin. The new production must run migrations and the admin seed **without** sample data. That needs a small backend change, a separate flag such as `Seed:SampleData` that defaults to false (see section 10).
+- **Known production bug:** `Program.cs` runs `DbSeeder.SeedAsync` whenever `Database:ApplyMigrationsOnStartup` is true, and render.yaml sets it to `true`. So production gets the sample data, not only the migrations and the admin. The new production must run migrations and the admin seed **without** sample data. That needs a small backend change, a separate flag such as `Seed:SampleData` that defaults to false (see section 11).
 - Data: production holds only mock/sample data, so **nothing is migrated**. The new environment starts empty.
 
 ## 3. Requirements
@@ -304,7 +305,7 @@ flowchart LR
 - **Images:** the container filesystem is ephemeral, as on Render, so **Spaces is mandatory** here. It needs one backend PR: an S3 implementation behind the image-storage services. Spaces is S3-compatible, so the same code also works on Hetzner, AWS and others.
 - **Always on:** paid service containers do not sleep (no idle/sleep setting is documented [15]).
 - **Deploys and rollback:** the app spec lives in the repo (`.do/app.yaml`). release.yml builds both images, pushes them to GHCR or DOCR, then runs `digitalocean/app_action` (or `doctl apps update --spec` + `create-deployment`). Rollback is "Rollback" on a previous deployment in the console (unverified wording), or redeploying the previous tag. Logs: live logs and log forwarding are built in; retention is unverified.
-- **Migrations:** they keep running on API startup (with the seeder split from section 10). An App Platform pre-deploy job is possible later.
+- **Migrations:** they keep running on API startup (with the seeder split from section 11). An App Platform pre-deploy job is possible later.
 
 ### 8.2 Head-to-head
 
@@ -325,7 +326,95 @@ flowchart LR
 **Final recommendation: A (DO App Platform + Managed PostgreSQL).** The owner's goals are integration, easy deploys/rollbacks and logs/monitoring with the least volunteer care, and A meets them for about 30–35 PLN/month more than B. A also removes SSH and OS patching from the bus-factor problem. The Spaces image-storage PR is real work, but it fixes #24 properly and makes any later move an image swap.
 **Choose B** if that PR cannot land before the move, or if the ceiling is ~150 PLN/month gross. **Choose C** only below ~70 PLN/month, and only with a scripted restore test on a calendar. In any case, apply for the DO nonprofit credit (up to $2,500 one-time [14]) as a bonus.
 
-## 9. Review: objections and responses
+## 9. Low-cost and free options
+
+Added at the owner's request. The same assumptions apply: ~1,000 visits/day, mostly daytime; gross = net + 23% VAT; 1 USD ≈ 3.95 PLN, 1 EUR ≈ 4.25 PLN (est.); 1 month = 730 h = 2,628,000 s. Container sizes: **web** (nginx) 0.25 vCPU / 0.5 GiB, **api** 0.25 / 0.5 GiB (tight for .NET) or 0.5 / 1 GiB (recommended). The Azure calculator [24] is interactive and could not be read by the tool, so Azure figures use the official retail price API [17] and the billing docs [25].
+
+### 9.1 Serverless rates (verified where marked)
+
+| Platform | Active rate | Idle rate (min ≥ 1, no request in flight) | Free grant per month | Scale-to-zero billing |
+|---|---|---|---|---|
+| **Azure Container Apps**, Consumption, Germany West Central [17][25] | $0.000024 / vCPU-s, $0.000003 / GiB-s | $0.000003 / vCPU-s, $0.000003 / GiB-s (replica idle = no HTTP request, < 0.01 vCPU, < 1,000 B/s network) | 180,000 vCPU-s, 360,000 GiB-s, 2 M requests per subscription; no environment management fee for consumption-only environments [25] | With min 0, **every running replica is billed at the active rate** ("scaled above the minimum replica count") [25] |
+| **Google Cloud Run**, Tier 1 (europe-west1; Warsaw europe-central2 and Frankfurt are Tier 2, ~1.2–1.4× higher, unverified) [26] | Request-based: $0.000024 / vCPU-s (memory ~$0.0000025 / GiB-s, unverified); instance-based: $0.000018 / vCPU-s, $0.000002 / GiB-s | Idle min instance (request-based): $0.0000025 / vCPU-s (memory idle rate unverified) | Request-based 180,000 vCPU-s + 360,000 GiB-s + 2 M requests; instance-based 240,000 vCPU-s (third-party copy of the official table, unverified) | Request-based billing charges **only while a request is processed** (plus startup) |
+| **Scaleway Serverless Containers**, fr-par / pl-waw (public product catalogue API) [27] | €0.00001 / vCPU-s, €0.000002 / GB-s | No idle discount found: min-scale instances bill at the same rate (unverified) | 200,000 vCPU-s + 400,000 GB-s per account [28] | Billed while an instance runs (scale-down delay unverified) |
+
+### 9.2 Cost workings (est.)
+
+- **ACA min 1, mostly idle.** Two 0.25/0.5 replicas use 1.314 M vCPU-s + 2.628 M GiB-s. Minus the grant, that is 1.134 M × $0.000003 + 2.268 M × $0.000003 ≈ **$10.2**. With api at 0.5/1 it is 1.971 M vCPU-s + 3.942 M GiB-s, minus the grant ≈ **$16.1**. Active minutes add ~$1–2 (whether the grant offsets idle usage first is unverified).
+- **ACA min 0 is not cheaper here.** At daytime traffic a replica stays up ~14 h/day, billed at the 8× active vCPU rate: (0.75 vCPU × 1.512 M s − 180 k) × $0.000024 + (1.5 GiB × 1.512 M s − 360 k) × $0.000003 ≈ **$28**. Scale-to-zero only pays off with long quiet gaps.
+- **Cloud Run min 1** (request-based, idle rates): web 0.25/0.5 ≈ $4.9, api 0.5/1 ≈ $9.9, plus active time ≈ **$15 Tier 1, ~$20 Tier 2 (est.)**.
+- **Cloud Run min 0** (request-based): 1,000 visits × ~10 API calls × 100 ms billed granularity ≈ 30,000 s/month of 0.5 vCPU, far below the free grant, so compute ≈ **$0**. Internet egress of ~30 GB/month ≈ **$3–5 (est., rate unverified)**.
+- **Scaleway Serverless min 1:** web (0.25 vCPU, 0.5 GB) €9.2 + api (0.5 vCPU, 1 GB) €18.4, minus the free tier €2.8 ≈ **€24.8**. **Min 0** at ~14 h/day ≈ **€10–15 (est.)**.
+- **Databases:**
+  - Azure PG Flexible B1ms + 32 GB ≈ **$18.9** [17]; the Azure free account's 12-month B1ms allowance is unverified.
+  - Cloud SQL db-f1-micro **$9–16 + ~$2 storage** (sources disagree [18]).
+  - Scaleway **DB-DEV-S** (Warsaw available): node €0.0136/h + management €0.002/h ≈ €11.4 + 10 GB BSSD (€0.000136 per GB-hour) ≈ €1 ≈ **€12.4** [27].
+  - **Neon free $0** [29].
+- **Scaleway Instances** (catalogue [27]): STARDUST1-S €0.0006/h (≈ €0.44/month, 1 vCPU/1 GB, listed only in fr-par-1, often out of stock, unverified), DEV1-S (2 vCPU/2 GB) €0.008976/h ≈ **€6.55**, PLAY2-PICO €0.01428/h ≈ €10.4. A zonal flexible IPv4 is €0.005 per IP-hour ≈ **€3.65/month** (unit read as per hour). Transactional Email: €0.00025 per mail (free monthly quota unverified). Warsaw (`pl-waw`) exists for instances, databases and serverless.
+
+### 9.3 Free resources
+
+| Resource | Current limits | Fit for us |
+|---|---|---|
+| **Neon free** [29] | 100 CU-hours per project/month, autosuspend after 5 min (cannot be turned off; wake in a few hundred ms), 1 GB storage per project (20 GB across projects), **restore window 6 h**, 5 GB egress; when CU-hours or egress run out, **compute is suspended until the next billing period**. EU region (AWS Frankfurt) unverified. Launch plan: pay as you go, 7-day restore, "typical ~$15/month" | **Not for production.** At 0.25 CU, 100 CU-h ≈ 400 awake hours, and daytime traffic keeps the DB awake ~14 h/day ≈ 430 h, so it could stop mid-month. 6 h of PITR is too short for payment records. Fine for a demo/staging DB |
+| **Supabase free** [30] | Paused after **7 days of low activity**, 500 MB DB, 5 GB egress, 2 projects | No: a paused DB during the semester break means an outage, and Supabase is more than plain Postgres |
+| **Oracle Cloud Always Free** [31] | Ampere A1 ARM VM; officially 4 OCPU / 24 GB, but there are 2026 reports of an unannounced cut to ~2 OCPU / 12 GB and of instances disabled on enforcement (secondary sources). **Idle reclaim:** instances with p95 CPU < 20% over 7 days may be stopped (our app is always "idle" by this rule). Frankfurt A1 capacity often unavailable (forum reports) | **No for production** (reclaim + unannounced changes); needs arm64 images. Only as a throwaway demo |
+| **Cloudflare R2** [32] | 10 GB-month storage, 1 M Class A + 10 M Class B ops, **free egress** | Yes: images (S3 API) or off-site backups for T0 |
+| **Brevo** [19] | 300 e-mails/day with API, EU servers | Yes (#25) |
+| **UptimeRobot** [33] | 50 monitors, 5-min checks. Commercial use is allowed per UptimeRobot's own help pages; third-party posts claim otherwise, and new accounts may get only 10 monitors (unverified) | Yes; Better Stack free as a fallback |
+
+### 9.4 Cold start with scale-to-zero (est., not measured)
+
+Render free needs ~50 s because the whole free instance is spun up. On real serverless platforms our cold start is the image start plus .NET startup plus the startup migration check and admin seed (one DB round trip each), plus nginx if the web service is also cold.
+
+| Platform | Est. cold start for our API | Notes |
+|---|---|---|
+| Cloud Run (startup CPU boost) | **~2–5 s** | Idle instances are kept for a while before scale-down (duration unverified); a 5-min uptime ping often keeps one warm at ~$0 |
+| Azure Container Apps | **~5–15 s** | KEDA activation + replica scheduling; image cached per node is not guaranteed |
+| Scaleway Serverless Containers | **~3–10 s** | |
+| + Neon free (if used) | +0.3–1 s | DB wakes from autosuspend |
+
+These are estimates. **Measure before deciding**: deploy the current images, leave them idle for 30 min, then time `GET /api/events` and `POST` a sandbox registration 10 times (p50/p95).
+
+Impact on ADR-005 v1 (registrations + PayU):
+
+- **First visitor:** a 2–5 s wait with skeleton loaders. `retryInterceptor` already covers GETs. Acceptable; 15 s on ACA is noticeable.
+- **Sign-up POST** is not retried by the frontend, but on these platforms the request is **held until the instance is ready**, not rejected (unlike Render free, where 50 s exceeded proxy timeouts). With a cold start under 10 s it succeeds.
+- **PayU notify:** PayU retries on failure (ADR-005: retries over 72 h), and the status-page pull covers a student who comes back first. A few seconds of delay is harmless. PayU's notification timeout is **unverified**.
+- **10-minute seat hold:** expiry is evaluated on read (ADR-005), and the retention purge runs on startup or when the admin list opens. No scheduler depends on an always-on process, so scale-to-zero does not break holds. A cold start only eats a few seconds of the student's 10 minutes.
+- **Admin UX:** the first admin action after a quiet period is slower; otherwise no impact.
+
+**Verdict:** scale-to-zero is **technically acceptable for v1 on Cloud Run** if the measured p95 cold start of the whole chain is ≤ 5 s. It does contradict the owner's "no sleeping services" requirement (section 3.2), so it needs the owner's explicit OK. Use it at most for the **web** service or for the period before PayU goes live, and put the API on **min 1** once payments are live. On ACA, min 0 costs more than min 1 at our traffic, so use min 1 there anyway.
+
+### 9.5 Combos
+
+Net and gross per month (est.). "Cold start" = app cold start after idle; it must be "none" for the owner's requirement.
+
+| # | Combo | Net | Gross ≈ PLN | Ops / month | Cold start | Lock-in | Main risk |
+|---|---|---|---|---|---|---|---|
+| 1 | ACA min 1 (web + api 0.25/0.5) + Neon free | ~$10 | ~49 | ~1 h (2 vendors) | none (DB wake < 1 s) | low–medium | Neon CU-hour cap suspends the DB mid-month; 6 h PITR |
+| 2 | ACA min 1 (web 0.25/0.5 + api 0.5/1) + Azure PG B1ms + Blob | ~$35 | ~172 | ~1 h | none | medium | Azure complexity (needs Bicep + 2 owners); no cheaper than App Platform |
+| 3 | ACA min 0 + Azure PG B1ms | ~$35–47 | ~170–230 | ~1 h | 5–15 s | medium | Costs more than min 1 at our traffic |
+| 4 | Cloud Run min 1 (europe-west1) + Cloud SQL f1-micro + GCS | ~$26–33 | ~126–160 | ~1 h | none | medium | GCP IAM/Cloud SQL connector setup; shared-core SQL outside SLA (unverified) |
+| 5 | Cloud Run min 1 + Neon free | ~$15 | ~73 | ~1 h | none (DB wake) | low–medium | Neon cap/PITR as #1 |
+| 6 | Cloud Run min 0 + Cloud SQL f1-micro | ~$14–23 | ~68–112 | ~1 h | 2–5 s | medium | Cold start must be measured; owner OK needed |
+| 7 | Cloud Run min 0 + Neon free | ~$3–5 | ~15–25 | ~1 h | 2–5 s + DB wake | low–medium | Double cold start; Neon cap; not for payment data |
+| 8 | Scaleway Serverless min 1 + DB-DEV-S (Warsaw) + Object Storage | ~€37 | ~195 | ~1 h | none | low–medium (EU company) | No idle discount, so more than App Platform |
+| 9 | Scaleway Serverless min 0 + DB-DEV-S | ~€22–27 | ~115–141 | ~1 h | 3–10 s | low–medium | Cold start; smaller ecosystem/docs |
+| 10 | Scaleway DEV1-S + compose (Warsaw) + backups to Object Storage | ~€10.3 | ~54 | 2–4 h | none | lowest | Same as Hetzner T0 (self-run PG, restore drills) |
+| 11 | Oracle Always Free A1 + compose + R2 | €0 | 0 | 3–5 h | none | lowest | Idle reclaim, unannounced limit cuts, ARM images, capacity |
+| 12 | Hetzner smallest (CX23/CAX11) + compose + R2 backups | ~€6–7 | ~31–37 | 2–4 h | none | lowest | Untested restore; plan availability |
+| ref | DO App Platform + Managed PG (section 8) | ~$35–37 | ~170–180 | ~0.5 h | none | low | Spaces PR needed |
+| ref | DO Droplet T1 (section 8) | ~$29.55 | ~143 | ~1–1.5 h | none | lowest | SSH/OS care |
+
+### 9.6 Does anything beat App Platform?
+
+- **On cost with the same "no cold start" rule and managed PITR:** only **Cloud Run min 1 + Cloud SQL (#4)**, by ~20–50 PLN/month. That saving comes with GCP's IAM, Workload Identity, Cloud SQL connector and billing setup: the same complexity caveat the skeptic raised for Azure (IaC in the repo, two owners). The skeptic's other points also apply here: no grant as a basis, the association's card, a budget alert. In my view that does not beat App Platform's lower ops for a volunteer team.
+- **Much cheaper options all trade away a requirement:** Neon free (DB cap, 6 h PITR), scale-to-zero (cold start, owner OK needed), or self-run Postgres (Hetzner/Scaleway/Oracle, restore drills).
+- **Updated recommendation:** unchanged top pick, **DO App Platform + Managed PostgreSQL**. Budget: **DO Droplet T1**. Cheapest acceptable: **Hetzner T0 (#12)** or **Scaleway DEV1-S in Warsaw (#10)** if an EU-company provider is preferred.
+- **New low-cost option:** **Cloud Run (#4, or #6 before PayU goes live)**, only if the owner wants a managed setup under ~110–160 PLN and two volunteers commit to Terraform + runbook. Free tiers (Neon, Supabase, Oracle) are for demo/staging only.
+
+## 10. Review: objections and responses
 
 Review by `skeptic` on PR #122: accept with changes.
 
@@ -339,7 +428,7 @@ Review by `skeptic` on PR #122: accept with changes.
 | 6 | Load is ~1,000 visits/day, not 5,000; T0's real risk is an untested restore | **Accept.** The baseline is 1,000/day with 5,000 at peaks. T0/C now names the restore test as its main risk and requires a scripted drill |
 | – | Skeptic's alternative: DO Droplet T1 ≈ $30 net / $37 gross | **Rejected as the top pick, kept as budget pick (B).** Reason: the owner asked for an App Platform comparison and prioritises deploy/rollback/log integration and low volunteer ops, where A is stronger for ~30–35 PLN/month more. B remains the answer if the Spaces PR or the budget is the constraint |
 
-## 10. Cut-over / fresh setup outline (no data migration)
+## 11. Cut-over / fresh setup outline (no data migration)
 
 Production holds only mock data, so the new environment **starts empty**: migrations + admin seed, sample data only for a demo. No dump/restore, no image copy, no data-move downtime.
 
@@ -362,7 +451,7 @@ Production holds only mock data, so the new environment **starts empty**: migrat
 
 **Repo changes summary:** remove `render.yaml`; add `docker-compose.prod.yml` (T0/T1) or IaC (`infra/` with Bicep/Terraform or an App Platform spec, T2+); change `release.yml` (registry + deploy step instead of hooks); add a backup workflow or cron (T0); add an ADR (hosting) that supersedes the Render parts of ADR-004's deployment notes; add a runbook `docs/operations/` (deploy, rollback, restore test, secret rotation).
 
-## 11. Open questions for the owner
+## 12. Open questions for the owner
 
 1. **Budget ceiling** per month, gross, out of pocket? (Recommended: ≤ 180 PLN, which allows App Platform; 150 PLN → Droplet T1; 70 PLN → Hetzner T0.) Is the association a VAT payer (accountant)?
 2. **Who administers** the hosting account and can be on call (≥ 2 people)? Is anyone willing to look after a Linux server (decides App Platform vs Droplet vs Hetzner)?
@@ -371,7 +460,7 @@ Production holds only mock data, so the new environment **starts empty**: migrat
 5. **US-parent providers OK** for guest PII under GDPR (with EU region + DPA), or EU-only companies (Hetzner/OVH)?
 6. Is a **staging environment** wanted (≈ +$15–30/month), or is the CI e2e stack enough?
 
-## 12. Sources
+## 13. Sources
 
 1. Hetzner Cloud overview (starting prices: Regular Performance from €5.49, Cost-Optimized from €5.99): https://www.hetzner.com/cloud/
 2. Hetzner price adjustment 2026 (CAX11 €4.49 → €5.99 from 15 June 2026): https://docs.hetzner.com/general/infrastructure-and-availability/price-adjustment/ ; availability of cost-optimized plans (third party): https://www.bitdoze.com/hetzner-cloud-cost-optimized-plans/
@@ -396,3 +485,13 @@ Production holds only mock data, so the new environment **starts empty**: migrat
 21. DigitalOcean, client IP on App Platform (`do-connecting-ip`; `X-Forwarded-For` is the ingress server): https://docs.digitalocean.com/support/where-can-i-find-the-client-ip-address-of-a-request-connecting-to-my-app/
 22. DigitalOcean pricing overview (Spaces from $5/month, Volumes from $10/month, Droplet backups 20% weekly / 30% daily or usage-based from $0.01/GiB, App Platform 3 static sites free, Databases from $15/month; per-GiB Spaces/Volumes details not readable there): https://www.digitalocean.com/pricing#storage ; App Platform sizes ($5 512 MiB, $10 1 GiB fixed, $12 1 GiB, $25 2 GiB; outbound overage $0.02/GiB): https://docs.digitalocean.com/products/app-platform/details/pricing/
 23. Exchange rates (est., early/mid November 2026, USD/PLN ~3.9–4.0): https://www.currency.me.uk/convert/usd/pln?amount=1
+24. Azure pricing calculator (interactive, not readable by the tool; figures taken from [17] instead): https://azure.microsoft.com/en-us/pricing/calculator/
+25. Azure Container Apps billing (free grants, idle conditions, min 0 replicas billed at the active rate, no management fee for consumption-only): https://learn.microsoft.com/en-us/azure/container-apps/billing ; pricing page: https://azure.microsoft.com/en-us/pricing/details/container-apps/
+26. Cloud Run pricing (rates quoted from the official table via search snippets; tier of each EU region unverified): https://cloud.google.com/run/pricing
+27. Scaleway public product catalogue API, read 2026-11-20 (Serverless Containers, Instances, Managed Database DB-DEV-S, IPv4, Transactional Email, pl-waw and fr-par): https://api.scaleway.com/product-catalog/v2alpha1/public-catalog/products ; Scaleway pricing pages returned HTTP 403 to the tool; trial page (not readable): https://www.scaleway.com/en/signup-trial/
+28. Scaleway Serverless Containers FAQ (free tier 400,000 GB-s and 200,000 vCPU-s per account per month): https://www.scaleway.com/en/docs/serverless-containers/faq/
+29. Neon pricing (free: 100 CU-h, 5-min autosuspend, 6 h history; Launch: 7 days): https://neon.com/pricing
+30. Supabase project pausing (free projects paused after 7 days of low activity): https://supabase.com/docs/guides/platform/project-pausing
+31. Oracle Always Free resources (idle reclaim rule): https://docs.oracle.com/en-us/iaas/Content/FreeTier/resourceref.htm ; reported 2026 limit cut (secondary): https://infoq.com/news/2026/07/oracle-cloud-free-tier-limits/
+32. Cloudflare R2 pricing (10 GB-month, 1 M Class A, 10 M Class B, free egress): https://developers.cloudflare.com/r2/pricing/
+33. UptimeRobot free plan (50 monitors, 5-min checks, commercial use allowed per its help centre): https://help.uptimerobot.com/en/articles/11604710-who-is-uptimerobot-s-free-plan-for
