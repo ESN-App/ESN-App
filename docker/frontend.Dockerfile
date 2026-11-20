@@ -18,7 +18,8 @@ RUN sed -i "s/__APP_VERSION__/$(tr -d '[:space:]' < /tmp/VERSION)/" /etc/nginx/t
 COPY --from=build /app/dist/esn-app/browser /usr/share/nginx/html
 # Defaults suit docker compose; Render overrides both (see render.yaml).
 # RENDER_GIT_COMMIT must be defined (even empty): envsubst only replaces defined variables.
+ARG GIT_COMMIT=""
 ENV PORT=80 \
     API_UPSTREAM=http://backend:8080 \
-    RENDER_GIT_COMMIT=""
+    RENDER_GIT_COMMIT=$GIT_COMMIT
 EXPOSE 80
