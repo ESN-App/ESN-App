@@ -118,7 +118,9 @@ Variant A uses `P5-A`, `P6-A`, `P8-A` and H2. Variant B uses `P5-B` and `P6-B`, 
 - **The owner actions gate H7.** Start P4 (domain and DNS access) now in either variant: it is needed for TLS and the temporary hostname, and the registrar is still unknown.
 - G4 (DB health check) is small and should land before H8, otherwise the smoke test cannot catch a broken database.
 
-**Next phase:** H11 → #112 → #113 → #115, then #118 → #119 → #120 → #121. #116 (PayU contract) has the longest lead time outside the team, so the board can start it in parallel with phase 1.
+**Server size:** production starts on CPX02 (1 GB). **Upgrade to CPX12 (2 GB, €9.99 HEL1) is a mandatory step before #112** (rescale keeping the disk, a few minutes of downtime, runbook from H5); earlier if the host check shows RAM > 85% or sustained swap, or an OOM kill appears (ADR-006).
+
+**Next phase:** H11 → CPX12 upgrade → #112 → #113 → #115, then #118 → #119 → #120 → #121. #116 (PayU contract) has the longest lead time outside the team, so the board can start it in parallel with phase 1.
 
 ## Owner actions (both variants)
 

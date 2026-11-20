@@ -8,7 +8,7 @@ This folder is the **single picture of where the system is going**. ADRs record 
 
 ## Two dependency variants
 
-The owner finds the ADR-006 setup has too many external services. Both variants run **the same application on the same server**. They differ only in who stores the off-site backups, who sends e-mail, who hosts DNS and who watches uptime.
+The owner finds the ADR-006 setup has too many external services. Both variants run **the same application on the same server** (starts on CPX02, 1 GB; upgrade to CPX12 before #112). They differ only in who stores the off-site backups, who sends e-mail, who hosts DNS and who watches uptime.
 
 | | Variant A: full (ADR-006 as written) | Variant B: minimal |
 |---|---|---|
@@ -17,7 +17,7 @@ The owner finds the ADR-006 setup has too many external services. Both variants 
 | DNS | Cloudflare (moved from the registrar) | Stays at the existing registrar |
 | Uptime monitoring | UptimeRobot (every 5 min) | Scheduled GitHub Actions job (about every 15 min) that opens an `ops` issue |
 | Accounts to run | 6 (Hetzner, GitHub, registrar, Cloudflare, Brevo, UptimeRobot) | 4, and the registrar and mailbox already exist |
-| Cost per month, gross (est.) | **≈ €14.75 (≈ 63 PLN)** | **≈ €18.68 (≈ 79 PLN)** |
+| Cost per month, gross (est.) | **≈ €8.11 (≈ 34 PLN)** on CPX02; €14.75 (≈ 63 PLN) after the CPX12 upgrade | **≈ €12.04 (≈ 51 PLN)** on CPX02; €18.68 (≈ 79 PLN) after the CPX12 upgrade |
 
 Details, costs and trade-offs are in [system.md](system.md#dependency-comparison). What B changes in the tasks is in [roadmap.md](roadmap.md#what-changes-if-variant-b-is-chosen).
 

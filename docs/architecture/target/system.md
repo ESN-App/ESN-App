@@ -46,7 +46,7 @@ flowchart LR
 
   cfdns["Cloudflare DNS<br/>DNS only, grey cloud"]
 
-  subgraph vm["Hetzner CPX12, HEL1 (Docker Compose)"]
+  subgraph vm["Hetzner CPX02, HEL1 (Docker Compose)"]
     caddy["caddy:2<br/>:80 / :443, Let's Encrypt"]
     web["web: nginx + Angular build<br/>/api proxy, X-Proxy-Auth"]
     api["api: ASP.NET Core .NET 10<br/>migrations + admin seed on start"]
@@ -91,7 +91,7 @@ flowchart LR
   regdns["Registrar DNS<br/>existing, A + AAAA, TTL 300"]
 
   subgraph hz["Hetzner (one account, one project)"]
-    subgraph vm["CPX12, HEL1 (Docker Compose)"]
+    subgraph vm["CPX02, HEL1 (Docker Compose)"]
       caddy["caddy:2<br/>:80 / :443, Let's Encrypt"]
       web["web: nginx + Angular build<br/>/api proxy, X-Proxy-Auth"]
       api["api: ASP.NET Core .NET 10<br/>migrations + admin seed on start"]
@@ -146,7 +146,7 @@ Prices are net, from the vendor pages (checked 2026-11-20), with gross = net × 
 
 | Service | What for | Account owner | Cost | Free-tier limits that matter |
 |---|---|---|---|---|
-| Hetzner Cloud | CPX12 server (HEL1), server backups, Cloud Firewall | Association (P1 done) | €9.99 + €2.00 backups | n/a |
+| Hetzner Cloud | CPX02 server (HEL1), server backups, Cloud Firewall | Association (P1 done) | €5.49 + €1.10 backups (CPX12 after the upgrade: €9.99 + €2.00) | n/a |
 | GitHub | Repo, Actions (CI/CD, ops checks), GHCR | ESN-App org | €0 (public repo) | Scheduled runs can be delayed or dropped, and are disabled after 60 days without activity ([docs](https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows)) |
 | Domain registrar | Domain | Association (unknown, **parameter**) | domain fee | n/a |
 | Cloudflare | DNS zone (moved from the registrar), R2 bucket for backups | Association, new account (P5) | €0 | R2: 10 GB-month, 1 M Class A, 10 M Class B ops; may need a card (unverified) |
@@ -154,20 +154,20 @@ Prices are net, from the vendor pages (checked 2026-11-20), with gross = net × 
 | UptimeRobot | `/health` and `/` every 5 min | Association, new account (P8) | €0 | 50 monitors, 5 min (new accounts possibly 10, unverified) |
 | Let's Encrypt (via Caddy) | TLS certificates | none (ACME, optional contact e-mail) | €0 | Rate limits irrelevant at one hostname |
 | PayU | Payments | Association (next phase) | per transaction | n/a |
-| **Total** | 6 accounts + PayU later | | **€11.99 net ≈ €14.75 gross ≈ 63 PLN** | |
+| **Total** | 6 accounts + PayU later | | **€6.59 net ≈ €8.11 gross ≈ 34 PLN** (after upgrade to CPX12: €11.99 net ≈ €14.75 gross ≈ 63 PLN) | |
 
 ### Variant B: minimal
 
 | Service | What for | Account owner | Cost | Limits that matter |
 |---|---|---|---|---|
-| Hetzner Cloud | CPX12 server, server backups, Cloud Firewall | Association (P1 done) | €9.99 + €2.00 | n/a |
+| Hetzner Cloud | CPX02 server, server backups, Cloud Firewall | Association (P1 done) | €5.49 + €1.10 (CPX12: €9.99 + €2.00) | n/a |
 | Hetzner Storage Box BX11 (FSN1) | Off-site encrypted dumps, read-only sub-account for the restore test | Same Hetzner account | €3.20 (setup fee: page says one applies, amount not stated; unverified) | 10 manual + 10 automatic snapshot slots |
 | GitHub | Repo, Actions, GHCR, **uptime check** (cron about every 15 min, opens an `ops` issue, GitHub e-mails watchers) | ESN-App org | €0 | Same schedule limits as A, now also for uptime |
 | Domain registrar | Domain **and DNS** | Association (**parameter**) | domain fee | Lowest TTL it allows (300 s needed for the cut-over) and API access unknown |
 | Association mailbox | Password reset (later confirmations) via SMTP 587 | Association (provider unknown, **parameter**) | €0 extra | Provider's daily cap and auth rules (see below) |
 | Let's Encrypt (via Caddy) | TLS | none | €0 | n/a |
 | PayU | Payments | Association (next phase) | per transaction | n/a |
-| **Total** | 4 accounts (2 already exist) + PayU later | | **€15.19 net ≈ €18.68 gross ≈ 79 PLN** (with Object Storage instead: €18.48 net ≈ €22.73 gross) | |
+| **Total** | 4 accounts (2 already exist) + PayU later | | **€9.79 net ≈ €12.04 gross ≈ 51 PLN** (with Object Storage instead: €13.08 net ≈ €16.09 gross); after upgrade to CPX12: €15.19 net ≈ €18.68 gross ≈ 79 PLN (Object Storage: €18.48 net ≈ €22.73 gross) | |
 
 ### Trade-offs
 

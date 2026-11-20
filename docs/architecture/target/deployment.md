@@ -13,7 +13,7 @@ flowchart TB
 
   subgraph hcloud["Hetzner Cloud project: production only"]
     fw["Cloud Firewall, stateful<br/>in: TCP 80, 443, ICMP from any<br/>in: TCP 22 only from runner /32 during a job<br/>out: any"]
-    subgraph vm["CPX12, HEL1: 1 vCPU, 2 GB RAM + 2 GB swap, 40 GB NVMe<br/>Ubuntu LTS, Docker CE + compose, user deploy, UTC"]
+    subgraph vm["CPX02, HEL1: 1 vCPU, 1 GB RAM + 2 GB swap, 20 GB NVMe (upgrade to CPX12 before #112)<br/>Ubuntu LTS, Docker CE + compose, user deploy, UTC"]
       subgraph net["compose network, fixed subnet e.g. 172.30.0.0/24"]
         caddy["caddy :80 :443<br/>published, mem 64 MB"]
         web["web nginx :80<br/>not published, mem 64 MB"]
