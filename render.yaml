@@ -40,6 +40,9 @@ services:
         generateValue: true
       - key: Database__ApplyMigrationsOnStartup
         value: "true"
+      # Keeps current Render demo data until the Hetzner cut-over; remove with Render.
+      - key: Seed__SampleData
+        value: "true"
       - key: Seed__AdminEmail
         sync: false
       - key: Seed__AdminPassword
