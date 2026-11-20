@@ -1,0 +1,145 @@
+name: PoC deploy
+
+# PoC on Hetzner (ADR-006, simplified): build images to GHCR, deploy over SSH, smoke test.
+# Required GitHub Environment `poc`:
+#   secrets: HCLOUD_TOKEN (Read & Write on the Hetzner project; needed to edit the firewall),
+#            POC_SSH_PRIVATE_KEY, POC_SSH_KNOWN_HOSTS, POSTGRES_PASSWORD, JWT_KEY,
+#            SEED_ADMIN_EMAIL, SEED_ADMIN_PASSWORD, SMTP_USERNAME, SMTP_PASSWORD
+#   vars:    POC_HOST, APP_DOMAIN, HCLOUD_FIREWALL, EMAIL_FROM_ADDRESS
+on:
+  push:
+    branches: [hetzner]
+    paths:
+      - 'backend/**'
+      - 'frontend/**'
+      - 'docker/**'
+      - 'deploy/**'
+      - '.github/workflows/poc-deploy.yml'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Image tag to build and deploy (default: poc-<shortsha>)'
+        required: false
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      tag: ${{ steps.meta.outputs.tag }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: meta
+        env:
+          INPUT_TAG: ${{ inputs.tag }}
+        run: |
+          echo "tag=${INPUT_TAG:-poc-${GITHUB_SHA::7}}" >> "$GITHUB_OUTPUT"
+      - uses: docker/setup-buildx-action@v4
+      - uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: docker/backend.Dockerfile
+          platforms: linux/amd64
+          push: true
+          build-args: GIT_COMMIT=${{ github.sha }}
+          tags: |
+            ghcr.io/esn-app/esn-app-api:${{ steps.meta.outputs.tag }}
+            ghcr.io/esn-app/esn-app-api:poc
+          cache-from: type=gha,scope=api
+          cache-to: type=gha,mode=max,scope=api
+      - uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: docker/frontend.Dockerfile
+          platforms: linux/amd64
+          push: true
+          build-args: GIT_COMMIT=${{ github.sha }}
+          tags: |
+            ghcr.io/esn-app/esn-app-web:${{ steps.meta.outputs.tag }}
+            ghcr.io/esn-app/esn-app-web:poc
+          cache-from: type=gha,scope=web
+          cache-to: type=gha,mode=max,scope=web
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment: poc
+    concurrency:
+      group: poc-deploy
+      cancel-in-progress: false
+    env:
+      TAG: ${{ needs.build.outputs.tag }}
+      POC_HOST: ${{ vars.POC_HOST }}
+      APP_DOMAIN: ${{ vars.APP_DOMAIN }}
+      HCLOUD_FIREWALL: ${{ vars.HCLOUD_FIREWALL }}
+      HCLOUD_TOKEN: ${{ secrets.HCLOUD_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hetznercloud/setup-hcloud@v2
+      - name: Open SSH for this runner
+        run: |
+          ip="$(curl -fsS https://api.ipify.org)"
+          echo "RUNNER_IP=$ip" >> "$GITHUB_ENV"
+          hcloud firewall add-rule "$HCLOUD_FIREWALL" --direction in --protocol tcp --port 22 \
+            --source-ips "$ip/32" --description "gha-poc-deploy"
+      - name: Configure SSH
+        env:
+          SSH_KEY: ${{ secrets.POC_SSH_PRIVATE_KEY }}
+          KNOWN_HOSTS: ${{ secrets.POC_SSH_KNOWN_HOSTS }}
+        run: |
+          install -d -m 700 ~/.ssh
+          printf '%s\n' "$SSH_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          printf '%s\n' "$KNOWN_HOSTS" > ~/.ssh/known_hosts
+      - name: Upload deploy files and .env
+        env:
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          JWT_KEY: ${{ secrets.JWT_KEY }}
+          SEED_ADMIN_EMAIL: ${{ secrets.SEED_ADMIN_EMAIL }}
+          SEED_ADMIN_PASSWORD: ${{ secrets.SEED_ADMIN_PASSWORD }}
+          SMTP_USERNAME: ${{ secrets.SMTP_USERNAME }}
+          SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+          EMAIL_FROM_ADDRESS: ${{ vars.EMAIL_FROM_ADDRESS }}
+        run: |
+          scp deploy/docker-compose.prod.yml deploy/Caddyfile deploy/deploy.sh "deploy@${POC_HOST}:/opt/esn/"
+          {
+            printf 'APP_DOMAIN=%s\n' "$APP_DOMAIN"
+            printf 'POSTGRES_PASSWORD=%s\n' "$POSTGRES_PASSWORD"
+            printf 'JWT_KEY=%s\n' "$JWT_KEY"
+            printf 'SEED_ADMIN_EMAIL=%s\n' "$SEED_ADMIN_EMAIL"
+            printf 'SEED_ADMIN_PASSWORD=%s\n' "$SEED_ADMIN_PASSWORD"
+            printf 'SMTP_USERNAME=%s\n' "$SMTP_USERNAME"
+            printf 'SMTP_PASSWORD=%s\n' "$SMTP_PASSWORD"
+            printf 'EMAIL_FROM_ADDRESS=%s\n' "$EMAIL_FROM_ADDRESS"
+            printf 'IMAGE_TAG=%s\n' "$TAG"
+            printf 'SEED_SAMPLE_DATA=true\n'
+          } | ssh "deploy@${POC_HOST}" 'umask 077 && cat > /opt/esn/.env'
+      - name: Deploy
+        run: ssh "deploy@${POC_HOST}" "bash /opt/esn/deploy.sh '${TAG}'"
+      - name: Smoke test
+        run: |
+          short="${GITHUB_SHA::7}"
+          for i in $(seq 1 24); do
+            curl -fsS "https://${APP_DOMAIN}/health" && break
+            if [ "$i" -eq 24 ]; then echo "health check failed"; exit 1; fi
+            sleep 5
+          done
+          curl -fsS -o /dev/null "https://${APP_DOMAIN}/"
+          curl -fsS "https://${APP_DOMAIN}/api/version" | tee /dev/stderr | grep -q "$short"
+      - name: Close SSH for this runner
+        if: always()
+        run: |
+          if [ -n "${RUNNER_IP:-}" ]; then
+            hcloud firewall delete-rule "$HCLOUD_FIREWALL" --direction in \
+              --protocol tcp --port 22 --source-ips "$RUNNER_IP/32"
+          fi
