@@ -47,7 +47,7 @@ public static class DbSeeder
         await context.Database.MigrateAsync();
 
         await SeedIdentityAsync(services);
-        await SeedSampleDataAsync(context);
+        await SeedSampleDataAsync(context, services.GetRequiredService<IConfiguration>());
     }
 
     private static async Task SeedIdentityAsync(IServiceProvider services)
@@ -99,8 +99,11 @@ public static class DbSeeder
         }
     }
 
-    private static async Task SeedSampleDataAsync(AppDbContext context)
+    /// <summary>Seeds sample events/partners/news/info only when Seed:SampleData is true.</summary>
+    public static async Task SeedSampleDataAsync(AppDbContext context, IConfiguration configuration)
     {
+        if (!configuration.GetValue<bool>("Seed:SampleData")) return;
+
         await SeedEventsAsync(context);
         await SeedPartnersAsync(context);
         await SeedNewsAsync(context);

@@ -22,6 +22,7 @@ services:
       ConnectionStrings__DefaultConnection: "Host=postgres;Port=5432;Database=${POSTGRES_DB:-esn_dev};Username=${POSTGRES_USER:-esn};Password=${POSTGRES_PASSWORD:-devpassword}"
       Jwt__Key: ${JWT_KEY:-dev-only-jwt-signing-key-change-me-in-production-0123456789}
       Database__ApplyMigrationsOnStartup: "true"
+      Seed__SampleData: ${SEED_SAMPLE_DATA:-true}
       Seed__AdminEmail: ${SEED_ADMIN_EMAIL:-admin@esngdansk.local}
       Seed__AdminPassword: ${SEED_ADMIN_PASSWORD:-Admin123!}
       Seed__AdminFirstName: ${SEED_ADMIN_FIRST_NAME:-ESN}
