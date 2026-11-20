@@ -2,6 +2,8 @@
 
 This describes the system **as it is in the code today** (checked against `main` at v0.5.7). It records no decisions; those live in [../adr/](../adr). When code and this document disagree, the code is right, so fix the doc.
 
+Where the system is going (Hetzner platform, Variants A/B, roadmap): [target/README.md](target/README.md).
+
 ## One-page overview
 
 The ESN Gdańsk App is a mobile-first PWA for incoming Erasmus students: **Events** (with a calendar), **Partners** (discount offers, with a map), **Info** articles, **News** highlights on **Home**, plus a role-gated **Admin panel** to manage all of it.

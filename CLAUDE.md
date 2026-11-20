@@ -9,6 +9,7 @@ Monorepo for the **ESN Gdańsk App** — a non-profit PWA for the ESN Gdańsk ch
 Design source of truth: the Penpot file **"ESNapp mockup v3"** (student mobile/desktop, admin panel, component boards such as "Event badges" and "No-image placeholder"). New UI is designed there first, then implemented.
 
 Current architecture (as-is, with diagrams; start here): [docs/architecture/README.md](docs/architecture/README.md).
+Target architecture (to-be: Hetzner platform, dependency Variants A/B, roadmap; ADRs and issues derive from it): [docs/architecture/target/README.md](docs/architecture/target/README.md).
 
 Background docs (originally the source of truth for decisions — **now historical/point-in-time snapshots from the skeleton phase**; they predate News, the Admin panel, the Partners map, Calendar UI, and Home, and should not be trusted for current architecture or scope):
 
