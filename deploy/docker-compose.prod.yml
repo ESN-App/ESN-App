@@ -1,0 +1,108 @@
+# PoC production stack (ADR-006). Run from /opt/esn with .env next to this file.
+name: esn
+
+services:
+  caddy:
+    image: caddy:2
+    restart: unless-stopped
+    mem_limit: 64m
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    environment:
+      APP_DOMAIN: ${APP_DOMAIN}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:2019/config/"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+    depends_on:
+      web:
+        condition: service_healthy
+
+  web:
+    image: ghcr.io/esn-app/esn-app-web:${IMAGE_TAG}
+    restart: unless-stopped
+    mem_limit: 64m
+    environment:
+      PORT: "80"
+      API_UPSTREAM: http://api:8080
+      RENDER_GIT_COMMIT: ${GIT_COMMIT:-}
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:80/version.json"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+    depends_on:
+      api:
+        condition: service_healthy
+
+  api:
+    image: ghcr.io/esn-app/esn-app-api:${IMAGE_TAG}
+    restart: unless-stopped
+    mem_limit: 400m
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      DOTNET_gcServer: "0"
+      DOTNET_GCHeapHardLimit: "0x12C00000" # 300 MB
+      GIT_COMMIT: ${GIT_COMMIT:-}
+      RENDER_GIT_COMMIT: ${GIT_COMMIT:-} # name the current code reads for /api/version
+      ConnectionStrings__DefaultConnection: "Host=postgres;Port=5432;Database=esn;Username=esn;Password=${POSTGRES_PASSWORD}"
+      Jwt__Key: ${JWT_KEY}
+      Database__ApplyMigrationsOnStartup: "true"
+      Seed__SampleData: ${SEED_SAMPLE_DATA:-false} # needs PR #136; until merged sample data is always seeded
+      Seed__AdminEmail: ${SEED_ADMIN_EMAIL}
+      Seed__AdminPassword: ${SEED_ADMIN_PASSWORD}
+      Email__SmtpHost: ${EMAIL_SMTP_HOST:-smtp.gmail.com}
+      Email__SmtpPort: ${EMAIL_SMTP_PORT:-587}
+      Email__SmtpUsername: ${EMAIL_SMTP_USERNAME}
+      Email__SmtpPassword: ${EMAIL_SMTP_PASSWORD}
+      Email__FromAddress: ${EMAIL_FROM_ADDRESS}
+      Email__FromName: ${EMAIL_FROM_NAME:-ESN Gdańsk}
+      Email__FrontendBaseUrl: https://${APP_DOMAIN}
+    volumes:
+      - uploads:/app/wwwroot/images/uploads
+    healthcheck:
+      # The runtime image has no curl/wget; probe /health (includes the DB) over bash /dev/tcp.
+      test: ["CMD", "bash", "-c", "exec 3<>/dev/tcp/127.0.0.1/8080 && printf 'GET /health HTTP/1.0\\r\\n\\r\\n' >&3 && head -n1 <&3 | grep -q ' 200 '"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  postgres:
+    image: postgres:18
+    restart: unless-stopped
+    mem_limit: 256m
+    command: ["postgres", "-c", "shared_buffers=64MB", "-c", "max_connections=20"]
+    environment:
+      POSTGRES_DB: esn
+      POSTGRES_USER: esn
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - pgdata:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U esn -d esn"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  pgdata:
+  uploads:
+  caddy_data:
+  caddy_config:
+
+networks:
+  default:
+    ipam:
+      config:
+        - subnet: 172.30.0.0/24

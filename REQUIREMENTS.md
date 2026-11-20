@@ -26,6 +26,7 @@ No local PostgreSQL install — always use the `postgres` container (`docker com
 | ASP.NET Core Identity + JwtBearer | 10.0.9 |
 | System.IdentityModel.Tokens.Jwt | 8.19.1 |
 | Swashbuckle.AspNetCore | 10.2.3 |
+| Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore | 10.0.15 |
 | MediatR | 14.2.0 — note: commercially licensed since v13; free tier covers non-profits/small teams, no license key configured |
 | FluentValidation | 12.1.1 |
 | xunit / runner / Test SDK | 2.9.3 / 3.1.4 / 17.14.1 |
