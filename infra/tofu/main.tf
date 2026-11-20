@@ -86,6 +86,7 @@ resource "hcloud_server" "poc" {
 
   user_data = templatefile("${path.module}/cloud-init.yaml.tftpl", {
     deploy_ssh_public_key = trimspace(tls_private_key.deploy.public_key_openssh)
+    owner_ssh_public_key  = trimspace(data.hcloud_ssh_key.owner.public_key)
     host_private_key      = trimspace(tls_private_key.host.private_key_openssh)
     host_public_key       = trimspace(tls_private_key.host.public_key_openssh)
   })

@@ -3,6 +3,7 @@
 set -euo pipefail
 
 tag="${1:?usage: deploy.sh <image-tag>}"
+[[ "$tag" =~ ^[A-Za-z0-9._-]{1,128}$ ]] || { echo "invalid tag" >&2; exit 1; }
 cd /opt/esn
 
 if grep -q '^IMAGE_TAG=' .env; then

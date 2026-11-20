@@ -3,7 +3,7 @@ name: esn
 
 services:
   caddy:
-    image: caddy:2
+    image: caddy:2@sha256:4851e54a46b206517c574821bb5cc67f170d2156041e9fbc4c9193b45e84a75b # caddy 2
     restart: unless-stopped
     mem_limit: 64m
     ports:
@@ -79,7 +79,7 @@ services:
         condition: service_healthy
 
   postgres:
-    image: postgres:18
+    image: postgres:18@sha256:eb63372c1e05c755f55fa30cbd07aecc443676fc6c0fa90b9002d01537841e1a # postgres 18
     restart: unless-stopped
     mem_limit: 256m
     command: ["postgres", "-c", "shared_buffers=64MB", "-c", "max_connections=20"]

@@ -51,11 +51,9 @@ resource "github_repository_environment" "poc" {
     custom_branch_policies = true
   }
 
-  dynamic "reviewers" {
-    for_each = length(var.poc_reviewer_user_ids) > 0 ? [1] : []
-    content {
-      users = var.poc_reviewer_user_ids
-    }
+  # The deploy key is root-equivalent on the server, so deployments always need approval.
+  reviewers {
+    users = var.poc_reviewer_user_ids
   }
 }
 

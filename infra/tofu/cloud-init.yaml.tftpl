@@ -23,12 +23,26 @@ users:
     lock_passwd: true
     ssh_authorized_keys:
       - ${deploy_ssh_public_key}
+      - ${owner_ssh_public_key}
 
 write_files:
-  - path: /etc/ssh/sshd_config.d/99-hardening.conf
+  - path: /etc/ssh/sshd_config.d/00-hardening.conf
     content: |
       PermitRootLogin no
       PasswordAuthentication no
+  # Containers must not reach the Hetzner metadata service (user_data holds the host key).
+  - path: /etc/systemd/system/block-metadata.service
+    content: |
+      [Unit]
+      Description=Block container access to the metadata service
+      After=docker.service
+      Requires=docker.service
+      [Service]
+      Type=oneshot
+      RemainAfterExit=yes
+      ExecStart=/bin/sh -c 'iptables -C DOCKER-USER -d 169.254.169.254 -j DROP || iptables -I DOCKER-USER -d 169.254.169.254 -j DROP'
+      [Install]
+      WantedBy=multi-user.target
   - path: /etc/docker/daemon.json
     content: |
       {"log-driver": "local", "log-opts": {"max-size": "10m", "max-file": "3"}}
@@ -46,6 +60,8 @@ runcmd:
   - DEBIAN_FRONTEND=noninteractive apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
   - usermod -aG docker deploy
   - systemctl restart docker
+  - systemctl daemon-reload
+  - systemctl enable --now block-metadata.service
   # 2 GB swap file
   - fallocate -l 2G /swapfile
   - chmod 600 /swapfile

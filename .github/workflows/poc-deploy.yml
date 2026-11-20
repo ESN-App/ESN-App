@@ -2,7 +2,7 @@ name: PoC deploy
 
 # PoC on Hetzner (ADR-006, simplified): build images to GHCR, deploy over SSH, smoke test.
 # GitHub Environment `poc`. Most entries are created by OpenTofu (infra/tofu, workflow `Infra`);
-#   by hand: HCLOUD_TOKEN (Read & Write; needed to edit the firewall), SMTP_USERNAME, SMTP_PASSWORD
+#   by hand: HCLOUD_TOKEN (Read & Write, needed to edit the firewall; infra env secrets are not visible here, so set it in `poc` too), SMTP_USERNAME, SMTP_PASSWORD
 #   by tofu: secrets POC_SSH_PRIVATE_KEY, POC_SSH_KNOWN_HOSTS, POSTGRES_PASSWORD, JWT_KEY, SEED_ADMIN_PASSWORD;
 #            vars POC_HOST, APP_DOMAIN, HCLOUD_FIREWALL, SEED_ADMIN_EMAIL, EMAIL_FROM_ADDRESS
 on:
@@ -32,19 +32,22 @@ jobs:
     outputs:
       tag: ${{ steps.meta.outputs.tag }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
       - id: meta
         env:
           INPUT_TAG: ${{ inputs.tag }}
         run: |
+          if [ -n "$INPUT_TAG" ] && ! [[ "$INPUT_TAG" =~ ^[A-Za-z0-9._-]{1,128}$ ]]; then
+            echo "invalid tag"; exit 1
+          fi
           echo "tag=${INPUT_TAG:-poc-${GITHUB_SHA::7}}" >> "$GITHUB_OUTPUT"
-      - uses: docker/setup-buildx-action@v4
-      - uses: docker/login-action@v4
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4
+      - uses: docker/login-action@8aa5831fb8d48d8f76594c7ddde61ae58019f550 # v4
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      - uses: docker/build-push-action@v7
+      - uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7
         with:
           context: .
           file: docker/backend.Dockerfile
@@ -56,7 +59,7 @@ jobs:
             ghcr.io/esn-app/esn-app-api:poc
           cache-from: type=gha,scope=api
           cache-to: type=gha,mode=max,scope=api
-      - uses: docker/build-push-action@v7
+      - uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7
         with:
           context: .
           file: docker/frontend.Dockerfile
@@ -81,12 +84,20 @@ jobs:
       POC_HOST: ${{ vars.POC_HOST }}
       APP_DOMAIN: ${{ vars.APP_DOMAIN }}
       HCLOUD_FIREWALL: ${{ vars.HCLOUD_FIREWALL }}
-      HCLOUD_TOKEN: ${{ secrets.HCLOUD_TOKEN }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: hetznercloud/setup-hcloud@v2
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: hetznercloud/setup-hcloud@28cdd3fc4a4a8013e86d57c7254be72df92fcc02 # v2
       - name: Open SSH for this runner
+        env:
+          HCLOUD_TOKEN: ${{ secrets.HCLOUD_TOKEN }}
         run: |
+          # drop rules left behind by a cancelled run (deploys are serialized by the concurrency group)
+          hcloud firewall describe "$HCLOUD_FIREWALL" -o json \
+            | jq -r '.rules[] | select(.description == "gha-poc-deploy") | .source_ips[]' \
+            | while read -r old; do
+                hcloud firewall delete-rule "$HCLOUD_FIREWALL" --direction in --protocol tcp --port 22 \
+                  --source-ips "$old" --description "gha-poc-deploy"
+              done
           ip="$(curl -fsS https://api.ipify.org)"
           echo "RUNNER_IP=$ip" >> "$GITHUB_ENV"
           hcloud firewall add-rule "$HCLOUD_FIREWALL" --direction in --protocol tcp --port 22 \
@@ -100,6 +111,7 @@ jobs:
           printf '%s\n' "$SSH_KEY" > ~/.ssh/id_ed25519
           chmod 600 ~/.ssh/id_ed25519
           printf '%s\n' "$KNOWN_HOSTS" > ~/.ssh/known_hosts
+          printf 'Host *\n  StrictHostKeyChecking yes\n' > ~/.ssh/config
       - name: Upload deploy files and .env
         env:
           POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
@@ -117,12 +129,12 @@ jobs:
             printf 'JWT_KEY=%s\n' "$JWT_KEY"
             printf 'SEED_ADMIN_EMAIL=%s\n' "$SEED_ADMIN_EMAIL"
             printf 'SEED_ADMIN_PASSWORD=%s\n' "$SEED_ADMIN_PASSWORD"
-            printf 'SMTP_USERNAME=%s\n' "$SMTP_USERNAME"
-            printf 'SMTP_PASSWORD=%s\n' "$SMTP_PASSWORD"
+            printf 'EMAIL_SMTP_USERNAME=%s\n' "$SMTP_USERNAME"
+            printf 'EMAIL_SMTP_PASSWORD=%s\n' "$SMTP_PASSWORD"
             printf 'EMAIL_FROM_ADDRESS=%s\n' "$EMAIL_FROM_ADDRESS"
             printf 'IMAGE_TAG=%s\n' "$TAG"
             printf 'SEED_SAMPLE_DATA=true\n'
-          } | ssh "deploy@${POC_HOST}" 'umask 077 && cat > /opt/esn/.env'
+          } | ssh "deploy@${POC_HOST}" 'umask 077 && cat > /opt/esn/.env && chmod 600 /opt/esn/.env'
       - name: Deploy
         run: ssh "deploy@${POC_HOST}" "bash /opt/esn/deploy.sh '${TAG}'"
       - name: Smoke test
@@ -137,8 +149,10 @@ jobs:
           curl -fsS "https://${APP_DOMAIN}/api/version" | tee /dev/stderr | grep -q "$short"
       - name: Close SSH for this runner
         if: always()
+        env:
+          HCLOUD_TOKEN: ${{ secrets.HCLOUD_TOKEN }}
         run: |
           if [ -n "${RUNNER_IP:-}" ]; then
             hcloud firewall delete-rule "$HCLOUD_FIREWALL" --direction in \
-              --protocol tcp --port 22 --source-ips "$RUNNER_IP/32"
+              --protocol tcp --port 22 --source-ips "$RUNNER_IP/32" --description "gha-poc-deploy"
           fi

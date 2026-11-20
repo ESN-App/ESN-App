@@ -33,9 +33,13 @@ variable "github_repository" {
 }
 
 variable "poc_reviewer_user_ids" {
-  description = "Numeric GitHub user IDs required to approve deployments to `poc` (empty = no reviewers)."
+  description = "Numeric GitHub user IDs required to approve deployments to `poc` (at least one)."
   type        = list(number)
-  default     = []
+
+  validation {
+    condition     = length(var.poc_reviewer_user_ids) > 0
+    error_message = "poc needs at least one reviewer: the deploy key is root-equivalent."
+  }
 }
 
 variable "seed_admin_email" {

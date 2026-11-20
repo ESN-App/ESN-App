@@ -8,10 +8,10 @@ Files: [deploy/docker-compose.prod.yml](../../deploy/docker-compose.prod.yml), [
 
 Everything is created by the `Infra` workflow ([infra/tofu/README.md](../../infra/tofu/README.md)): server, firewalls, primary IP, generated deploy and host keys, the `poc` environment and its secrets and variables.
 
-1. Create the bootstrap secrets (`HCLOUD_TOKEN`, `TOFU_STATE_PASSPHRASE`, `TOFU_GITHUB_TOKEN`), the repository variables and the `infra` environment with a reviewer, as listed in the tofu README.
-2. Run workflow `Infra` on branch `hetzner` with action `apply` and approve it.
+1. Create environment `infra` BY HAND (required reviewer, deployment branches = `hetzner` only; GitHub auto-creates missing environments unprotected), then its secrets and variables as listed in the tofu README. Use a dedicated Hetzner project for the PoC (the token is project-wide). Passphrase: `openssl rand -hex 32`.
+2. Push a change under `infra/tofu/` to `hetzner` (or run workflow `Infra` on it) and approve the `plan-apply` job.
 3. `POC_HOST`, `APP_DOMAIN`, `HCLOUD_FIREWALL`, `POC_SSH_KNOWN_HOSTS` and the other secrets are already set in `poc` (the host key is generated, so no `ssh-keyscan` is needed). Wait for cloud-init (about 3 min after the first boot).
-4. Add the Gmail secrets `SMTP_USERNAME` and `SMTP_PASSWORD` to environment `poc` by hand (section 2), then run workflow `PoC deploy`.
+4. Add `HCLOUD_TOKEN` (it cannot read `infra` secrets) and the Gmail secrets `SMTP_USERNAME` and `SMTP_PASSWORD` to environment `poc` by hand (section 2), then run workflow `PoC deploy`. `poc` has the reviewers from `POC_REVIEWER_USER_IDS`: the deploy key is root-equivalent.
 
 Fallback without tofu (Hetzner console): server type CPX02 (CPX12 if unavailable), HEL1, Ubuntu 24.04, cloud-init from the template with the placeholders filled by hand, firewall with TCP 80/443 open and 22 from your IP, then set the `poc` secrets and variables by hand. The hostname is the IP with dashes (`1.2.3.4` becomes `1-2-3-4.sslip.io`); get known hosts with `ssh-keyscan -t ed25519 <ip>` and verify the fingerprint in the console.
 
@@ -21,7 +21,7 @@ Use a separate Google account (not a personal one): enable 2-Step Verification, 
 
 ## 3. GitHub secrets and variables (names only)
 
-Created by tofu in `poc`: secrets `POC_SSH_PRIVATE_KEY`, `POC_SSH_KNOWN_HOSTS`, `POSTGRES_PASSWORD`, `JWT_KEY`, `SEED_ADMIN_PASSWORD`; variables `POC_HOST`, `APP_DOMAIN`, `HCLOUD_FIREWALL` (the `ssh_ci` firewall), `SEED_ADMIN_EMAIL`, `EMAIL_FROM_ADDRESS`. By hand: `SMTP_USERNAME`, `SMTP_PASSWORD` in `poc`; `HCLOUD_TOKEN` is the repository secret already created for tofu (also read by the deploy). Mapping to `.env`: `SMTP_USERNAME` -> `EMAIL_SMTP_USERNAME`, `SMTP_PASSWORD` -> `EMAIL_SMTP_PASSWORD`, the rest keep their names. The seed admin password is stored only as a secret (write-only in the UI); to learn or change it, log in and reset it through the app.
+Created by tofu in `poc`: secrets `POC_SSH_PRIVATE_KEY`, `POC_SSH_KNOWN_HOSTS`, `POSTGRES_PASSWORD`, `JWT_KEY`, `SEED_ADMIN_PASSWORD`; variables `POC_HOST`, `APP_DOMAIN`, `HCLOUD_FIREWALL` (the `ssh_ci` firewall), `SEED_ADMIN_EMAIL`, `EMAIL_FROM_ADDRESS`. By hand in `poc`: `HCLOUD_TOKEN`, `SMTP_USERNAME`, `SMTP_PASSWORD`. Mapping to `.env`: `SMTP_USERNAME` -> `EMAIL_SMTP_USERNAME`, `SMTP_PASSWORD` -> `EMAIL_SMTP_PASSWORD` (names compose reads), the rest keep their names. Login as the owner: `ssh deploy@<ip>` with your personal key (root login is off). The seed admin password is stored only as a secret (write-only in the UI); to learn or change it, log in and reset it through the app.
 
 ## 4. First manual deploy
 
