@@ -69,7 +69,15 @@ public static class DependencyInjection
 
         services.AddScoped<JwtTokenService>();
         services.AddScoped<IIdentityService, IdentityService>();
-        services.AddScoped<IEmailSender, SmtpEmailSender>();
+        services.AddHttpClient<BrevoEmailSender>();
+        services.AddScoped<SmtpEmailSender>();
+        services.AddScoped<IEmailSender>(sp =>
+            (configuration[$"{EmailSettings.SectionName}:Provider"] ?? "Smtp").ToLowerInvariant() switch
+            {
+                "brevo" => sp.GetRequiredService<BrevoEmailSender>(),
+                "log" => ActivatorUtilities.CreateInstance<LogEmailSender>(sp),
+                _ => sp.GetRequiredService<SmtpEmailSender>(),
+            });
 
         services.AddScoped<IEventRepository, EventRepository>();
         services.AddScoped<IDiscountRepository, DiscountRepository>();

@@ -20,6 +20,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\EsnApp.Application\EsnApp.Application.csproj" />
+    <ProjectReference Include="..\..\src\EsnApp.Infrastructure\EsnApp.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>
