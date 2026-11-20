@@ -52,7 +52,9 @@ builder.Services.AddCors(options =>
             .AllowAnyHeader()
             .AllowAnyMethod()));
 
-builder.Services.AddHealthChecks();
+var healthChecks = builder.Services.AddHealthChecks();
+// Tests run without a database, so only real environments probe it.
+if (!builder.Environment.IsEnvironment("Testing")) healthChecks.AddDbContextCheck<AppDbContext>();
 
 var app = builder.Build();
 
