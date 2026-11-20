@@ -1,0 +1,133 @@
+name: Infra
+
+# OpenTofu for the Hetzner PoC and the repo's `poc` environment (see infra/tofu/README.md).
+# Bootstrap, set by hand as REPOSITORY secrets: HCLOUD_TOKEN, TOFU_STATE_PASSPHRASE, TOFU_GITHUB_TOKEN.
+# Repository variables: OWNER_SSH_KEY_NAME, SEED_ADMIN_EMAIL, EMAIL_FROM_ADDRESS,
+#   optional ADMIN_SSH_CIDRS (JSON list, e.g. ["203.0.113.7/32"]), POC_REVIEWER_USER_IDS (JSON list of numeric ids).
+# Environment `infra` (create by hand, add a required reviewer) gates `apply`.
+# Encrypted state is committed to the `infra-state` branch (checked out into .state/).
+on:
+  push:
+    branches: [hetzner]
+    paths:
+      - 'infra/tofu/**'
+      - '.github/workflows/infra.yml'
+  workflow_dispatch:
+    inputs:
+      action:
+        description: 'plan or apply'
+        type: choice
+        options: [plan, apply]
+        default: plan
+
+permissions:
+  contents: read
+
+# One run at a time: this is also the lock for the state branch.
+concurrency:
+  group: infra-state
+  cancel-in-progress: false
+
+env:
+  HCLOUD_TOKEN: ${{ secrets.HCLOUD_TOKEN }}
+  TF_VAR_owner_ssh_key_name: ${{ vars.OWNER_SSH_KEY_NAME }}
+  TF_VAR_admin_ssh_cidrs: ${{ vars.ADMIN_SSH_CIDRS || '[]' }}
+  TF_VAR_poc_reviewer_user_ids: ${{ vars.POC_REVIEWER_USER_IDS || '[]' }}
+  TF_VAR_seed_admin_email: ${{ vars.SEED_ADMIN_EMAIL }}
+  TF_VAR_email_from_address: ${{ vars.EMAIL_FROM_ADDRESS }}
+  TF_VAR_github_owner: ${{ github.repository_owner }}
+  TF_ENCRYPTION: |
+    key_provider "pbkdf2" "main" {
+      passphrase = "${{ secrets.TOFU_STATE_PASSPHRASE }}"
+    }
+
+jobs:
+  plan:
+    if: github.event_name == 'push' || (inputs.action == 'plan' && github.ref == 'refs/heads/hetzner')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fetch state branch
+        run: |
+          if git ls-remote --exit-code --heads origin infra-state >/dev/null; then
+            git fetch origin infra-state:refs/remotes/origin/infra-state
+            git worktree add -B infra-state .state origin/infra-state
+          else
+            mkdir .state  # first run: empty state
+          fi
+      - uses: opentofu/setup-opentofu@v2
+        with:
+          tofu_version: 1.13.9
+          tofu_wrapper: false
+      - run: tofu init
+        working-directory: infra/tofu
+      - run: tofu fmt -check -recursive
+        working-directory: infra/tofu
+      - run: tofu validate
+        working-directory: infra/tofu
+      - name: Plan
+        working-directory: infra/tofu
+        env:
+          GITHUB_TOKEN: ${{ secrets.TOFU_GITHUB_TOKEN }}
+        run: tofu plan -input=false -lock=false
+
+  apply:
+    if: inputs.action == 'apply' && github.ref == 'refs/heads/hetzner'
+    runs-on: ubuntu-latest
+    environment: infra
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fetch state branch (or start an orphan one)
+        run: |
+          if git ls-remote --exit-code --heads origin infra-state >/dev/null; then
+            git fetch origin infra-state:refs/remotes/origin/infra-state
+            git worktree add -B infra-state .state origin/infra-state
+          else
+            git worktree add --orphan -b infra-state .state
+            printf '# infra-state\n\nEncrypted OpenTofu state (managed by .github/workflows/infra.yml). Do not edit.\n' > .state/README.md
+          fi
+      - uses: opentofu/setup-opentofu@v2
+        with:
+          tofu_version: 1.13.9
+          tofu_wrapper: false
+      - run: tofu init
+        working-directory: infra/tofu
+      - run: tofu fmt -check -recursive
+        working-directory: infra/tofu
+      - run: tofu validate
+        working-directory: infra/tofu
+      - name: Plan
+        working-directory: infra/tofu
+        env:
+          GITHUB_TOKEN: ${{ secrets.TOFU_GITHUB_TOKEN }}
+        run: tofu plan -input=false -lock=false -out="$RUNNER_TEMP/poc.tfplan"
+      - name: Apply
+        id: apply
+        working-directory: infra/tofu
+        env:
+          GITHUB_TOKEN: ${{ secrets.TOFU_GITHUB_TOKEN }}
+        run: tofu apply -input=false -lock=false "$RUNNER_TEMP/poc.tfplan"
+      # Also runs after a failed apply so partial state is never lost.
+      - name: Commit encrypted state
+        if: always() && steps.apply.outcome != 'skipped'
+        run: |
+          cd .state
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          if git diff --cached --quiet; then echo "state unchanged"; exit 0; fi
+          git commit -m 'chore(infra): update state'
+          git push origin HEAD:infra-state
+      - name: Outputs
+        working-directory: infra/tofu
+        run: |
+          {
+            echo '### Outputs'
+            echo '```'
+            tofu output
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"

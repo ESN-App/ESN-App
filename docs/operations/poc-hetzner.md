@@ -2,16 +2,18 @@
 
 Context: [ADR-006](../adr/006-hosting-on-hetzner-cloud.md), PoC-simplified: no own domain (`sslip.io`), sample data on, Gmail SMTP, no off-site backups, no monitoring.
 
-Files: [deploy/docker-compose.prod.yml](../../deploy/docker-compose.prod.yml), [deploy/Caddyfile](../../deploy/Caddyfile), [deploy/.env.production.example](../../deploy/.env.production.example), [deploy/deploy.sh](../../deploy/deploy.sh), [infra/hetzner/cloud-init.yaml](../../infra/hetzner/cloud-init.yaml).
+Files: [deploy/docker-compose.prod.yml](../../deploy/docker-compose.prod.yml), [deploy/Caddyfile](../../deploy/Caddyfile), [deploy/.env.production.example](../../deploy/.env.production.example), [deploy/deploy.sh](../../deploy/deploy.sh), [infra/tofu](../../infra/tofu/README.md) (cloud-init template `cloud-init.yaml.tftpl`).
 
-## 1. Create the server
+## 1. Create the server (OpenTofu)
 
-1. Generate a deploy key pair: `ssh-keygen -t ed25519 -f esn-deploy -C deploy@esn` (the private key goes only into the GitHub secret `POC_SSH_PRIVATE_KEY`).
-2. Hetzner Cloud console: new project, server type **CPX02** (1 GB; **CPX12**, 2 GB, if CPX02 cannot be created), location **HEL1**, image Ubuntu LTS, IPv4 on, backups optional (+20%).
-3. In "Cloud config" paste [infra/hetzner/cloud-init.yaml](../../infra/hetzner/cloud-init.yaml) with the public key from `esn-deploy.pub` in place of the placeholder.
-4. Firewall (Hetzner Cloud Firewall, attach to the server): inbound TCP 80 and 443 from anywhere, TCP 22 from your own IP only.
-5. Wait for cloud-init (about 3 min): `ssh -i esn-deploy deploy@<ip> cloud-init status --wait`.
-6. Your hostname is the IP with dashes: `1.2.3.4` becomes `APP_DOMAIN=1-2-3-4.sslip.io`.
+Everything is created by the `Infra` workflow ([infra/tofu/README.md](../../infra/tofu/README.md)): server, firewalls, primary IP, generated deploy and host keys, the `poc` environment and its secrets and variables.
+
+1. Create the bootstrap secrets (`HCLOUD_TOKEN`, `TOFU_STATE_PASSPHRASE`, `TOFU_GITHUB_TOKEN`), the repository variables and the `infra` environment with a reviewer, as listed in the tofu README.
+2. Run workflow `Infra` on branch `hetzner` with action `apply` and approve it.
+3. `POC_HOST`, `APP_DOMAIN`, `HCLOUD_FIREWALL`, `POC_SSH_KNOWN_HOSTS` and the other secrets are already set in `poc` (the host key is generated, so no `ssh-keyscan` is needed). Wait for cloud-init (about 3 min after the first boot).
+4. Add the Gmail secrets `SMTP_USERNAME` and `SMTP_PASSWORD` to environment `poc` by hand (section 2), then run workflow `PoC deploy`.
+
+Fallback without tofu (Hetzner console): server type CPX02 (CPX12 if unavailable), HEL1, Ubuntu 24.04, cloud-init from the template with the placeholders filled by hand, firewall with TCP 80/443 open and 22 from your IP, then set the `poc` secrets and variables by hand. The hostname is the IP with dashes (`1.2.3.4` becomes `1-2-3-4.sslip.io`); get known hosts with `ssh-keyscan -t ed25519 <ip>` and verify the fingerprint in the console.
 
 ## 2. Gmail sender
 
@@ -19,7 +21,7 @@ Use a separate Google account (not a personal one): enable 2-Step Verification, 
 
 ## 3. GitHub secrets and variables (names only)
 
-Read by the PoC deploy workflow (PoC-2): secrets `POC_SSH_PRIVATE_KEY`, `POC_SSH_KNOWN_HOSTS`, `POSTGRES_PASSWORD`, `JWT_KEY`, `SEED_ADMIN_EMAIL`, `SEED_ADMIN_PASSWORD`, `SMTP_USERNAME`, `SMTP_PASSWORD`; variables `POC_HOST`, `APP_DOMAIN`, `EMAIL_FROM_ADDRESS`. Mapping to `.env`: `SMTP_USERNAME` -> `EMAIL_SMTP_USERNAME`, `SMTP_PASSWORD` -> `EMAIL_SMTP_PASSWORD`, the rest keep their names. Get known hosts with `ssh-keyscan -t ed25519 <ip>`.
+Created by tofu in `poc`: secrets `POC_SSH_PRIVATE_KEY`, `POC_SSH_KNOWN_HOSTS`, `POSTGRES_PASSWORD`, `JWT_KEY`, `SEED_ADMIN_PASSWORD`; variables `POC_HOST`, `APP_DOMAIN`, `HCLOUD_FIREWALL` (the `ssh_ci` firewall), `SEED_ADMIN_EMAIL`, `EMAIL_FROM_ADDRESS`. By hand: `SMTP_USERNAME`, `SMTP_PASSWORD` in `poc`; `HCLOUD_TOKEN` is the repository secret already created for tofu (also read by the deploy). Mapping to `.env`: `SMTP_USERNAME` -> `EMAIL_SMTP_USERNAME`, `SMTP_PASSWORD` -> `EMAIL_SMTP_PASSWORD`, the rest keep their names. The seed admin password is stored only as a secret (write-only in the UI); to learn or change it, log in and reset it through the app.
 
 ## 4. First manual deploy
 

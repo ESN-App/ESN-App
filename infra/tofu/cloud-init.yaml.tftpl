@@ -1,5 +1,6 @@
 #cloud-config
-# PoC server baseline (ADR-006). Replace the SSH key placeholder before creating the server.
+# PoC server baseline (ADR-006), rendered by OpenTofu (server.tf); single source of truth.
+# Manual fallback: render by hand (deploy key + host key placeholders) and paste into the console.
 package_update: true
 package_upgrade: true
 packages:
@@ -8,6 +9,12 @@ packages:
   - gnupg
   - unattended-upgrades
 
+# Fixed host key so known_hosts is known before first boot.
+ssh_keys:
+  ed25519_private: |
+    ${indent(4, host_private_key)}
+  ed25519_public: ${host_public_key}
+
 users:
   - name: deploy
     groups: [sudo, docker]
@@ -15,7 +22,7 @@ users:
     sudo: ALL=(ALL) NOPASSWD:ALL
     lock_passwd: true
     ssh_authorized_keys:
-      - ssh-ed25519 AAAA...REPLACE_WITH_DEPLOY_PUBLIC_KEY deploy@esn
+      - ${deploy_ssh_public_key}
 
 write_files:
   - path: /etc/ssh/sshd_config.d/99-hardening.conf

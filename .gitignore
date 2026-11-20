@@ -37,3 +37,9 @@ backend/src/EsnApp.Api/wwwroot/images/uploads/
 stack-deploy/
 skills-lock.json
 .agents/
+
+# OpenTofu
+.state/
+.terraform/
+*.tfplan
+terraform.tfvars

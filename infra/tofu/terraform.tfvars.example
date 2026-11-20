@@ -1,0 +1,7 @@
+# Copy to terraform.tfvars (ignored by version control). No secrets here.
+owner_ssh_key_name    = "my-laptop"
+admin_ssh_cidrs       = [] # e.g. ["203.0.113.7/32"]
+server_type           = "cpx02"
+seed_admin_email      = "admin@example.org"
+email_from_address    = "esn.sender@gmail.com"
+poc_reviewer_user_ids = [] # numeric user ids

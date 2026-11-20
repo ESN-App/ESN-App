@@ -1,11 +1,10 @@
 name: PoC deploy
 
 # PoC on Hetzner (ADR-006, simplified): build images to GHCR, deploy over SSH, smoke test.
-# Required GitHub Environment `poc`:
-#   secrets: HCLOUD_TOKEN (Read & Write on the Hetzner project; needed to edit the firewall),
-#            POC_SSH_PRIVATE_KEY, POC_SSH_KNOWN_HOSTS, POSTGRES_PASSWORD, JWT_KEY,
-#            SEED_ADMIN_EMAIL, SEED_ADMIN_PASSWORD, SMTP_USERNAME, SMTP_PASSWORD
-#   vars:    POC_HOST, APP_DOMAIN, HCLOUD_FIREWALL, EMAIL_FROM_ADDRESS
+# GitHub Environment `poc`. Most entries are created by OpenTofu (infra/tofu, workflow `Infra`);
+#   by hand: HCLOUD_TOKEN (Read & Write; needed to edit the firewall), SMTP_USERNAME, SMTP_PASSWORD
+#   by tofu: secrets POC_SSH_PRIVATE_KEY, POC_SSH_KNOWN_HOSTS, POSTGRES_PASSWORD, JWT_KEY, SEED_ADMIN_PASSWORD;
+#            vars POC_HOST, APP_DOMAIN, HCLOUD_FIREWALL, SEED_ADMIN_EMAIL, EMAIL_FROM_ADDRESS
 on:
   push:
     branches: [hetzner]
@@ -105,7 +104,7 @@ jobs:
         env:
           POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
           JWT_KEY: ${{ secrets.JWT_KEY }}
-          SEED_ADMIN_EMAIL: ${{ secrets.SEED_ADMIN_EMAIL }}
+          SEED_ADMIN_EMAIL: ${{ vars.SEED_ADMIN_EMAIL }}
           SEED_ADMIN_PASSWORD: ${{ secrets.SEED_ADMIN_PASSWORD }}
           SMTP_USERNAME: ${{ secrets.SMTP_USERNAME }}
           SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
