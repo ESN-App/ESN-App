@@ -60,6 +60,11 @@ server {
         return 200 '{"version":"__APP_VERSION__","commit":"$app_commit"}';
     }
 
+    # Missing build assets must 404 (not fall back to index.html) so a stale tab's lazy import fails cleanly.
+    location ~* \.(js|mjs|css|map)$ {
+        try_files $uri =404;
+    }
+
     # SPA fallback: let the Angular router handle everything else.
     location / {
         try_files $uri $uri/ /index.html;

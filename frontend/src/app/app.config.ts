@@ -10,11 +10,12 @@ import {
   ActivatedRouteSnapshot,
   provideRouter,
   Router,
+  withNavigationErrorHandler,
   withViewTransitions,
 } from '@angular/router';
 
 import { routes } from './app.routes';
-import { AppUpdate, authInterceptor, retryInterceptor, SiteSettings } from './core';
+import { AppUpdate, authInterceptor, reloadOnChunkError, retryInterceptor, SiteSettings } from './core';
 import { animateDetailTransition, detailDirection, trackRouteTransition } from './shared';
 import { provideServiceWorker } from '@angular/service-worker';
 
@@ -49,6 +50,7 @@ export const appConfig: ApplicationConfig = {
           }
         },
       }),
+      withNavigationErrorHandler((event) => void reloadOnChunkError(event)),
     ),
     provideHttpClient(withInterceptors([authInterceptor, retryInterceptor])),
     provideServiceWorker('ngsw-worker.js', {
