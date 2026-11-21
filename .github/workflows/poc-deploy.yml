@@ -33,6 +33,8 @@ jobs:
       tag: ${{ steps.meta.outputs.tag }}
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
       - id: meta
         env:
           INPUT_TAG: ${{ inputs.tag }}
@@ -86,6 +88,8 @@ jobs:
       HCLOUD_FIREWALL: ${{ vars.HCLOUD_FIREWALL }}
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
       - uses: hetznercloud/setup-hcloud@28cdd3fc4a4a8013e86d57c7254be72df92fcc02 # v2
       - name: Open SSH for this runner
         env:

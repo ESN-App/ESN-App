@@ -22,5 +22,9 @@ COPY VERSION ./VERSION
 # Commit SHA shown by /api/version; pass --build-arg GIT_COMMIT=<sha> (empty means "dev").
 ARG GIT_COMMIT=""
 ENV GIT_COMMIT=${GIT_COMMIT}
+# Run as the image's non-root user (APP_UID=1654). The uploads dir is created and owned by it so a fresh
+# volume mounted there inherits the ownership; an existing root-owned volume needs a one-time chown.
+RUN mkdir -p /app/wwwroot/images/uploads && chown -R $APP_UID:$APP_UID /app/wwwroot
+USER $APP_UID
 EXPOSE 8080
 ENTRYPOINT ["dotnet", "EsnApp.Api.dll"]
