@@ -1,6 +1,7 @@
 using EsnApp.Application.Common;
 using EsnApp.Application.Identity;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace EsnApp.Infrastructure.Identity;
@@ -9,7 +10,8 @@ public class IdentityService(
     UserManager<ApplicationUser> userManager,
     JwtTokenService tokenService,
     IEmailSender emailSender,
-    IOptions<EmailSettings> emailOptions) : IIdentityService
+    IOptions<EmailSettings> emailOptions,
+    ILogger<IdentityService> logger) : IIdentityService
 {
     private readonly EmailSettings _emailSettings = emailOptions.Value;
 
@@ -132,7 +134,16 @@ public class IdentityService(
             $"<p><a href=\"{link}\">Set a new password</a></p>" +
             $"<p>This link expires in 1 hour. If you didn't request this, you can ignore this email.</p>";
 
-        await emailSender.SendAsync(user.Email, "Reset your ESN Gdańsk admin password", body, cancellationToken);
+        try
+        {
+            await emailSender.SendAsync(user.Email, "Reset your ESN Gdańsk admin password", body, cancellationToken);
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            // SMTP connect/auth/send failures (MailKit, sockets); never log the body.
+            logger.LogWarning(ex, "Password reset email could not be sent.");
+            return Result.Failure(IIdentityService.EmailNotSentError);
+        }
 
         return Result.Success();
     }

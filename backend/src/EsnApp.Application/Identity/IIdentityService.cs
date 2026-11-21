@@ -4,6 +4,9 @@ namespace EsnApp.Application.Identity;
 
 public interface IIdentityService
 {
+    /// <summary>Error returned when the SMTP server could not deliver an email; controllers map it to 503.</summary>
+    const string EmailNotSentError = "Email could not be sent.";
+
     Task<Result<AuthResponse>> LoginAsync(LoginRequest request, CancellationToken cancellationToken = default);
 
     Task<Result<IReadOnlyList<AdminUserDto>>> GetAdminsAsync(

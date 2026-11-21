@@ -53,9 +53,17 @@ public class AdminUsersController(IIdentityService identityService, ISender send
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status503ServiceUnavailable)]
     public async Task<IActionResult> RequestPasswordReset(string id, CancellationToken cancellationToken)
     {
         var result = await identityService.RequestPasswordResetAsync(id, cancellationToken);
-        return result.IsSuccess ? NoContent() : BadRequest(new { error = result.Error });
+        if (result.IsSuccess)
+        {
+            return NoContent();
+        }
+
+        return result.Error == IIdentityService.EmailNotSentError
+            ? Problem(title: "Email could not be sent", detail: "The mail server is unavailable. Try again later.", statusCode: StatusCodes.Status503ServiceUnavailable)
+            : BadRequest(new { error = result.Error });
     }
 }
