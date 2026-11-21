@@ -9,11 +9,12 @@ Monorepo for the **ESN Gdańsk App** — a non-profit PWA for the ESN Gdańsk ch
 Design source of truth: the Penpot file **"ESNapp mockup v3"** (student mobile/desktop, admin panel, component boards such as "Event badges" and "No-image placeholder"). New UI is designed there first, then implemented.
 
 Current architecture (as-is, with diagrams; start here): [docs/architecture/README.md](docs/architecture/README.md).
+Target architecture (to-be: Hetzner platform, dependency Variants A/B, roadmap; ADRs and issues derive from it): [docs/architecture/target/README.md](docs/architecture/target/README.md).
 
 Background docs (originally the source of truth for decisions — **now historical/point-in-time snapshots from the skeleton phase**; they predate News, the Admin panel, the Partners map, Calendar UI, and Home, and should not be trusted for current architecture or scope):
 
 - [docs/skeleton-implementation.md](docs/skeleton-implementation.md) — implementation notes as of the initial skeleton (dated 2026-07-07); API surface table and "auth is the only working feature" framing are stale, see Architecture below for current state
-- [docs/adr/](docs/adr) — decision records (ADR-001: latest-stable version policy, ADR-002: same-origin API proxy, ADR-003: `main` retired — **superseded by ADR-004**, ADR-004: `main` is the primary/production branch again and Render deploys from it, ADR-005 (Proposed): event registration and PayU payments). Other architecture-level decisions (Partners superseding Discounts, Home as root route, role-based admin auth) have no ADR yet
+- [docs/adr/](docs/adr) — decision records (ADR-001: latest-stable version policy, ADR-002: same-origin API proxy, ADR-003: `main` retired — **superseded by ADR-004**, ADR-004: `main` is the primary/production branch again and Render deploys from it, ADR-006: production moves to one Hetzner Cloud server with Docker Compose, Render deploy part of ADR-004 superseded after cut-over). Other architecture-level decisions (Partners superseding Discounts, Home as root route, role-based admin auth) have no ADR yet
 - [docs/architecture-decisions.md](docs/architecture-decisions.md) — why monorepo, Clean Architecture, Angular Material, scaffolded auth; module/feature lists in it are stale (missing News, Partners, Home, Admin)
 - [docs/meeting-summary.md](docs/meeting-summary.md) — confirmed stack, original MVP scope, GitHub workflow; scope section is a historical snapshot (e.g. lists the Map as deferred "Could Have" — it has since been built)
 - [claude-code-skeleton-prompt.md](claude-code-skeleton-prompt.md) — the spec the original skeleton was generated from

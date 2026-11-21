@@ -2,7 +2,7 @@
 
 ## Status
 
-Accepted (2026-11-06). Supersedes [ADR-003](003-retire-main-dev-is-primary.md).
+Accepted (2026-11-06). Supersedes [ADR-003](003-retire-main-dev-is-primary.md). The Render deploy trigger is superseded by [ADR-006](006-hosting-on-hetzner-cloud.md) after its cut-over; the branch policy stands.
 
 ## Context
 
